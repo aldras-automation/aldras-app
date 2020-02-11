@@ -1,0 +1,1 @@
+`````Button.left clicked at (2244, 627)
