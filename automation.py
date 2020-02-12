@@ -91,24 +91,42 @@ def record():
 
 
 def main():
-    def execute(workflow_name_entry):
-        print(workflow_name_entry)
+    def record(workflow_name_entry):
+        print('Workflow: {}'.format(workflow_name_entry))
         workflow_name.set(workflow_name_entry)
+        main_text.delete('1.0', tk.END)
+        main_text.insert(tk.END, 'Workflow: {}'.format(workflow_name_entry))
         pass
+
+
+    def execute(workflow_name_entry):
+        print('Workflow: {}'.format(workflow_name_entry))
+        workflow_name.set(workflow_name_entry)
+        main_text.delete('1.0', tk.END)
+        main_text.insert(tk.END, 'Workflow: {}'.format(workflow_name_entry))
+        pass
+
 
     m = tk.Tk()
     m.title('Counting Seconds')
-    tk.Button(m, text='Record', width=25, command=record).grid(row=0, column=1)
-    tk.Label(m, text='', width=10).grid(row=0, column=2)
-    tk.Label(m, text='Workflow name:').grid(row=0, column=3)
+    tk.Label(m, text='Automation Tool').grid(row=0, column=1, columnspan=6)
+
+    tk.Button(m, text='Record', width=25, command=record).grid(row=1, column=1)
+    m.grid_columnconfigure(1, weight=1)
+    tk.Label(m, text='', width=10).grid(row=1, column=2)
+    tk.Label(m, text='Workflow name:').grid(row=1, column=3)
     workflow_name_entry = tk.Entry(m)
-    workflow_name_entry.grid(row=0, column=4)
+    workflow_name_entry.grid(row=1, column=4)
     workflow_name = tk.StringVar()
-    tk.Label(m, text='', width=10).grid(row=0, column=5)
-    tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=0, column=6)
-    tk.Label(m, textvariable=workflow_name, width=10).grid(row=1, column=1)
-    tk.Button(m, text='Quit', width=25, command=m.destroy).grid(row=2, column=6)
+    tk.Label(m, text='', width=10).grid(row=1, column=5)
+    tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=1, column=6)
+    m.grid_columnconfigure(6, weight=1)
+
+    main_text = tk.Text(m)
+    main_text.grid(row=2, column=1, columnspan=6)
+    tk.Button(m, text='Quit', width=25, command=m.destroy).grid(row=3, column=6)
     m.bind('<Return>', execute)
+    m.grid_rowconfigure(3, weight=1)
     m.mainloop()
 
 
