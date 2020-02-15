@@ -1,0 +1,18 @@
+`````CTRL+t
+`````Button.left clicked at (1327, 539)
+`````CTRL+t
+ama
+`````Key.enter
+`````CTRL+t
+gooog
+`````Key.backspace
+`````Key.backspace
+gle drive
+`````Key.down
+`````Key.down
+`````Key.down
+`````Key.down
+`````Key.down
+`````Key.enter
+`````Button.left clicked at (1247, 516)
+`````Button.left clicked at (1349, 489)

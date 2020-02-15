@@ -1,12 +1,6 @@
-Test1Test1Test1Test1Test1Test1Test1Test1Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
-Test1
+`````Button.left clicked at (2207, 24)
+`````Button.left clicked at (2327, 26)
+`````Button.left clicked at (2450, 26)
+`````Button.left clicked at (2565, 25)
+`````Button.left clicked at (2671, 26)
+`````Button.left clicked at (2788, 21)
