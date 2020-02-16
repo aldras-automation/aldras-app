@@ -3,7 +3,7 @@ from pynput import mouse
 import pandas as pd
 from time import sleep
 
-file_name = 'automation1'
+file_name = 'test_pract'
 capslock = False
 ctrls = 0
 recording = False
@@ -73,7 +73,7 @@ def on_click(x, y, button, pressed):
         if pressed:
             if previous_base_key:
                 output_to_file()
-            output_to_file('`````{} clicked at ({}, {})'.format(button, x, y))
+            output_to_file('`````{} {} at ({}, {})'.format(button, 'Pressed' if pressed else 'Released', x, y))
 
 
 def on_scroll(x, y, dx, dy):

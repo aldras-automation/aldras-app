@@ -1,18 +1,18 @@
-`````CTRL+t
-`````Button.left clicked at (1327, 539)
-`````CTRL+t
-ama
-`````Key.enter
-`````CTRL+t
-gooog
-`````Key.backspace
-`````Key.backspace
-gle drive
-`````Key.down
-`````Key.down
-`````Key.down
-`````Key.down
-`````Key.down
-`````Key.enter
-`````Button.left clicked at (1247, 516)
-`````Button.left clicked at (1349, 489)
+``button.left``pressed at (2252, 27)
+``button.left``released at (2252, 27)
+``scrolled``down at (2508, 393)
+``scrolled``down at (2508, 393)
+t```pressed
+e```pressed
+t```released
+e```released
+s```pressed
+t```pressed
+s```released
+t```released
+key.backspace```pressed
+key.backspace```released
+key.backspace```pressed
+key.backspace```released
+key.enter```pressed
+key.enter```released
