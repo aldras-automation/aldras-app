@@ -4,6 +4,13 @@ from time import sleep
 import pandas as pd
 import math
 # failsafe - mouse cursor to top left corner
+# TODO allow 'yes' or 'y' for responses
+# TODO right-click recording and execution
+# TODO ctrl key calibration setup
+# TODO re-runs
+# TODO comments
+# TODO allow workflow comments
+# TODO GUI
 
 df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
 df = df.set_index('Code')
@@ -17,57 +24,73 @@ def press(key, action):
         pyauto.keyDown(key)
     elif action == 'released':
         pyauto.keyUp(key)
+    elif action == 'tapped':
+        pyauto.press(key)
+        print('\t{} actually tapped'.format(key))
     return
 
 
-
 def execute():
+    pyauto.PAUSE = pause
     with open('{}.txt'.format(workflow_name), 'r') as record_file:
         lines = record_file.readlines()
-    pyauto.PAUSE = 0.01
-    # pyauto.PAUSE = 0.5
     for line in lines:
         # sleep(0.5)
         line = line.replace('\n', '').lower()
         print(line)
-        action = line.split('```')[1]
+
         if line[0:2] == '``':  # special functions
-            key = line.split('```')[0].split('.')[1]
-            if 'button.left' in line:
-                coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
-                coords[0] = int(coords[0])
-                coords[1] = int(coords[1])
-                if 'press' in line:
-                    pyauto.mouseDown(button='left', x=coords[0], y=coords[1])
-                    down = coords
-                elif 'release' in line:
-                    # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
-                    drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
-                    drag_duration = drag_dist / drag_duration_scale
-                    pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
-                    pyauto.mouseUp()
-                elif 'clicked' in line:
-                    pyauto.click(x=coords[0], y=coords[1])
-
-            # elif 'ctrl+' in line:
-            #     pyauto.hotkey('ctrl', line.split('+')[-1])
-
-            elif 'key.' in line:
-                if key == 'delete':
-                    key = 'del'
-                elif key == 'alt_l':
-                    key = 'altleft'
-                elif key == 'alt_r':
-                    key = 'altright'
-                elif key == 'cmd':
-                    key = 'win'
-                elif key == 'ctrl_l':
-                    key = 'ctrlleft'
-                press(key, action)
-
+            action = line.split('```')[1]
+            if '```sleep' in line:
+                sleep(float(line.replace('```sleep(', '').replace(')', '')))
+            else:
+                key = line.split('```')[0].split('.')[1]
+                if 'button.left' in line:
+                    coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
+                    coords[0] = int(coords[0])
+                    coords[1] = int(coords[1])
+                    if 'press' in line:
+                        pyauto.mouseDown(button='left', x=coords[0], y=coords[1])
+                        down = coords
+                    elif 'release' in line:
+                        # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
+                        drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
+                        drag_duration = mouse_duration + (drag_dist / drag_duration_scale)
+                        pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+                        pyauto.mouseUp()
+                    elif 'tapped' in line:
+                        pyauto.click(x=coords[0], y=coords[1], duration=mouse_duration)
+                    sleep(0.5)  # must be here to prevent some later operations from being cut off...
+                elif 'scrolled.' in line:
+                    scroll_amnt = action.split(' at ')[0]
+                    if key == 'down':
+                        pyauto.scroll(-60)
+                    elif key == 'up':
+                        pyauto.scroll(60)
+                elif 'key.' in line:
+                    if key == 'delete':
+                        key = 'del'
+                    elif key == 'alt_l':
+                        key = 'altleft'
+                    elif key == 'alt_r':
+                        key = 'altright'
+                    elif key == 'cmd':
+                        key = 'win'
+                    elif key == 'ctrl_l':
+                        key = 'ctrlleft'
+                    elif key == 'page_up':
+                        key = 'pageup'
+                    elif key == 'page_down':
+                        key = 'pagedown'
+                    press(key, action)
         else:
-            key = line.split('```')[0]
-            press(key, action)
+            if '```' in line:
+                action = line.split('```')[1]
+                key = line.split('```')[0]
+                press(key, action)
+            else:
+                keys = line
+                pyauto.typewrite(keys)
 
     print('\nComplete!')
     return
@@ -121,8 +144,8 @@ def on_press_recording(key):
         print()
         print('RECORDING = {}'.format(recording))
         if not recording:
-            print('Complete!!!!')
-
+            print('Complete!')
+            compile_recording()
             raise SystemExit()
     return
 
@@ -162,7 +185,7 @@ def on_click_recording(x, y, button, pressed):
 
 def on_scroll_recording(x, y, dx, dy):
     if recording:
-        output_to_file_bkup('``scrolled```{} at {}'.format('down' if dy < 0 else 'up', (x, y)))
+        output_to_file_bkup('``scrolled.{}```1 at {}'.format('down' if dy < 0 else 'up', (x, y)))
     return
 
 
@@ -195,48 +218,52 @@ def coords_of(line):
 
 
 def compile_recording():
-    print('This is the Recording Compilation placeholder.')
     bkup_file = '{}_bkup.txt'.format(workflow_name)
-    # bkup_file = '{}.txt'.format(workflow_name)  # uncomment if workflow file to be compiled has been renamed without '_bkup'
     with open(bkup_file, 'r') as record_file:
         lines = record_file.readlines()
-    last_line = ''
-    on_same_line = False
-    for line in lines:  # special input
-        line = line.replace('\n', '')
-        if line[0:2] == '``':
-            if on_same_line:
-                print()
-                on_same_line = False
-            # if 'button.left``pressed' in line:
-            #     last_line = line
-            if 'button.left``released' in line:
-                if 'button.left``pressed' in last_line and (coords_of(line) == coords_of(last_line)):
-                    print('``click.left at {}'.format(coords_of(line)))
+    with open('{}.txt'.format(workflow_name), 'w') as record_file:
+        for line in lines:
+            record_file.write(line)
+    processed_lines = []
+    skip = False
+    previous_normal_key_tap = False
+    for index, line in enumerate(lines[:-1]):
+        if not skip:
+            # print(line.replace('\n', ''), end='')
+            if lines[index].replace('pressed', '') == lines[index+1].replace('released', ''):
+                # print(' -------------- True')
+                skip = True
+                if line[0:2] == '``':  # special functions
+                    key = line.split('```')[0].split('.')[1]
+                    if previous_normal_key_tap:
+                        new_line = '\n'
+                    else:
+                        new_line = ''
+                    processed_line = new_line + lines[index].replace('pressed', 'tapped')
+                    # processed_line = '\n\n\n\n\n\n' + lines[index].replace('pressed', 'tapped')
+                    previous_normal_key_tap = False
                 else:
-                    print(last_line)
-                    print(line)
-            if '```released' in line:
-                key = line.split('```')[0]
-                if '{}```pressed'.format(key) in last_line:
-                    print(key)
+                    key = line.split('```')[0]
+                    # if lines[index + 1][0:2] == '``':  # next_
+                    processed_line = key
+                    previous_normal_key_tap = True
+            else:
+                if previous_normal_key_tap:
+                    new_line = '\n'
                 else:
-                    print(last_line)
-                    print(line)
-
-        else:  # not special input
-            # print('{} reg'.format(line))
-            if '```released' in line:
-                key = line.split('```')[0]
-                if '{}```pressed'.format(key) in last_line:
-                    print(key, end='')
-                    on_same_line = True
-                else:
-                    print(last_line)
-                    print(line)
-            pass
-        last_line = line
-
+                    new_line = ''
+                processed_line = new_line + line
+                previous_normal_key_tap = False
+            processed_lines.append(processed_line)
+            print(processed_line, end='')
+        else:
+            skip = False
+    processed_lines.append('\n' + lines[-1])
+    print(processed_lines)
+    with open('{}.txt'.format(workflow_name), 'w') as record_file:
+        for line in processed_lines:
+            record_file.write(line)
+    print('The workflow recording compilation was successful.')
     return
 
 
@@ -250,6 +277,12 @@ running = False
 
 
 def main():
+    global pause
+    global mouse_duration
+    # pause = 0.02
+    pause = 0.5
+    mouse_duration = 0
+
     print('Welcome to the Automation Tool by Noah Baculi, 2020')
     print('Remember, at any time to stop an automation execution, move the mouse cursor to the very left upper corner '
           'to trigger the failsafe.')
@@ -274,10 +307,10 @@ def main():
             recording_warning = ''
             break
 
+    global workflow_name
     confirmation = '_'
     while confirmation not in ['', 'y']:
         confirmation = '_'
-        global workflow_name
         while True:
             workflow_name = input('Enter the workflow name (do not enter \'_bkup\' filenames without full understanding of implications): ')
             if '\\' not in workflow_name and '.' not in workflow_name and workflow_name != '':

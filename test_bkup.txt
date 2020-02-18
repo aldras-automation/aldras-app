@@ -1,94 +1,57 @@
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.up```pressed
-``key.up```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
+``button.left```pressed at (2333, 634)
+``button.left```released at (2333, 634)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.down```-1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``scrolled.up```1 at (2416, 618)
+``button.left```pressed at (929, 531)
+``button.left```released at (929, 531)
+``button.left```pressed at (668, 456)
+``button.left```released at (668, 456)
+``key.ctrl_l```pressed
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+z```pressed
+ctrl+z```released
+``key.ctrl_l```released
+``scrolled.up```1 at (744, 355)
+``scrolled.up```1 at (743, 355)
+``scrolled.up```1 at (741, 355)
+``scrolled.up```1 at (740, 356)
+``scrolled.up```1 at (743, 372)
+``scrolled.up```1 at (743, 372)
+``button.left```pressed at (730, 433)
+``button.left```released at (730, 433)
+``key.ctrl_l```pressed
+s```pressed
+ctrl+s```released
+``key.ctrl_l```released
+``button.left```pressed at (663, 522)
+``button.left```released at (663, 522)
+``key.f12```pressed

@@ -1,0 +1,140 @@
+``button.left```pressed at (530, 1066)
+``button.left```released at (530, 1066)
+``button.left```pressed at (447, 484)
+``button.left```released at (447, 484)
+``key.shift```pressed
+t```pressed
+``key.shift```released
+t```released
+h```pressed
+i```pressed
+h```released
+i```released
+s```pressed
+s```released
+ ```pressed
+ ```released
+i```pressed
+i```released
+s```pressed
+s```released
+ ```pressed
+ ```released
+a```pressed
+a```released
+ ```pressed
+ ```released
+n```pressed
+n```released
+a```pressed
+a```released
+m```pressed
+m```released
+e```pressed
+e```released
+``key.tab```pressed
+``key.tab```released
+0```pressed
+0```released
+1```pressed
+1```released
+2```pressed
+2```released
+3```pressed
+3```released
+4```pressed
+4```released
+5```pressed
+5```released
+6```pressed
+6```released
+7```pressed
+7```released
+8```pressed
+8```released
+9```pressed
+9```released
+``key.tab```pressed
+``key.tab```released
+``key.enter```pressed
+``key.enter```released
+ ```pressed
+ ```released
+``key.tab```pressed
+``key.tab```released
+0```pressed
+0```released
+2```pressed
+2```released
+1```pressed
+1```released
+7```pressed
+7```released
+2```pressed
+2```released
+0```pressed
+0```released
+2```pressed
+2```released
+0```pressed
+0```released
+``key.tab```pressed
+``key.tab```released
+e```pressed
+e```released
+m```pressed
+a```pressed
+m```released
+a```released
+i```pressed
+i```released
+l```pressed
+l```released
+``key.shift```pressed
+@```pressed
+``key.shift```released
+2```released
+e```pressed
+e```released
+m```pressed
+m```released
+a```pressed
+a```released
+i```pressed
+i```released
+l```pressed
+l```released
+.```pressed
+.```released
+c```pressed
+c```released
+o```pressed
+m```pressed
+o```released
+m```released
+``key.tab```pressed
+``key.tab```released
+n```pressed
+n```released
+o```pressed
+o```released
+ ```pressed
+ ```released
+t```pressed
+t```released
+h```pressed
+h```released
+x```pressed
+x```released
+``button.left```pressed at (373, 930)
+``button.left```released at (373, 930)
+``key.page_up```pressed
+``key.page_up```released
+``key.page_up```pressed
+``key.page_up```released
+``key.page_up```pressed
+``key.page_up```released
+``key.ctrl_l```pressed
+r```pressed
+ctrl+r```released
+``key.ctrl_l```released

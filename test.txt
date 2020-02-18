@@ -1,94 +1,11 @@
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.up```pressed
-``key.up```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.up```pressed
-``key.up```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.left```pressed
-``key.left```released
-``key.down```pressed
-``key.down```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
-``key.right```pressed
-``key.right```released
+``button.left```tapped at (468, 1056)
+``button.left```tapped at (693, 726)
+``scrolled.down```1 at (693, 726)
+``scrolled.down```1 at (693, 728)
+``scrolled.down```1 at (693, 730)
+``scrolled.down```1 at (693, 731)
+``scrolled.down```1 at (693, 731)
+``scrolled.down```1 at (693, 731)
+``scrolled.down```1 at (693, 731)
+
+``scrolled.down```1 at (693, 731)

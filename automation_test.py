@@ -1,3 +1,7 @@
-key = 'delete'
+import pyautogui as pyauto
+from time import sleep
 
-print(key is 'delete')
+
+sleep(2)
+pyauto.scroll(-30)
+pyauto.scroll(-30)
