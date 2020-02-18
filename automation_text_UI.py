@@ -1,15 +1,17 @@
+import math
+from time import sleep
+
+import pandas as pd
 import pyautogui as pyauto
 from pynput import keyboard, mouse
-from time import sleep
-import pandas as pd
-import math
+
 # failsafe - mouse cursor to top left corner
-# TODO allow 'yes' or 'y' for responses
 # TODO right-click recording and execution
 # TODO ctrl key calibration setup
 # TODO re-runs
 # TODO comments
 # TODO allow workflow comments
+# TODO create help guide
 # TODO GUI
 
 df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
@@ -26,7 +28,6 @@ def press(key, action):
         pyauto.keyUp(key)
     elif action == 'tapped':
         pyauto.press(key)
-        print('\t{} actually tapped'.format(key))
     return
 
 
@@ -55,9 +56,10 @@ def execute():
                     elif 'release' in line:
                         # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
                         drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
-                        drag_duration = mouse_duration + (drag_dist / drag_duration_scale)
+                        drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
                         pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
                         pyauto.mouseUp()
+                        sleep(0.5 * mouse_duration)
                     elif 'tapped' in line:
                         pyauto.click(x=coords[0], y=coords[1], duration=mouse_duration)
                     sleep(0.5)  # must be here to prevent some later operations from being cut off...
@@ -204,7 +206,7 @@ def on_press_execute(key):
         ctrls += 1
         print('{}  '.format(ctrls), end='')
     if 'Key.ctrl_r' in output and ctrls >= 3:  # toggle running
-        ctrls = 1
+        ctrls = 0
         running = True
         print()
         print('\tExecuting')
@@ -281,7 +283,7 @@ def main():
     global mouse_duration
     # pause = 0.02
     pause = 0.5
-    mouse_duration = 0
+    mouse_duration = 0.0
 
     print('Welcome to the Automation Tool by Noah Baculi, 2020')
     print('Remember, at any time to stop an automation execution, move the mouse cursor to the very left upper corner '
@@ -289,56 +291,64 @@ def main():
     print('For further instructions, enter \'Help\'.')
     print()
     while True:
-        action = str(input('Input \'Record\', \'Compile\', or \'Execute\' to select an option: '))[0]
-        if action == 'h':
-            display_help()
-        elif action != 'r' and action != 'c' and action != 'e':
+        try:
+            action = str(input('Input \'Record\', \'Compile\', or \'Execute\' to select an option: ')).lower()
+            if action in ['h', 'help']:
+                display_help()
+            elif action in ['r', 'record']:
+                action_status = 'record'
+                recording_warning = 'This will erase all contents in any files of the same name.'
+                break
+            elif action in ['c', 'compile']:
+                action_status = 'compile'
+                recording_warning = ''
+                break
+            elif action in ['e', 'execute']:
+                action_status = 'execute'
+                recording_warning = ''
+                break
+            else:
+                raise IndexError
+        except IndexError:
             print('\tInvalid input, please enter \'Help\', \'Record\', \'Compile\', or \'Execute\'')
-        elif action == 'r':
-            action_status = 'record'
-            recording_warning = 'This will erase all contents in any files of the same name.'
-            break
-        elif action == 'c':
-            action_status = 'compile'
-            recording_warning = ''
-            break
-        elif action == 'e':
-            action_status = 'execute'
-            recording_warning = ''
-            break
 
     global workflow_name
     confirmation = '_'
-    while confirmation not in ['', 'y']:
+    while confirmation not in ['', 'y', 'yes']:
         confirmation = '_'
         while True:
-            workflow_name = input('Enter the workflow name (do not enter \'_bkup\' filenames without full understanding of implications): ')
+            workflow_name = input(
+                'Enter the workflow name (do not enter \'_bkup\' filenames without full understanding of implications): ')
             if '\\' not in workflow_name and '.' not in workflow_name and workflow_name != '':
                 break
+            else:
+                print('\tInvalid input, please enter workflow name without periods or slashes.')
         if workflow_name.lower() == 'help':
             display_help()
         else:
-            while confirmation != 'n':
+            while True:
                 confirmation = input(
-                    'The workflow name is \"{}\". {} Enter \'Yes\' to confirm or \'No\' to re-enter: '.format(workflow_name, recording_warning))
-                if confirmation in ['', 'y']:
+                    'The workflow name is \"{}\". {} Enter \'Yes\' to confirm (this create or overwrite any existing workflows with the same name) or \'No\' to re-enter: '.format(
+                        workflow_name, recording_warning))
+                if confirmation in ['', 'y', 'yes']:
                     break
 
     print('Primed to {} actions for Workflow \"{}\"...'.format(action_status, workflow_name))
 
-    if action == 'e':
+    if action_status == 'execute':
         print('\tNavigate to start of workflow and then press the right CTRL three times: ', end='')
         with keyboard.Listener(on_press=on_press_execute) as listener:
             listener.join()
-    elif action == 'r':
+    elif action_status == 'record':
         print('\tNavigate to start of workflow and then press the right CTRL three times: ', end='')
         global recording
         clear_file_bkup()
         recording = False
-        with mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording, on_move=on_move_recording) as listener:
+        with mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
+                            on_move=on_move_recording) as listener:
             with keyboard.Listener(on_press=on_press_recording, on_release=on_press_release) as listener:
                 listener.join()
-    elif action == 'c':
+    elif action_status == 'compile':
         compile_recording()
 
 
