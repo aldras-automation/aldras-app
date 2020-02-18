@@ -6,6 +6,7 @@ import pyautogui as pyauto
 from pynput import keyboard, mouse
 
 # failsafe - mouse cursor to top left corner
+
 # TODO right-click recording and execution
 # TODO ctrl key calibration setup
 # TODO re-runs
