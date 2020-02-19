@@ -7,7 +7,7 @@ from pynput import keyboard, mouse
 
 # failsafe - mouse cursor to top left corner
 
-# TODO mouse movement recording (w/ right CTRL?)
+# TODO mouse double-click compilation and execution
 # TODO ctrl key calibration setup
 # TODO re-runs
 # TODO comments
@@ -23,11 +23,11 @@ drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
 
 
 def press(key, action):
-    if action == 'pressed':
+    if 'pressed' in action:
         pyauto.keyDown(key)
-    elif action == 'released':
+    elif 'released' in action:
         pyauto.keyUp(key)
-    elif action == 'tapped':
+    elif 'tapped' in action:
         pyauto.press(key)
     return
 
@@ -42,10 +42,13 @@ def execute():
         print(line)
 
         if line[0:2] == '``':  # special functions
-            action = line.split('```')[1]
-            if '```sleep' in line:
-                sleep(float(line.replace('```sleep(', '').replace(')', '')))
+            if '``sleep' in line:
+                sleep(float(line.replace('``sleep(', '').replace(')', '')))
+            elif '``move' in line:
+                coords = coords_of(line)
+                pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
             else:
+                action = line.split('```')[1]
                 key = line.split('```')[0].split('.')[1]
                 if 'button.' in line:
                     coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
@@ -82,6 +85,12 @@ def execute():
                         key = 'win'
                     elif key == 'ctrl_l':
                         key = 'ctrlleft'
+                        if 'tapped' in action:
+                            try:
+                                coords = coords_of(line)
+                                pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+                            except IndexError:
+                                pass
                     elif key == 'page_up':
                         key = 'pageup'
                     elif key == 'page_down':
@@ -119,25 +128,31 @@ def on_press_recording(key):
     global ctrls
     global recording
     output = str(key).strip('\'').lower()
+    coords = ''
     if recording:
         if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
             capslock = not capslock
         if output == 'key.space':  # if capslock pressed, swap capslock state
             output = ' '
+        if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
+            coords = pyauto.position()
         if not output.startswith('key'):  # i.e., if output is alphanumeric
             if capslock:
                 output = output.swapcase()
         if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):
             output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
-            output_to_file_bkup('\\'+'```pressed')
+            output_to_file_bkup('\\' + '```pressed')
             output = ''
         if output == '\"\'\"':
             output = '\''
         if (not output.startswith('key.ctrl_r')) and (not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
-            output_to_file_bkup(output + '```pressed')
+            output = output + '```pressed'
+            if coords:
+                output = output + ' at {}'.format((coords[0], coords[1]))
+            output_to_file_bkup(output)
     if 'key.ctrl_r' in output:
         ctrls += 1
         if not recording:
@@ -159,25 +174,31 @@ def on_press_release(key):
     global ctrls
     global recording
     output = str(key).strip('\'').lower()
+    coords = ''
     if recording:
         if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
             capslock = not capslock
         if output == 'key.space':  # if capslock pressed, swap capslock state
             output = ' '
+        if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
+            coords = pyauto.position()
         if not output.startswith('key'):  # i.e., if output is alphanumeric
             if capslock:
                 output = output.swapcase()
         if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):
             output = 'ctrl+{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
-            output_to_file_bkup('\\'+'```released')
+            output_to_file_bkup('\\' + '```released')
             output = ''
         if output == '\"\'\"':
             output = '\''
         if (not output.startswith('key.ctrl_r')) and (not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
-            output_to_file_bkup(output + '```released')
+            output = output + '```released'
+            if coords:
+                output = output + ' at {}'.format((coords[0], coords[1]))
+            output_to_file_bkup(output)
     return
 
 
@@ -243,8 +264,12 @@ def compile_recording():
                         new_line = '\n'
                     else:
                         new_line = ''
-                    processed_line = new_line + lines[index].replace('pressed', 'tapped')
-                    # processed_line = '\n\n\n\n\n\n' + lines[index].replace('pressed', 'tapped')
+                    if 'ctrl_l' in key:
+                        coords = coords_of(line)
+                        processed_line = new_line + '``move to {}\n``sleep({})\n'.format((coords[0], coords[1]),
+                                                                                         mouse_move_pause)
+                    else:
+                        processed_line = new_line + lines[index].replace('pressed', 'tapped')
                     previous_normal_key_tap = False
                 else:
                     key = line.split('```')[0]
@@ -283,9 +308,11 @@ running = False
 def main():
     global pause
     global mouse_duration
+    global mouse_move_pause
     # pause = 0.02
     pause = 0.5
-    mouse_duration = 0.0
+    mouse_duration = 0.2
+    mouse_move_pause = 0.5
 
     print('Welcome to the Automation Tool by Noah Baculi, 2020')
     print('Remember, at any time to stop an automation execution, move the mouse cursor to the very left upper corner '

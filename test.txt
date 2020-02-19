@@ -1,3 +1,4 @@
-``button.right```pressed at (3107, 305)
+``button.left```tapped at (5, 516)
+``button.left```tapped at (5, 516)
 
-``button.right```released at (3638, 826)
+``button.left```released at (5, 516)
