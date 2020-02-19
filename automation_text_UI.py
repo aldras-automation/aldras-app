@@ -7,7 +7,7 @@ from pynput import keyboard, mouse
 
 # failsafe - mouse cursor to top left corner
 
-# TODO right-click recording and execution
+# TODO mouse movement recording (w/ right CTRL?)
 # TODO ctrl key calibration setup
 # TODO re-runs
 # TODO comments
@@ -47,22 +47,23 @@ def execute():
                 sleep(float(line.replace('```sleep(', '').replace(')', '')))
             else:
                 key = line.split('```')[0].split('.')[1]
-                if 'button.left' in line:
+                if 'button.' in line:
                     coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
                     coords[0] = int(coords[0])
                     coords[1] = int(coords[1])
                     if 'press' in line:
-                        pyauto.mouseDown(button='left', x=coords[0], y=coords[1])
+                        pyauto.mouseDown(button=key, x=coords[0], y=coords[1])
                         down = coords
                     elif 'release' in line:
                         # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
                         drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
                         drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
                         pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
-                        pyauto.mouseUp()
+                        pyauto.mouseUp(button=key)
                         sleep(0.5 * mouse_duration)
                     elif 'tapped' in line:
-                        pyauto.click(x=coords[0], y=coords[1], duration=mouse_duration)
+                        pyauto.click(button=key, x=coords[0], y=coords[1], duration=mouse_duration)
+                        down = coords
                     sleep(0.5)  # must be here to prevent some later operations from being cut off...
                 elif 'scrolled.' in line:
                     scroll_amnt = action.split(' at ')[0]

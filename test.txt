@@ -1,7 +1,3 @@
-``button.left```pressed at (2734, 431)
-``button.left```released at (2859, 511)
-``button.left```pressed at (2902, 425)
-``button.left```released at (3022, 495)
-``button.left```pressed at (3017, 587)
+``button.right```pressed at (3107, 305)
 
-``button.left```released at (2774, 685)
+``button.right```released at (3638, 826)
