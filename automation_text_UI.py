@@ -7,7 +7,6 @@ from pynput import keyboard, mouse
 
 # failsafe - mouse cursor to top left corner
 
-# TODO mouse double-click compilation and execution
 # TODO ctrl key calibration setup
 # TODO re-runs
 # TODO comments
@@ -44,6 +43,12 @@ def execute():
         if line[0:2] == '``':  # special functions
             if '``sleep' in line:
                 sleep(float(line.replace('``sleep(', '').replace(')', '')))
+            elif '``doubleclick' in line:
+                coords = coords_of(line)
+                pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
+            elif '``tripleclick' in line:
+                coords = coords_of(line)
+                pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
             elif '``move' in line:
                 coords = coords_of(line)
                 pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
@@ -267,7 +272,7 @@ def compile_recording():
                     if 'ctrl_l' in key:
                         coords = coords_of(line)
                         processed_line = new_line + '``move to {}\n``sleep({})\n'.format((coords[0], coords[1]),
-                                                                                         mouse_move_pause)
+                                                                                         mouse_hover_duration)
                     else:
                         processed_line = new_line + lines[index].replace('pressed', 'tapped')
                     previous_normal_key_tap = False
@@ -288,6 +293,40 @@ def compile_recording():
         else:
             skip = False
     processed_lines.append('\n' + lines[-1])
+    print()
+    print()
+    # look for triple clicks
+    processed_lines_to_remove = []
+    skip = 0
+    for index, (tripleA, tripleB, tripleC) in enumerate(zip(processed_lines, processed_lines[1:], processed_lines[2:])):
+        if skip:
+            skip -= 1
+        else:
+            if '``button.left```tapped' in tripleA and tripleA == tripleB == tripleC:
+                skip = 3 - 1  # number of clicks minus one
+                processed_lines[index] = '``tripleclick at {}\n'.format(coords_of(tripleA))
+                processed_lines_to_remove.append(index + 1)
+                processed_lines_to_remove.append(index + 2)
+                processed_lines[index + 1] = ''
+                processed_lines[index + 2] = ''
+    for index in processed_lines_to_remove[::-1]:
+        processed_lines.pop(index)
+
+    # look for double clicks
+    processed_lines_to_remove = []
+    skip = 0
+    for index, (pairA, pairB) in enumerate(zip(processed_lines, processed_lines[1:])):
+        if skip:
+            skip -= 1
+        else:
+            if '``button.left```tapped' in pairA and pairA == pairB:
+                skip = 2 - 1  # number of clicks minus one
+                processed_lines[index] = '``doubleclick at {}\n'.format(coords_of(pairA))
+                processed_lines_to_remove.append(index + 1)
+                processed_lines[index + 1] = ''
+    for index in processed_lines_to_remove[::-1]:
+        processed_lines.pop(index)
+
     print(processed_lines)
     with open('{}.txt'.format(workflow_name), 'w') as record_file:
         for line in processed_lines:
@@ -308,11 +347,11 @@ running = False
 def main():
     global pause
     global mouse_duration
-    global mouse_move_pause
+    global mouse_hover_duration
     # pause = 0.02
     pause = 0.5
     mouse_duration = 0.2
-    mouse_move_pause = 0.5
+    mouse_hover_duration = 0.5
 
     print('Welcome to the Automation Tool by Noah Baculi, 2020')
     print('Remember, at any time to stop an automation execution, move the mouse cursor to the very left upper corner '

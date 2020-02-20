@@ -1,4 +1,8 @@
-``button.left```tapped at (5, 516)
-``button.left```tapped at (5, 516)
+``button.left```tapped at (1571, 18)
+``doubleclick at (1742, 583)
+``move to (1455, 281)
+``sleep(0.5)
+``tripleclick at (1765, 656)
+``button.left```tapped at (1536, 642)
 
-``button.left```released at (5, 516)
+``button.left```released at (1536, 642)
