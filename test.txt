@@ -1,3 +1,4 @@
+``# this is a comment
 ``button.left```tapped at (1571, 18)
 ``doubleclick at (1742, 583)
 ``move to (1455, 281)

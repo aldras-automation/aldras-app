@@ -41,17 +41,19 @@ def execute():
         print(line)
 
         if line[0:2] == '``':  # special functions
-            if '``sleep' in line:
+            if 'sleep' in line:
                 sleep(float(line.replace('``sleep(', '').replace(')', '')))
-            elif '``doubleclick' in line:
+            elif 'doubleclick' in line:
                 coords = coords_of(line)
                 pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
-            elif '``tripleclick' in line:
+            elif 'tripleclick' in line:
                 coords = coords_of(line)
                 pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
-            elif '``move' in line:
+            elif 'move' in line:
                 coords = coords_of(line)
                 pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+            elif '#' in line:  # workflow comment so no action
+                pass
             else:
                 action = line.split('```')[1]
                 key = line.split('```')[0].split('.')[1]
