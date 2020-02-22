@@ -1,7 +1,6 @@
 import multiprocessing
 import tkinter as tk
 from time import sleep
-from tkinter import ttk
 
 import pyautogui as pyauto
 from pynput import keyboard
@@ -17,8 +16,11 @@ def test():
 def on_press(key):
     global ctrls
     global running
+    global recording
     output = str(key).strip('\'')
-    print(key)
+    print(recording)
+    if recording:
+        print(key)
     if 'Key.ctrl_r' in output:
         ctrls += 1
         # print(ctrls)
@@ -81,13 +83,34 @@ def scan():
 
 
 def func_one(num):
-    popup = tk.Tk()
-    popup.wm_title("!")
-    label = ttk.Label(popup, text='yeah boi', font=("Helvetica", 10))
-    label.pack(side="top", fill="x", pady=10)
-    B1 = ttk.Button(popup, text="Okay", command=popup.destroy)
-    B1.pack()
-    popup.mainloop()
+    m = tk.Tk()
+    m.title('Counting Seconds')
+    tk.Label(m, text='Automation Tool').grid(row=0, column=1, columnspan=6)
+
+    tk.Button(m, text='Record', width=25, command=record).grid(row=1, column=1)
+    m.grid_columnconfigure(1, weight=1)
+    tk.Label(m, text='', width=10).grid(row=1, column=2)
+    tk.Label(m, text='Workflow name:').grid(row=1, column=3)
+    workflow_name_entry = tk.Entry(m)
+    workflow_name_entry.grid(row=1, column=4)
+    workflow_name = tk.StringVar()
+    tk.Label(m, text='', width=10).grid(row=1, column=5)
+    tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=1, column=6)
+    m.grid_columnconfigure(6, weight=1)
+
+    main_text = tk.Text(m)
+    main_text.grid(row=2, column=1, columnspan=6)
+    tk.Button(m, text='Quit', width=25, command=m.destroy).grid(row=3, column=6)
+    m.bind('<Return>', execute)
+    m.grid_rowconfigure(3, weight=1)
+    m.mainloop()
+    # popup = tk.Tk()
+    # popup.wm_title("!")
+    # label = ttk.Label(popup, text='yeah boi', font=("Helvetica", 10))
+    # label.pack(side="top", fill="x", pady=10)
+    # B1 = ttk.Button(popup, text="Okay", command=popup.destroy)
+    # B1.pack()
+    # popup.mainloop()
 
 
 def func_two(num):
@@ -95,18 +118,12 @@ def func_two(num):
         listener.join()
 
 
-def await_trigger():
-    p1 = multiprocessing.Process(target=func_one, args=(1,))
-    p2 = multiprocessing.Process(target=func_two, args=(2,))
-    p1.start()
-    p2.start()
-    p1.join()
-    p2.join()
-    print("Done!")
-
-
 def record():
-    await_trigger()
+    # await_trigger()
+    global recording
+    recording = not recording
+    print(recording)
+    return
 
 
 def execute(workflow_name_entry):
@@ -119,26 +136,15 @@ def execute(workflow_name_entry):
 
 ctrls = 0
 running = False
+recording = False
 file_name = 'automation1'
 
-m = tk.Tk()
-m.title('Counting Seconds')
-tk.Label(m, text='Automation Tool').grid(row=0, column=1, columnspan=6)
-
-tk.Button(m, text='Record', width=25, command=record).grid(row=1, column=1)
-m.grid_columnconfigure(1, weight=1)
-tk.Label(m, text='', width=10).grid(row=1, column=2)
-tk.Label(m, text='Workflow name:').grid(row=1, column=3)
-workflow_name_entry = tk.Entry(m)
-workflow_name_entry.grid(row=1, column=4)
-workflow_name = tk.StringVar()
-tk.Label(m, text='', width=10).grid(row=1, column=5)
-tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=1, column=6)
-m.grid_columnconfigure(6, weight=1)
-
-main_text = tk.Text(m)
-main_text.grid(row=2, column=1, columnspan=6)
-tk.Button(m, text='Quit', width=25, command=m.destroy).grid(row=3, column=6)
-m.bind('<Return>', execute)
-m.grid_rowconfigure(3, weight=1)
-m.mainloop()
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    p1 = multiprocessing.Process(target=func_one, args=(1,))
+    p2 = multiprocessing.Process(target=func_two, args=(2,))
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+    print("Done!")

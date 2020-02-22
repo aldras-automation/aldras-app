@@ -41,7 +41,9 @@ def execute():
         print(line)
 
         if line[0:2] == '``':  # special functions
-            if 'sleep' in line:
+            if '#' in line:  # workflow comment so no action
+                pass
+            elif 'sleep' in line:
                 sleep(float(line.replace('``sleep(', '').replace(')', '')))
             elif 'doubleclick' in line:
                 coords = coords_of(line)
@@ -52,8 +54,6 @@ def execute():
             elif 'move' in line:
                 coords = coords_of(line)
                 pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
-            elif '#' in line:  # workflow comment so no action
-                pass
             else:
                 action = line.split('```')[1]
                 key = line.split('```')[0].split('.')[1]
