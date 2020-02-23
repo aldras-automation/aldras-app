@@ -21,14 +21,20 @@ ctrls = 0
 drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
 
 
-def press(key, action):
-    if 'pressed' in action:
-        pyauto.keyDown(key)
-    elif 'released' in action:
-        pyauto.keyUp(key)
-    elif 'tapped' in action:
-        pyauto.press(key)
-    return
+def on_press_execute(key):
+    global ctrls
+    global running
+
+    output = str(key).strip('\'')
+    if 'Key.ctrl_r' in output:
+        ctrls += 1
+        print('{}  '.format(ctrls), end='')
+    if 'Key.ctrl_r' in output and ctrls >= 3:  # toggle running
+        ctrls = 0
+        running = True
+        print()
+        print('\tExecuting')
+        execute()
 
 
 def execute():
@@ -116,17 +122,21 @@ def execute():
     return
 
 
-def clear_file_bkup():
-    with open('{}_bkup.txt'.format(workflow_name), 'w') as record_file:
-        record_file.write('')
-    return
-
-
 def output_to_file_bkup(output='', end='\n'):
     output = (output + end)
     with open('{}_bkup.txt'.format(workflow_name), 'a') as record_file:
         record_file.write(''.join(output))
     print(output, end='')
+    return
+
+
+def press(key, action):
+    if 'pressed' in action:
+        pyauto.keyDown(key)
+    elif 'released' in action:
+        pyauto.keyUp(key)
+    elif 'tapped' in action:
+        pyauto.press(key)
     return
 
 
@@ -225,22 +235,6 @@ def on_move_recording(x, y):
     # if recording:
     #     output_to_file_bkup('``moved```{}'.format((x, y)))
     return
-
-
-def on_press_execute(key):
-    global ctrls
-    global running
-
-    output = str(key).strip('\'')
-    if 'Key.ctrl_r' in output:
-        ctrls += 1
-        print('{}  '.format(ctrls), end='')
-    if 'Key.ctrl_r' in output and ctrls >= 3:  # toggle running
-        ctrls = 0
-        running = True
-        print()
-        print('\tExecuting')
-        execute()
 
 
 def coords_of(line):
@@ -412,7 +406,8 @@ def main():
     elif action_status == 'record':
         print('\tNavigate to start of workflow and then press the right CTRL three times: ', end='')
         global recording
-        clear_file_bkup()
+        with open('{}_bkup.txt'.format(workflow_name), 'w') as record_file:
+            record_file.write('')
         recording = False
         with mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
                             on_move=on_move_recording) as listener:

@@ -1,9 +1,8 @@
-``# this is a comment
-``#button.left```tapped at (1571, 18)
-``#doubleclick at (1742, 583)
-``move to (1455, 281)
-``#sleep(0.5)
-``#tripleclick at (1765, 656)
-``#button.left```tapped at (1536, 642)
+``move to (451, 266)
+``sleep(0.5)
+``move to (1260, 199)
+``sleep(0.5)
+``move to (936, 643)
+``sleep(0.5)
 
-``#button.left```released at (1536, 642)
+``key.ctrl_l```released at (936, 643)
