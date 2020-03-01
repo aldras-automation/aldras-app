@@ -5,7 +5,6 @@ from time import sleep
 import pandas as pd
 import pyautogui as pyauto
 from pynput import keyboard, mouse
-from PIL import ImageTk, Image
 # failsafe - mouse cursor to top left corner
 
 # TODO ctrl key calibration setup
@@ -16,10 +15,6 @@ from PIL import ImageTk, Image
 # TODO allow multiple rerun executions (loops)
 # TODO names and domain
 # TODO icon
-# TODO classes
-
-
-
 
 
 def on_press_execute(key):
@@ -401,11 +396,7 @@ def scan():
 
 def empty_workflow_name_error():
     popup = tk.Tk()
-    popup.iconbitmap('logo.ico')
     popup.wm_title("Invalid Workflow Name")
-    popup.geometry('300x100')
-    # container = tk.Frame(popup)
-    # container.grid(row=0, column=0, padx=(100, 100), pady=(20, 20))
     label = tk.Label(popup, text='The workflow name cannot be blank.')
     label.pack(side="top", fill="x", pady=10)
     B1 = tk.Button(popup, text="Okay", command=popup.destroy)
@@ -442,18 +433,8 @@ def record(workflow_name_in):
     return
 
 
-def workflow_selection(main_frame, workflow_name_in):
+def gui_func(num):
     global workflow_name
-    workflow_name = workflow_name_in
-    if workflow_name == '':
-        empty_workflow_name_error()
-        return
-    main_frame.tkraise()
-
-
-def gui_thread(num):
-    global workflow_name
-    global workflow_name_entry
     global record_button
     global m
     global main_text
@@ -461,51 +442,7 @@ def gui_thread(num):
     m = tk.Tk()
     m.title('Automation Tool')
     m.iconbitmap('logo.ico')
-    m.configure(bg='white')
-
-    container = tk.Frame(m)
-    container.grid(row=0, column=0, padx=(100, 100), pady=(20, 20))
-
-    workflow_id_frame = tk.Frame(container, bg='white')
-    main_frame = tk.Frame(container, bg='white')
-
-    for frame in (workflow_id_frame, main_frame):
-        frame.grid(row=0, column=0, sticky='news')
-
-    workflow_id_frame.tkraise()
-    logo_img = ImageTk.PhotoImage(Image.open('logo.png').resize((150, 150)))
-    logo_img_label = tk.Label(workflow_id_frame, bg='white', image=logo_img)
-    logo_img_label.grid(row=0, column=0, columnspan=4)
-    m.grid_rowconfigure(0, weight=1)
-    m.grid_columnconfigure(0, weight=1)
-    program_name = tk.Label(workflow_id_frame, bg='white', text='Aldras Automation')
-    program_name.config(font=('Verdana', 16))
-    program_name.grid(row=1, column=0, columnspan=4, pady=(0, 20))
-    tk.Label(workflow_id_frame, bg='white', text='Workflow:').grid(row=2, column=1)
-    workflow_name_entry = tk.Entry(workflow_id_frame, relief=tk.FLAT, highlightbackground='blue', highlightcolor='blue', highlightthickness=1)
-    workflow_name_entry.grid(row=2, column=2)
-    tk.Label(workflow_id_frame, bg='white', text='', width=6).grid(row=2, column=3)
-
-
-    recent_workflows = False
-    if recent_workflows:
-        # do stuff to allow quick selection of recent workflows
-        ok_row = 5
-    else:
-        ok_row = 4
-
-    workflow_id_frame.grid_rowconfigure(ok_row-1, minsize=20)
-    button_frame = tk.Frame(workflow_id_frame)
-    button_frame.grid(row=ok_row, column=2, columnspan=2, sticky=tk.E)
-    tk.Button(button_frame, text='Quit', width=8, command=m.destroy).grid(row=0, column=0)
-    tk.Button(button_frame, text='OK', width=8, command=lambda: workflow_selection(main_frame, workflow_name_entry.get())).grid(row=0, column=1)
-
-
-
-
-
-    m.mainloop()
-    raise SystemExit()
+    tk.Label(m, text='Automation Tool').grid(row=0, column=1, columnspan=6)
 
     record_text = tk.StringVar()
     record_button = tk.Button(m, textvariable=record_text, width=25, command=lambda: record(workflow_name_entry.get()))
@@ -513,7 +450,9 @@ def gui_thread(num):
     record_button.grid(row=1, column=1)
     m.grid_columnconfigure(1, weight=1)
     tk.Label(m, text='', width=10).grid(row=1, column=2)
-
+    tk.Label(m, text='Workflow name:').grid(row=1, column=3)
+    workflow_name_entry = tk.Entry(m)
+    workflow_name_entry.grid(row=1, column=4)
     tk.Label(m, text='', width=10).grid(row=1, column=5)
     tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=1, column=6)
     m.grid_columnconfigure(6, weight=1)
@@ -529,13 +468,11 @@ def gui_thread(num):
     tk.Button(m, text='Quit', width=25, command=m.destroy).grid(row=3, column=6)
     m.bind('<Return>', execute)
     m.grid_rowconfigure(3, weight=1)
-
-    return
-
+    m.mainloop()
     # sys.exit()
 
 
-def listener_thread(num):
+def listener_func(num):
     while True:
         if recording:
             global recording_control
@@ -544,7 +481,6 @@ def listener_thread(num):
                                 on_move=on_move_recording) as listener:
                 with keyboard.Listener(on_press=on_press_recording, on_release=on_press_release) as listener:
                     listener.join()
-    return
 
 
 # def execute(workflow_name_entry):
@@ -567,8 +503,8 @@ mouse_duration = 0.2
 mouse_hover_duration = 0.5
 
 if __name__ == '__main__':
-    t1 = threading.Thread(target=gui_thread, args=(10,))
-    t2 = threading.Thread(target=listener_thread, args=(10,), daemon=True)
+    t1 = threading.Thread(target=gui_func, args=(10,))
+    t2 = threading.Thread(target=listener_func, args=(10,), daemon=True)
     t1.start()
     t2.start()
     # t1.join()

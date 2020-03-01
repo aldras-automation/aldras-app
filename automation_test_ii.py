@@ -10,10 +10,9 @@ class SampleApp(tk.Tk):
         # on top of each other, then the one we want visible
         # will be raised above the others
         container = tk.Frame(self)
-        container.grid(row=0, column=0)
-        # container.pack(side="top", fill="both", expand=True)
-        # container.grid_rowconfigure(0, weight=1)
-        # container.grid_columnconfigure(0, weight=1)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
         for F in (StartPage, PageOne, PageTwo):
@@ -40,24 +39,20 @@ class StartPage(tk.Frame):
         self.controller = controller
         # frame = tk.Frame(self)
         # frame.grid(row=1, column=1, padx=(100, 100), pady=(20, 20))
-        load = Image.open("logo.jpg")
-        render = ImageTk.PhotoImage(load)
-        img = tk.Label(self, image=render)
-        # # logo_img = ImageTk.PhotoImage(Image.open('logo.png').resize((250, 250)))
-        # # logo_img_label = tk.Label(frame, image=logo_img)
-        img.grid(row=0, column=0, columnspan=4)
-        # # self.grid_rowconfigure(0, weight=1)
-        # # self.grid_columnconfigure(0, weight=1)
-        # program_name = tk.Label(frame, text='Aldras Automation')
-        # program_name.config(font=('Verdana', 20))
-        # # program_name.config(font=('Times', 20))
-        # program_name.grid(row=1, column=0, columnspan=4, pady=(0, 20))
-        # tk.Label(frame, text='Workflow:').grid(row=2, column=1)
-        # workflow_name_entry = tk.Entry(frame)
-        # workflow_name_entry.grid(row=2, column=2)
-        tk.Button(self, text='OK').grid(row=3, column=3)
-        # button = tk.Button(self, text="Go to the 1st page", command=lambda: controller.show_frame("PageOne"))
-        # button.grid(row=4, column=3)
+        logo_img = ImageTk.PhotoImage(Image.open('logo.png'))
+        logo_img_label = tk.Label(self, image=logo_img)
+        logo_img_label.pack()
+        # logo_img_label.grid(row=0, column=0, columnspan=4)
+
+        label = tk.Label(self, text="This is the start page", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+
+        button1 = tk.Button(self, text="Go to Page One",
+                            command=lambda: controller.show_frame("PageOne"))
+        button2 = tk.Button(self, text="Go to Page Two",
+                            command=lambda: controller.show_frame("PageTwo"))
+        button1.pack()
+        button2.pack()
 
 
 class PageOne(tk.Frame):
