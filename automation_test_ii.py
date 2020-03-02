@@ -1,84 +1,74 @@
-import tkinter as tk
-from tkinter import font as tkfont
-from PIL import ImageTk, Image
+import wx
+import wx.adv
 
-class SampleApp(tk.Tk):
+
+class Example(wx.Frame):
+
     def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-        self.title_font = tkfont.Font(family='Helvetica', size=18)
-        # the container is where we'll stack a bunch of frames
-        # on top of each other, then the one we want visible
-        # will be raised above the others
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        super(Example, self).__init__(*args, **kwargs)
 
-        self.frames = {}
-        for F in (StartPage, PageOne, PageTwo):
-            page_name = F.__name__
-            frame = F(parent=container, controller=self)
-            self.frames[page_name] = frame
+        self.InitUI()
 
-            # put all of the pages in the same location;
-            # the one on the top of the stacking order
-            # will be the one that is visible.
-            frame.grid(row=0, column=0, sticky="nsew")
+    def InitUI(self):
 
-        self.show_frame("StartPage")
+        menubar = wx.MenuBar()
+        help = wx.Menu()
+        help.Append(wx.ID_ANY, '&About')
+        help.Bind(wx.EVT_MENU, self.OnAboutBox)
 
-    def show_frame(self, page_name):
-        # show a frame for the given page name
-        frame = self.frames[page_name]
-        frame.tkraise()
+        menubar.Append(help, '&Help')
+        self.SetMenuBar(menubar)
 
+        self.SetSize((350, 250))
+        self.SetTitle('About dialog box')
+        self.Centre()
 
-class StartPage(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        # frame = tk.Frame(self)
-        # frame.grid(row=1, column=1, padx=(100, 100), pady=(20, 20))
-        logo_img = ImageTk.PhotoImage(Image.open('logo.png'))
-        logo_img_label = tk.Label(self, image=logo_img)
-        logo_img_label.pack()
-        # logo_img_label.grid(row=0, column=0, columnspan=4)
+    def OnAboutBox(self, e):
 
-        label = tk.Label(self, text="This is the start page", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
+        description = """File Hunter is an advanced file manager for
+the Unix operating system. Features include powerful built-in editor,
+advanced search capabilities, powerful batch renaming, file comparison,
+extensive archive handling and more.
+"""
 
-        button1 = tk.Button(self, text="Go to Page One",
-                            command=lambda: controller.show_frame("PageOne"))
-        button2 = tk.Button(self, text="Go to Page Two",
-                            command=lambda: controller.show_frame("PageTwo"))
-        button1.pack()
-        button2.pack()
+        licence = """File Hunter is free software; you can redistribute
+it and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.
+
+File Hunter is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details. You should have
+received a copy of the GNU General Public License along with File Hunter;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+Suite 330, Boston, MA  02111-1307  USA"""
 
 
-class PageOne(tk.Frame):
+        info = wx.adv.AboutDialogInfo()
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
-        button.pack()
+        info.SetIcon(wx.Icon('logo.png', wx.BITMAP_TYPE_PNG))
+        info.SetName('File Hunter')
+        info.SetVersion('1.0')
+        info.SetDescription(description)
+        info.SetCopyright('(C) 2007 - 2020 Jan Bodnar')
+        info.SetWebSite('http://www.zetcode.com')
+        info.SetLicence(licence)
+        info.AddDeveloper('Jan Bodnar')
+        info.AddDocWriter('Jan Bodnar')
+        info.AddArtist('The Tango crew')
+        info.AddTranslator('Jan Bodnar')
 
-
-class PageTwo(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="This is page 2", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
-        button.pack()
+        wx.adv.AboutBox(info)
 
 
-if __name__ == "__main__":
-    app = SampleApp()
-    app.mainloop()
+def main():
+
+    app = wx.App()
+    ex = Example(None)
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == '__main__':
+    main()
