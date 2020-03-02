@@ -1,6 +1,38 @@
+import os
+
 import wx
 import wx.adv
-import os
+
+
+def create_about_frame(self):
+    about_info = wx.adv.AboutDialogInfo()
+    about_info.SetName('Alderas Automation')
+    about_info.SetIcon(wx.Icon('logo.ico'))
+    about_info.SetVersion(self.software_version)
+    about_info.SetDescription(('Simple, powerful utility for general computer automation.'))
+    about_info.SetCopyright('(C) 2020 (Not yet)')
+    about_info.SetWebSite('http://www.alderas.com')
+    wx.adv.AboutBox(about_info)
+
+
+def setup_frame(self):
+    # setting up the file menu
+    file_menu = wx.Menu()
+    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about Aldras')
+    # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
+
+    # creating the menu bar
+    menu_bar = wx.MenuBar()
+    menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
+    self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
+    self.Bind(wx.EVT_MENU, self.on_about, menu_about)
+    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open
+
+    # assign icon
+    self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+
+    # set background color
+    self.SetBackgroundColour('white')
 
 
 class PlaceholderTextCtrl(wx.TextCtrl):
@@ -48,37 +80,6 @@ class MainFrame(wx.Frame):
 
     def on_about(self, event):
         create_about_frame(self)
-
-
-def create_about_frame(self):
-    about_info = wx.adv.AboutDialogInfo()
-    about_info.SetName('Alderas Automation')
-    about_info.SetIcon(wx.Icon('logo.ico'))
-    about_info.SetVersion(self.software_version)
-    about_info.SetDescription(('Simple, powerful utility for general computer automation.'))
-    about_info.SetCopyright('(C) 2020 (Not yet)')
-    about_info.SetWebSite('http://www.alderas.com')
-    wx.adv.AboutBox(about_info)
-
-
-def setup_frame(self):
-    # setting up the file menu
-    file_menu = wx.Menu()
-    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about Aldras')
-    # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
-
-    # creating the menu bar
-    menu_bar = wx.MenuBar()
-    menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
-    self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
-    self.Bind(wx.EVT_MENU, self.on_about, menu_about)
-    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open
-
-    # assign icon
-    self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
-
-    # set background color
-    self.SetBackgroundColour('white')
 
 
 class WorkflowFrame(wx.Frame):
