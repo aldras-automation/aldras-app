@@ -1,2 +1,40 @@
-``key.ctrl_l```pressed at (648, 274)
-``key.ctrl_l```released at (648, 274)
+``key.ctrl_l```pressed at (2502, 505)
+``key.ctrl_l```released at (2502, 505)
+``key.ctrl_l```pressed at (749, 450)
+``key.ctrl_l```released at (749, 450)
+``key.cmd```pressed
+``key.cmd```released
+t```pressed
+t```released
+h```pressed
+i```pressed
+h```released
+i```released
+s```pressed
+s```released
+ ```pressed
+ ```released
+i```pressed
+i```released
+s```pressed
+s```released
+ ```pressed
+ ```released
+a```pressed
+a```released
+ ```pressed
+ ```released
+t```pressed
+t```released
+e```pressed
+e```released
+s```pressed
+t```pressed
+s```released
+t```released
+``key.ctrl_l```pressed at (749, 450)
+a```pressed
+``key.ctrl_l```released at (749, 450)
+a```released
+``key.esc```pressed
+``key.esc```released

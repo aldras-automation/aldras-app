@@ -6,6 +6,8 @@ import pandas as pd
 import pyautogui as pyauto
 from pynput import keyboard, mouse
 from PIL import ImageTk, Image
+
+
 # failsafe - mouse cursor to top left corner
 
 # TODO ctrl key calibration setup
@@ -17,9 +19,6 @@ from PIL import ImageTk, Image
 # TODO names and domain
 # TODO icon
 # TODO classes
-
-
-
 
 
 def on_press_execute(key):
@@ -174,7 +173,7 @@ def on_press_recording(key):
         if output == '\"\'\"':
             output = '\''
         if (not output.startswith('key.ctrl_r')) and (
-        not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
+                not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
             output = output + '```pressed'
@@ -221,7 +220,7 @@ def on_press_release(key):
         if output == '\"\'\"':
             output = '\''
         if (not output.startswith('key.ctrl_r')) and (
-        not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
+                not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
             output = output + '```released'
@@ -482,10 +481,10 @@ def gui_thread(num):
     program_name.config(font=('Verdana', 16))
     program_name.grid(row=1, column=0, columnspan=4, pady=(0, 20))
     tk.Label(workflow_id_frame, bg='white', text='Workflow:').grid(row=2, column=1)
-    workflow_name_entry = tk.Entry(workflow_id_frame, relief=tk.FLAT, highlightbackground='blue', highlightcolor='blue', highlightthickness=1)
+    workflow_name_entry = tk.Entry(workflow_id_frame, relief=tk.FLAT, highlightbackground='blue', highlightcolor='blue',
+                                   highlightthickness=1)
     workflow_name_entry.grid(row=2, column=2)
     tk.Label(workflow_id_frame, bg='white', text='', width=6).grid(row=2, column=3)
-
 
     recent_workflows = False
     if recent_workflows:
@@ -494,15 +493,12 @@ def gui_thread(num):
     else:
         ok_row = 4
 
-    workflow_id_frame.grid_rowconfigure(ok_row-1, minsize=20)
+    workflow_id_frame.grid_rowconfigure(ok_row - 1, minsize=20)
     button_frame = tk.Frame(workflow_id_frame)
     button_frame.grid(row=ok_row, column=2, columnspan=2, sticky=tk.E)
     tk.Button(button_frame, text='Quit', width=8, command=m.destroy).grid(row=0, column=0)
-    tk.Button(button_frame, text='OK', width=8, command=lambda: workflow_selection(main_frame, workflow_name_entry.get())).grid(row=0, column=1)
-
-
-
-
+    tk.Button(button_frame, text='OK', width=8,
+              command=lambda: workflow_selection(main_frame, workflow_name_entry.get())).grid(row=0, column=1)
 
     m.mainloop()
     raise SystemExit()
@@ -517,7 +513,6 @@ def gui_thread(num):
     tk.Label(m, text='', width=10).grid(row=1, column=5)
     tk.Button(m, text='Execute', width=25, command=lambda: execute(workflow_name_entry.get())).grid(row=1, column=6)
     m.grid_columnconfigure(6, weight=1)
-
 
     # scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     main_text = tk.Text(m)
@@ -544,7 +539,6 @@ def listener_thread(num):
                                 on_move=on_move_recording) as listener:
                 with keyboard.Listener(on_press=on_press_recording, on_release=on_press_release) as listener:
                     listener.join()
-    return
 
 
 # def execute(workflow_name_entry):
