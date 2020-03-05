@@ -7,7 +7,9 @@ Sleep 0.5
 Mouse-move to (749, 450)
 Sleep 0.5
 Key Win Tap
-Type: This is a test
+asdfasdfadsf alsdkjfoadijoaisdf oaidjs oaidj foiajdf oiajsdf aoisdjf
+sdf
+
 Left-mouse tap at (749, 450)
 Double click at (749, 450)
 Triple-click at (749, 450)

@@ -152,165 +152,173 @@ class EditFrame(wx.Frame):
 
         for self.line in self.lines:
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-            if '#' in self.line:  # workflow comment so no action
+            if '#' in self.line or self.line == '':  # workflow comment so no action
                 pass
             else:
-                self.line = self.line.replace('\n', '').lower()
-                self.vbox_edit.AddSpacer(5)
-                self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-                self.hbox_edit.AddSpacer(5)
-                self.line_first_word = self.line.split(' ')[0]
-                if '-mouse' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
+                try:
+                    self.line = self.line.replace('\n', '').lower()
+                    self.vbox_edit.AddSpacer(5)
+                    self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+                    self.hbox_edit.AddSpacer(5)
+                    self.line_first_word = self.line.split(' ')[0]
+                    if '-mouse' in self.line_first_word:
+                        self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
 
-                    if 'left' in self.line_first_word:
-                        self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
-                                                        style=wx.CB_READONLY)
-                    elif 'right' in self.line_first_word:
-                        self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
-                                                        style=wx.CB_READONLY)
+                        if 'left' in self.line_first_word:
+                            self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
+                                                            style=wx.CB_READONLY)
+                        elif 'right' in self.line_first_word:
+                            self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
+                                                            style=wx.CB_READONLY)
+                        else:
+                            raise CustomError('Mouse button not specified.')
+                        self.hbox_edit.AddSpacer(10)
+                        self.hbox_edit.Add(self.mouse_button)
+
+                        if 'tap' in self.line:
+                            self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
+                                                            style=wx.CB_READONLY)
+                        elif 'press' in self.line:
+                            self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
+                                                            style=wx.CB_READONLY)
+                        elif 'release' in self.line:
+                            self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
+                                                            style=wx.CB_READONLY)
+                        else:
+                            raise CustomError('Mouse action not specified.')
+                        self.hbox_edit.AddSpacer(10)
+                        self.hbox_edit.Add(self.mouse_action)
+
+                        self.hbox_edit.AddSpacer(10)
+                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.create_point_input(self.line)
+
+                    elif 'type:' in self.line_first_word:
+                        self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands, style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.AddSpacer(10)
+                        self.text_to_type = wx.TextCtrl(self.edit,
+                                                        value=str(
+                                                            self.line.replace('type: ', '').replace('Type: ', '')))
+                        self.hbox_edit.Add(self.text_to_type)
+                        # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
+
+                    elif 'sleep' in self.line_first_word:
+                        self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+
+                        self.hbox_edit.AddSpacer(10)
+
+                        self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
+                        self.hbox_edit.Add(self.sleep_time)
+                        # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
+
+                    elif 'hotkey' in self.line_first_word:
+                        self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+
+                        self.combination = [x.capitalize() for x in
+                                            self.line.replace('hotkey', '').replace(' ', '').split('+')]
+
+                        # print(self.combination)
+
+                        self.hbox_edit.AddSpacer(10)
+
+                        self.counter = 0
+                        for self.key in self.combination:
+                            self.counter += 1
+
+                            self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
+                                                         style=wx.CB_READONLY)
+                            self.hbox_edit.Add(self.hotkey_cb)
+
+                            if self.counter < len(self.combination):
+                                self.label = wx.StaticText(self.edit, label='  +  ')
+                                self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    elif 'key' in self.line_first_word:
+                        self.key_in = self.line.split(' ')[1]
+                        self.key = None  # redefined in self.create_key_combo_box(command) method
+                        if self.key_in in [x.lower() for x in self.special_keys]:
+                            self.create_key_combo_box('Special Key')
+
+                        elif self.key_in in [x.lower() for x in self.function_keys]:
+                            self.create_key_combo_box('Function Key')
+
+                        elif self.key_in in [x.lower() for x in self.media_keys]:
+                            self.create_key_combo_box('Media Key')
+
+                        else:
+                            self.unknown_key_message = wx.StaticText(self.edit,
+                                                                     label='**Unknown key from line: \"{}\"'.format(
+                                                                         self.line))
+                            self.unknown_key_message.SetFont(
+                                wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
+                            self.unknown_key_message_contrast = 70
+                            self.unknown_key_message.SetForegroundColour(
+                                (self.unknown_key_message_contrast, self.unknown_key_message_contrast,
+                                 self.unknown_key_message_contrast))  # change font color to (r,g,b)
+                            self.hbox_edit.Add(self.unknown_key_message, 1, wx.ALIGN_CENTER_VERTICAL)
+
+                    elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
+                        self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+
+                        self.hbox_edit.AddSpacer(10)
+                        self.label = wx.StaticText(self.edit, label='to pt. (  ')
+                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.create_point_input(self.line)
+
+                    elif ('double' in self.line) and ('click' in self.line):
+                        self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+
+                        self.hbox_edit.AddSpacer(10)
+                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.create_point_input(self.line)
+
+                    elif ('triple' in self.line) and ('click' in self.line):
+                        self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
+                                                   style=wx.CB_READONLY)
+                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                        self.hbox_edit.Add(self.command)
+
+                        self.hbox_edit.AddSpacer(10)
+                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                        self.create_point_input(self.line)
+
                     else:
-                        raise CustomError('Mouse button not specified.')
-                    self.hbox_edit.AddSpacer(10)
-                    self.hbox_edit.Add(self.mouse_button)
+                        raise CustomError()
 
-                    if 'tap' in self.line:
-                        self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
-                                                        style=wx.CB_READONLY)
-                    elif 'press' in self.line:
-                        self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
-                                                        style=wx.CB_READONLY)
-                    elif 'release' in self.line:
-                        self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
-                                                        style=wx.CB_READONLY)
-                    else:
-                        raise CustomError('Mouse action not specified.')
-                    self.hbox_edit.AddSpacer(10)
-                    self.hbox_edit.Add(self.mouse_action)
-
-                    self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.create_point_input(self.line)
-
-                elif 'type:' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands, style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-                    self.hbox_edit.AddSpacer(10)
-                    self.text_to_type = wx.TextCtrl(self.edit,
-                                                    value=str(self.line.replace('type: ', '').replace('Type: ', '')))
-                    self.hbox_edit.Add(self.text_to_type)
-                    # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
-
-                elif 'sleep' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands, style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-
-                    self.hbox_edit.AddSpacer(10)
-
-                    self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
-                    self.hbox_edit.Add(self.sleep_time)
-                    # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
-
-                elif 'hotkey' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands, style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-
-                    self.combination = [x.capitalize() for x in
-                                        self.line.replace('hotkey', '').replace(' ', '').split('+')]
-
-                    # print(self.combination)
-
-                    self.hbox_edit.AddSpacer(10)
-
-                    self.counter = 0
-                    for self.key in self.combination:
-                        self.counter += 1
-
-                        self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
-                                                     style=wx.CB_READONLY)
-                        self.hbox_edit.Add(self.hotkey_cb)
-
-                        if self.counter < len(self.combination):
-                            self.label = wx.StaticText(self.edit, label='  +  ')
-                            self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                elif 'key' in self.line_first_word:
-                    self.key_in = self.line.split(' ')[1]
-                    self.key = None  # redefined in self.create_key_combo_box(command) method
-                    if self.key_in in [x.lower() for x in self.special_keys]:
-                        self.create_key_combo_box('Special Key')
-
-                    elif self.key_in in [x.lower() for x in self.function_keys]:
-                        self.create_key_combo_box('Function Key')
-
-                    elif self.key_in in [x.lower() for x in self.media_keys]:
-                        self.create_key_combo_box('Media Key')
-
-                    else:
-                        self.unknown_key_message = wx.StaticText(self.edit,
-                                                                 label='**Unknown key from line: \"{}\"'.format(
-                                                                     self.line))
-                        self.unknown_key_message.SetFont(
-                            wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
-                        self.unknown_key_message_contrast = 70
-                        self.unknown_key_message.SetForegroundColour(
-                            (self.unknown_key_message_contrast, self.unknown_key_message_contrast,
-                             self.unknown_key_message_contrast))  # change font color to (r,g,b)
-                        self.hbox_edit.Add(self.unknown_key_message, 1, wx.ALIGN_CENTER_VERTICAL)
-
-                elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                    self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-
-                    self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='to pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.create_point_input(self.line)
-
-                elif ('double' in self.line) and ('click' in self.line):
-                    self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-
-                    self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.create_point_input(self.line)
-
-                elif ('triple' in self.line) and ('click' in self.line):
-                    self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command)
-
-                    self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                    self.create_point_input(self.line)
-
-                else:
+                except (IndexError, CustomError) as e:
+                    print(e)
                     self.hbox_edit.AddSpacer(10)
                     self.unknown_command_message = wx.StaticText(self.edit,
                                                                  label='**Unknown command from line: \"{}\"'.format(
@@ -324,7 +332,6 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
 
                 self.vbox_edit.Add(self.hbox_edit)
-                # self.vbox_edit.Add(self.hbox_edit, 1, wx.EXPAND)
                 self.vbox_edit.AddSpacer(5)
                 self.vbox_edit.Add(wx.StaticLine(self.edit, -1), 0, wx.EXPAND)
 
