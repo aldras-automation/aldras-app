@@ -1,5 +1,3 @@
-import os
-
 import wx
 import wx.adv
 import wx.lib.scrolledpanel
@@ -7,19 +5,19 @@ import wx.lib.scrolledpanel
 
 def create_about_frame(self):
     about_info = wx.adv.AboutDialogInfo()
-    about_info.SetName('Aldras Automation')
+    about_info.SetName('{} Automation'.format(self.software_info.name))
     about_info.SetIcon(wx.Icon('logo.ico'))
-    about_info.SetVersion(self.software_version)
+    about_info.SetVersion(self.software_info.version)
     about_info.SetDescription('Simple, powerful utility for general computer automation.')
     about_info.SetCopyright('(C) 2020 (Not yet)')
-    about_info.SetWebSite('http://www.alderas.com')
+    about_info.SetWebSite('http://www.{}.com'.format(self.software_info.name.lower()))
     wx.adv.AboutBox(about_info)
 
 
 def setup_frame(self):
     # setting up the file menu
     file_menu = wx.Menu()
-    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about Aldras')
+    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about {}'.format(self.software_info.name))
     # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
 
     # creating the menu bar
@@ -40,6 +38,12 @@ def coords_of(line):
     coords = line.split('(')[1].replace(' ', '').replace(')', '').split(',')
     coords = (int(coords[0]), int(coords[1]))
     return coords
+
+
+class SoftwareInfo:
+    def __init__(self):
+        self.name = 'Aldras'
+        self.version = '2020.0.0 Beta'
 
 
 class CustomError(Exception):
@@ -69,17 +73,15 @@ class PlaceholderTextCtrl(wx.TextCtrl):
 
 
 class EditFrame(wx.Frame):
-    def __init__(self, parent, title, workflow_name):
+    def __init__(self, parent, software_info, title, workflow_name):
         self.dirname = ''
+        self.software_info = software_info
         wx.Frame.__init__(self, parent, title=title)
 
         setup_frame(self)
 
         # set margin
         self.margins = 10
-
-        # set software version
-        self.software_version = '2020.0.0 Beta'
 
         # create sizers
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -318,7 +320,7 @@ class EditFrame(wx.Frame):
                         raise CustomError()
 
                 except (IndexError, CustomError) as e:
-                    print(e)
+                    # print(e)
                     self.hbox_edit.AddSpacer(10)
                     self.unknown_command_message = wx.StaticText(self.edit,
                                                                  label='**Unknown command from line: \"{}\"'.format(
@@ -434,9 +436,10 @@ class EditFrame(wx.Frame):
 
 
 class WorkflowFrame(wx.Frame):
-    def __init__(self, parent, title):
+    def __init__(self, parent):
         self.dirname = ''
-        wx.Frame.__init__(self, parent, title=title)
+        self.software_info = SoftwareInfo()
+        wx.Frame.__init__(self, parent, title='{} Automation'.format(self.software_info.name))
 
         setup_frame(self)
 
@@ -450,9 +453,6 @@ class WorkflowFrame(wx.Frame):
         # set padding
         self.padding_y = 25
         self.padding_x = 100
-
-        # set software version
-        self.software_version = '2020.0.0 Beta'
 
         # create sizers
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -469,7 +469,7 @@ class WorkflowFrame(wx.Frame):
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program name text
-        self.program_name = wx.StaticText(self.container, label='Aldras Automation')
+        self.program_name = wx.StaticText(self.container, label='{} Automation'.format(self.software_info.name))
         self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
         self.program_name_contrast = 60
         self.program_name.SetForegroundColour((self.program_name_contrast, self.program_name_contrast,
@@ -477,7 +477,7 @@ class WorkflowFrame(wx.Frame):
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
-        self.program_version = wx.StaticText(self.container, label='Version {}'.format(self.software_version))
+        self.program_version = wx.StaticText(self.container, label='Version {}'.format(self.software_info.version))
         self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
         self.program_version_contrast = 150
         self.program_version.SetForegroundColour((self.program_version_contrast, self.program_version_contrast,
@@ -524,13 +524,6 @@ class WorkflowFrame(wx.Frame):
         self.Close(True)  # close the frame
 
     def on_open_frame(self, event):
-        # directory selector
-        # dlg = wx.DirDialog(None, "Choose input directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        # if dlg.ShowModal() == wx.ID_OK:
-        #     fdir = dlg.GetPath() + "/"
-        #     dlg.SetPath(fdir)
-        #     print('You selected: %s\n' % dlg.GetPath())
-        # dlg.Destroy()
         if self.workflow_name_input.GetValue() == 'd':
             # create a message dialog box
             dlg = wx.MessageDialog(self,
@@ -538,40 +531,46 @@ class WorkflowFrame(wx.Frame):
                                    'Invalid File Name', wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()  # show modal
             dlg.Destroy()  # destroy dialog when finished
+
         else:
             dlg = wx.MessageDialog(None, 'Please confirm that "{}" is your desired workflow.'.format(
                 self.workflow_name_input.GetValue()), 'Workflow Name Confirmation', wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
 
             if result == wx.ID_YES:
-                # main_frame = EditFrame(None,
-                #                        'Aldras Automation - Workflow: {}'.format(self.workflow_name_input.GetValue()),
-                #                        self.workflow_name_input.GetValue())
-                self.Hide()
-                EditFrame(self, 'Aldras Automation - Workflow: {}'.format(self.workflow_name_input.GetValue()),
+                EditFrame(self, self.software_info, '{} Automation - Workflow: {}'.format(self.software_info.name,
+                                                                                          self.workflow_name_input.GetValue()),
                           self.workflow_name_input.GetValue())
-                # main_frame.Show()
-                # time.sleep(2)
-                # self.Show()
-                # self.Close(True)  # close the frame
+
+                self.Hide()
             else:
                 pass  # returns user back to workflow window
 
-    def on_open(self, e):
-        """ Open a file"""
-        dlg = wx.FileDialog(self, 'Choose a file', self.dirname, '', '*.*', wx.FD_OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.filename = dlg.GetFilename()
-            self.dirname = dlg.GetDirectory()
-            f = open(os.path.join(self.dirname, self.filename), 'r')
-            self.workflow_name_input.SetValue(f.read())
-            f.close()
-        dlg.Destroy()
+    # def on_open(self, e):
+    #     """ Open a file"""
+    #     dlg = wx.FileDialog(self, 'Choose a file', self.dirname, '', '*.*', wx.FD_OPEN)
+    #     if dlg.ShowModal() == wx.ID_OK:
+    #         self.filename = dlg.GetFilename()
+    #         self.dirname = dlg.GetDirectory()
+    #         f = open(os.path.join(self.dirname, self.filename), 'r')
+    #         self.workflow_name_input.SetValue(f.read())
+    #         f.close()
+    #     dlg.Destroy()
+    #########################################################################
+    # OR
+    #########################################################################
+    # directory selector
+    # dlg = wx.DirDialog(None, "Choose input directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+    # if dlg.ShowModal() == wx.ID_OK:
+    #     fdir = dlg.GetPath() + "/"
+    #     dlg.SetPath(fdir)
+    #     print('You selected: %s\n' % dlg.GetPath())
+    # dlg.Destroy()
 
 
 def main():
     app = wx.App(False)
-    frame = WorkflowFrame(None, 'Aldras Automation')
+    WorkflowFrame(None)
     app.MainLoop()
 
 
