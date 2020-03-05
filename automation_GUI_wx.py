@@ -1,8 +1,8 @@
 import os
+
 import wx
 import wx.adv
 import wx.lib.scrolledpanel
-import time
 
 
 def create_about_frame(self):
@@ -76,8 +76,7 @@ class EditFrame(wx.Frame):
         setup_frame(self)
 
         # set margin
-        self.margin_y = 10
-        self.margin_x = 10
+        self.margins = 10
 
         # set software version
         self.software_version = '2020.0.0 Beta'
@@ -87,8 +86,8 @@ class EditFrame(wx.Frame):
         self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
 
         # create north and west margins
-        self.vbox_outer.AddSpacer(self.margin_y)
-        self.hbox_outer.AddSpacer(self.margin_x)
+        # self.vbox_outer.AddSpacer(self.margin_y)
+        # self.hbox_outer.AddSpacer(self.margin_x)
 
         # add top panel
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -98,8 +97,9 @@ class EditFrame(wx.Frame):
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        # add workflow title
         self.hbox_top.AddSpacer(10)
+
+        # add workflow title
         self.title = wx.StaticText(self, label='Workflow: {}'.format(workflow_name))
         self.title.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
         self.title_contrast = 60
@@ -108,18 +108,19 @@ class EditFrame(wx.Frame):
         self.hbox_top.Add(self.title, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_outer.Add(self.hbox_top)
+
         self.vbox_outer.AddSpacer(10)
 
-        # ------------------------------------------------------------------------------------------- edit panel
+        # ------------------------------------------------------------------------------------------- bottom sizer
+        self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
 
         # add edit panel
-        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER, size=(800, 400))
+        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER, size=(500, 300))
         self.edit.SetupScrolling()
 
-        # create sizers
+        # create sizer
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
-        self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox_edit2 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.edit.SetSizer(self.vbox_edit)
 
@@ -139,16 +140,18 @@ class EditFrame(wx.Frame):
                               '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' ']
         self.all_keys = self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
 
+        # read or create workflow file
         try:
             with open('{}.txt'.format(workflow_name), 'r') as record_file:
                 self.lines = record_file.readlines()
-        except FileNotFoundError:
+        except FileNotFoundError:  # create file if not found
             with open('{}.txt'.format(workflow_name), 'w'):
                 self.lines = []
 
         print('lines: {}'.format(self.lines))
 
         for self.line in self.lines:
+            self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
             if '#' in self.line:  # workflow comment so no action
                 pass
             else:
@@ -203,7 +206,8 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.AddSpacer(10)
                     self.text_to_type = wx.TextCtrl(self.edit,
                                                     value=str(self.line.replace('type: ', '').replace('Type: ', '')))
-                    self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
+                    self.hbox_edit.Add(self.text_to_type)
+                    # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
 
                 elif 'sleep' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands, style=wx.CB_READONLY)
@@ -213,7 +217,8 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.AddSpacer(10)
 
                     self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
-                    self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
+                    self.hbox_edit.Add(self.sleep_time)
+                    # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
 
                 elif 'hotkey' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands, style=wx.CB_READONLY)
@@ -318,42 +323,63 @@ class EditFrame(wx.Frame):
                          self.unknown_command_message_contrast))  # change font color to (r,g,b)
                     self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                self.vbox_edit.Add(self.hbox_edit, 1, wx.EXPAND)
+                self.vbox_edit.Add(self.hbox_edit)
+                # self.vbox_edit.Add(self.hbox_edit, 1, wx.EXPAND)
                 self.vbox_edit.AddSpacer(5)
                 self.vbox_edit.Add(wx.StaticLine(self.edit, -1), 0, wx.EXPAND)
-            # elif 'doubleclick' in self.line:
-            #     coords = coords_of(self.line)
-            #     pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
-            # elif 'tripleclick' in line:
-            #     coords = coords_of(line)
-            #     pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
-            # elif 'move' in line:
-            #     coords = coords_of(line)
-            #     pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
-            # else:
-            #     pass
-            # print(self.line)
 
-        for ii in range(60):
-            self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+        # ------------------------------------------------------------------------------------------- action strip sizer
 
-            self.hbox_edit.Add(wx.Button(self.edit, size=wx.Size(50, -1), label='<'))
-            self.hbox_edit.Add(wx.Button(self.edit, size=wx.Size(50, -1), label='<'))
-            self.hbox_edit.Add(wx.Button(self.edit, size=wx.Size(50, -1), label='<'))
-            self.hbox_edit.Add(wx.Button(self.edit, size=wx.Size(50, -1), label='<'))
-            self.hbox_edit.Add(wx.Button(self.edit, size=wx.Size(50, -1), label='<'))
+        self.vbox_action = wx.BoxSizer(wx.VERTICAL)
+        self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
 
-            self.vbox_edit.Add(self.hbox_edit)
+        # add minus command button
+        self.minus_btn = wx.Button(self, label='-', size=(20, -1))
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.hbox_line_mods.Add(self.minus_btn, 1, wx.EXPAND)
 
-        self.vbox_outer.Add(self.edit)
+        self.hbox_line_mods.AddSpacer(5)
 
-        # add south margin
-        self.vbox_outer.AddSpacer(self.margin_y)
-        self.hbox_outer.Add(self.vbox_outer)
+        # add plus command button
+        self.plus_btn = wx.Button(self, label='+', size=(20, -1))
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
 
-        # add east margin
-        self.hbox_outer.AddSpacer(self.margin_x)
+        self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND)
 
+        self.vbox_action.AddSpacer(10)
+
+        # add advanced command button
+        self.advanced_btn = wx.Button(self, label='Advanced')
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddStretchSpacer()
+
+        # add record command button
+        self.record_btn = wx.Button(self, label='Record')
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddSpacer(10)
+
+        # add execute command button
+        self.execute_btn = wx.Button(self, label='Execute')
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
+
+        self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+        self.fg_bottom.AddGrowableCol(0, 0)
+        self.fg_bottom.AddGrowableRow(0, 0)
+
+        self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND)
+        # self.vbox_outer.Add(self.fg_bottom, proportion=2, flag=wx.ALL | wx.EXPAND, border=15)
+
+        # -------------------------------------------------------------------------------------------
+
+        # add margins and inside sizers
+        self.vbox_outer.AddSpacer(5)
+        self.hbox_outer.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
         self.hbox_outer.SetSizeHints(self)
         self.SetSizer(self.hbox_outer)
         self.Show()
@@ -382,7 +408,7 @@ class EditFrame(wx.Frame):
             self.key = wx.ComboBox(self.edit, value=str(self.key_in), choices=self.media_keys,
                                    style=wx.CB_READONLY)
 
-        self.hbox_edit.Add(self.key, 1, wx.EXPAND)
+        self.hbox_edit.Add(self.key)
 
     def create_point_input(self, line):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
