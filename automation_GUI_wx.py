@@ -3,6 +3,17 @@ import wx.adv
 import wx.lib.scrolledpanel
 
 
+# TODO status bar
+# TODO control key validation
+# TODO recent workflows
+# TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
+# TODO re-runs
+# TODO create help guide
+# TODO investigate image buttons (edit frame - back button)
+# TODO investigate compilation speed increases (numba, cpython, pypy)
+# TODO premium feature separation (any workflow destination)
+
+
 def create_about_frame(self):
     about_info = wx.adv.AboutDialogInfo()
     about_info.SetName('{} Automation'.format(self.software_info.name))
@@ -10,7 +21,7 @@ def create_about_frame(self):
     about_info.SetVersion(self.software_info.version)
     about_info.SetDescription('Simple, powerful utility for general computer automation.')
     about_info.SetCopyright('(C) 2020 (Not yet)')
-    about_info.SetWebSite('http://www.{}.com'.format(self.software_info.name.lower()))
+    about_info.SetWebSite(self.software_info.website)
     wx.adv.AboutBox(about_info)
 
 
@@ -44,6 +55,20 @@ class SoftwareInfo:
     def __init__(self):
         self.name = 'Aldras'
         self.version = '2020.0.0 Beta'
+        self.website = 'http://www.{}.com'.format(self.name.lower())
+        self.advanced_edit_guide_website = '{}/edit-guide'.format(self.website)
+        self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
+        self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
+        self.advanced_edit_guide_commands = {
+            '{Left/Right}-mouse {tap/press/release} at ({x}, {y})': 'Left-mouse tap at (284, 531)',
+            'Type: {text}': 'Type: This report is initiated by John Smith.',
+            'Sleep {time (seconds)}': 'Sleep 0.5',
+            'Key {key} {tap/press/release} at ({x}, {y})': 'Key Enter Tap',
+            'Hotkey {key 1} + {key 2} + {key 3}': ['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
+            'Mouse-move to ({x}, {y})': 'Mouse-move to (284, 531)',
+            'Double-click at ({x}, {y})': 'Double-click at (284, 531)',
+            'Triple-click at ({x}, {y})': 'Triple-click at (284, 531)'
+        }
 
 
 class CustomError(Exception):
@@ -72,11 +97,233 @@ class PlaceholderTextCtrl(wx.TextCtrl):
             evt.Skip()
 
 
-class EditFrame(wx.Frame):
-    def __init__(self, parent, software_info, title, workflow_name):
+class AllOrMultiChoiceDialog(wx.Dialog):
+    def __init__(self, parent, message, caption, choices=None):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        if choices is None:
+            choices = []
+        self.SetTitle(caption)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.message = wx.StaticText(self, -1, message)
+        self.clb = wx.CheckListBox(self, -1, choices=choices)
+        self.checkbox = wx.CheckBox(self, -1, 'Select all')
+        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+        self.Bind(wx.EVT_CHECKBOX, self.check_all, self.checkbox)
+
+        sizer.Add(self.message, 0, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(self.clb, 1, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(self.checkbox, 0, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(self.btns, 0, wx.ALL | wx.EXPAND, 5)
+        self.SetSizerAndFit(sizer)
+
+    def get_selections(self):
+        return self.clb.GetCheckedItems()
+
+    def check_all(self, event):
+        state = self.checkbox.IsChecked()
+        for i in range(self.clb.GetCount()):
+            self.clb.Check(i, state)
+
+
+class AdvancedEditGuide(wx.Frame):
+    def __init__(self, parent):
         self.dirname = ''
-        self.software_info = software_info
-        wx.Frame.__init__(self, parent, title=title)
+        self.software_info = parent.software_info
+        self.workflow_name = parent.workflow_name
+
+        wx.Frame.__init__(self, parent,
+                          title='{} Edit Guide'.format(self.software_info.name))
+
+        setup_frame(self)
+
+        # create sizers
+        self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
+        self.vbox_inner = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_inner.AddStretchSpacer()
+
+        # add encompassing panel
+        self.container = wx.Panel(self)
+
+        # add advanced edit guide title
+        self.title = wx.StaticText(self.container, label='Advanced Edit Guide')
+        self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
+        self.title_contrast = 60
+        self.title.SetForegroundColour(
+            (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
+        self.vbox_inner.Add(self.title)
+
+        self.vbox_inner.AddSpacer(5)
+
+        self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_description.AddSpacer(5)
+        self.description = wx.StaticText(self.container, label=self.software_info.advanced_edit_guide_description)
+        self.hbox_description.Add(self.description)
+        self.vbox_inner.Add(self.hbox_description)
+
+        self.vbox_inner.AddSpacer(20)
+
+        # add commands title
+        self.command_title = wx.StaticText(self.container, label='Commands')
+        self.command_title.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
+        self.command_title_contrast = self.title_contrast
+        self.command_title.SetForegroundColour(
+            (self.command_title_contrast, self.command_title_contrast,
+             self.command_title_contrast))  # change font color to (r,g,b)
+        self.vbox_inner.Add(self.command_title)
+
+        self.nmSizer = wx.StaticBoxSizer(wx.StaticBox(self.container, -1, ''), wx.VERTICAL)
+        self.command_description = wx.StaticText(self.container,
+                                                 label=self.software_info.advanced_edit_guide_command_description)
+        self.command_description.SetFont(wx.Font(10, wx.SWISS, wx.ITALIC, wx.NORMAL))  # change font size
+        self.nmSizer.Add(self.command_description, 0, wx.ALIGN_RIGHT)
+
+        self.nmSizer.AddSpacer(25)
+
+        for command, example in self.software_info.advanced_edit_guide_commands.items():
+            print(command)
+            self.command = wx.StaticText(self.container, label='  {}     '.format(command))
+            # self.command.SetFont(wx.Font(wx.FontInfo(11)))  # change font size
+            self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
+            self.nmSizer.Add(self.command)
+            self.nmSizer.AddSpacer(5)
+            if isinstance(example, list):
+                for each_example in example:
+                    print('\t{}'.format(each_example))
+                    self.example = wx.StaticText(self.container, label='   {}'.format(each_example))
+                    self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
+                    self.example_contrast = 80
+                    self.example.SetForegroundColour(
+                        (self.example_contrast, self.example_contrast,
+                         self.example_contrast))  # change font color to (r,g,b)
+                    self.nmSizer.Add(self.example)
+            else:
+                print('\t{}'.format(example))
+                self.example = wx.StaticText(self.container, label='   {}'.format(example))
+                self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
+                self.example_contrast = 80
+                self.example.SetForegroundColour(
+                    (self.example_contrast, self.example_contrast,
+                     self.example_contrast))  # change font color to (r,g,b)
+                self.nmSizer.Add(self.example)
+
+            self.nmSizer.AddSpacer(15)
+
+        self.vbox_inner.Add(self.nmSizer)
+
+        self.vbox_inner.AddStretchSpacer()
+
+        self.hbox_outer.AddStretchSpacer()
+        self.hbox_outer.Add(self.vbox_inner, 0, wx.CENTER | wx.EXPAND | wx.ALL, 10)
+        self.hbox_outer.AddStretchSpacer()
+
+        self.container.SetSizerAndFit(self.hbox_outer)
+        self.vbox_inner.SetSizeHints(self)
+
+        self.Show()
+
+    def on_about(self, event):
+        create_about_frame(self)
+
+
+class AdvancedEdit(wx.Frame):
+    def __init__(self, parent):
+        self.dirname = ''
+        self.software_info = parent.software_info
+        self.workflow_name = parent.workflow_name
+
+        wx.Frame.__init__(self, parent,
+                          title='{} Advanced Edit - {}'.format(self.software_info.name, self.workflow_name))
+
+        # modal = True  # to make modal but encountering weird behavior
+        # if modal and not hasattr(self, '_disabler'):
+        #     self._disabler = wx.WindowDisabler(self)
+        # if not modal and hasattr(self, '_disabler'):
+        #     del self._disabler
+
+        setup_frame(self)
+
+        # create sizers
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_inner = wx.BoxSizer(wx.VERTICAL)
+        self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
+
+        # add encompassing panel
+        self.container = wx.Panel(self)
+
+        # add workflow title
+        self.title = wx.StaticText(self.container, label='{}'.format(self.workflow_name))
+        self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
+        self.title_contrast = 60
+        self.title.SetForegroundColour(
+            (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
+        self.vbox_inner.Add(self.title)
+
+        self.vbox_inner.AddSpacer(5)
+
+        self.text_edit = wx.TextCtrl(self.container, value=''.join(parent.lines), style=wx.TE_MULTILINE | wx.EXPAND,
+                                     size=(500, 300))
+
+        self.vbox_inner.Add(self.text_edit, 1, wx.EXPAND)
+
+        # ------------------------------------------------------------------------------------------- bottom sizer
+        self.vbox_inner.AddSpacer(10)
+
+        self.advanced_edit_guide_btn = wx.Button(self.container, label='Guide')
+        self.advanced_edit_guide_btn.Bind(wx.EVT_BUTTON, self.advanced_edit_guide)
+        self.hbox_bottom.Add(self.advanced_edit_guide_btn)
+
+        self.hbox_bottom.AddStretchSpacer()
+
+        self.button_array = wx.StdDialogButtonSizer()
+        self.ok_btn = wx.Button(self.container, label='OK')
+        self.ok_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_ok(parent))
+        self.button_array.Add(self.ok_btn)
+        self.cancel_btn = wx.Button(self.container, label='Cancel')
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_cancel)
+        self.button_array.Add(self.cancel_btn)
+        self.hbox_bottom.Add(self.button_array, 0, wx.ALIGN_RIGHT)
+
+        self.vbox_inner.Add(self.hbox_bottom, 0, wx.EXPAND)
+
+        self.vbox_outer.Add(self.vbox_inner, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.ALL, 10)
+
+        self.container.SetSizer(self.vbox_outer)
+        self.vbox_outer.SetSizeHints(self)
+
+        self.Show()
+
+    def on_about(self, event):
+        create_about_frame(self)
+
+    def advanced_edit_guide(self, event):
+        AdvancedEditGuide(self)
+
+    def on_cancel(self, event):
+        self.Close()
+
+    def on_ok(self, parent):
+        print(self.text_edit.GetValue() != ''.join(parent.lines))
+        if self.text_edit.GetValue() != ''.join(parent.lines):
+            parent.lines = ['{}\n'.format(x) for x in self.text_edit.GetValue().split('\n')]
+
+            # write to workflow file
+            with open(parent.workflow_file_name, 'w') as record_file:
+                for line in parent.lines:
+                    record_file.write(line)
+
+            parent.create_edit_panel()
+
+        self.Close()
+
+
+class EditFrame(wx.Frame):
+    def __init__(self, parent):
+        self.dirname = ''
+        self.software_info = parent.software_info
+        self.workflow_name = parent.workflow_name
+        self.workflow_file_name = parent.workflow_file_name
+
+        wx.Frame.__init__(self, parent, title='{} Edit - {}'.format(self.software_info.name, self.workflow_name))
 
         setup_frame(self)
 
@@ -87,45 +334,29 @@ class EditFrame(wx.Frame):
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # create north and west margins
-        # self.vbox_outer.AddSpacer(self.margin_y)
-        # self.hbox_outer.AddSpacer(self.margin_x)
-
         # add top panel
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)
 
         # add back button
-        self.back_btn = wx.Button(self, size=wx.Size(50, -1), label='<')
+        self.back_btn = wx.Button(self, size=wx.Size(30, -1), label='<')
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.hbox_top.AddSpacer(10)
 
         # add workflow title
-        self.title = wx.StaticText(self, label='Workflow: {}'.format(workflow_name))
-        self.title.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+        self.title = wx.StaticText(self, label='{}'.format(self.workflow_name))
+        self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.title_contrast = 60
         self.title.SetForegroundColour(
             (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
-        self.hbox_top.Add(self.title, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_outer.Add(self.hbox_top)
 
         self.vbox_outer.AddSpacer(10)
 
         # ------------------------------------------------------------------------------------------- bottom sizer
-        self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
-
-        # add edit panel
-        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER, size=(500, 300))
-        self.edit.SetupScrolling()
-
-        # create sizer
-        self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
-
-        self.edit.SetSizer(self.vbox_edit)
-
         self.commands = ['Mouse button', 'Type', 'Sleep', 'Special key', 'Function key', 'Media key', 'Hotkey',
                          'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
         self.mouse_buttons = ['Left', 'Right']
@@ -142,23 +373,101 @@ class EditFrame(wx.Frame):
                               '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' ']
         self.all_keys = self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
 
+        self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
+
+        # add edit panel
+        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER, size=(500, 300))
+
         # read or create workflow file
         try:
-            with open('{}.txt'.format(workflow_name), 'r') as record_file:
+            with open(self.workflow_file_name, 'r') as record_file:
                 self.lines = record_file.readlines()
         except FileNotFoundError:  # create file if not found
-            with open('{}.txt'.format(workflow_name), 'w'):
+            with open(self.workflow_file_name, 'w'):
                 self.lines = []
+
+        self.create_edit_panel()
+
+        self.vbox_action = wx.BoxSizer(wx.VERTICAL)
+        self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
+
+        # add delete command button
+        self.delete_btn = wx.Button(self, label='-', size=(20, -1))
+        self.delete_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_open_delete_command_dialog())
+        self.hbox_line_mods.Add(self.delete_btn, 1, wx.EXPAND)
+
+        self.hbox_line_mods.AddSpacer(5)
+
+        # add plus command button
+        self.plus_btn = wx.Button(self, label='+', size=(20, -1))
+        self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_open_add_command_dialog())
+        self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
+
+        self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND)
+
+        self.vbox_action.AddSpacer(10)
+
+        # add advanced command button
+        self.advanced_btn = wx.Button(self, label='Advanced')
+        self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.create_advanced_edit_frame())
+        self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddStretchSpacer()
+
+        # add record command button
+        self.record_btn = wx.Button(self, label='Record')
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddSpacer(10)
+
+        # add execute command button
+        self.execute_btn = wx.Button(self, label='Execute')
+        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
+
+        self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+        self.fg_bottom.AddGrowableCol(0, 0)
+        self.fg_bottom.AddGrowableRow(0, 0)
+
+        self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND)
+        # self.vbox_outer.Add(self.fg_bottom, proportion=2, flag=wx.ALL | wx.EXPAND, border=15)
+
+        # -------------------------------------------------------------------------------------------
+
+        # add margins and inside sizers
+        self.vbox_outer.AddSpacer(5)
+        self.hbox_outer.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
+        self.hbox_outer.SetSizeHints(self)
+        self.SetSizer(self.hbox_outer)
+        self.Show()
+
+    def on_back(self, parent):
+        parent.Show()
+        self.Close()  # close the frame
+
+    def on_about(self, event):
+        create_about_frame(self)
+
+    def create_edit_panel(self):
+        for child in self.edit.GetChildren():
+            child.Destroy()
+        self.edit.SetupScrolling()
+        self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
+        self.edit.SetSizer(self.vbox_edit)
 
         print('lines: {}'.format(self.lines))
 
+        self.edit.Hide()
+
         for self.line in self.lines:
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+            self.line = self.line.replace('\n', '').lower()
             if '#' in self.line or self.line == '':  # workflow comment so no action
                 pass
             else:
                 try:
-                    self.line = self.line.replace('\n', '').lower()
                     self.vbox_edit.AddSpacer(5)
                     self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
                     self.hbox_edit.AddSpacer(5)
@@ -337,68 +646,9 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.AddSpacer(5)
                 self.vbox_edit.Add(wx.StaticLine(self.edit, -1), 0, wx.EXPAND)
 
-        # ------------------------------------------------------------------------------------------- action strip sizer
-
-        self.vbox_action = wx.BoxSizer(wx.VERTICAL)
-        self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
-
-        # add minus command button
-        self.minus_btn = wx.Button(self, label='-', size=(20, -1))
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
-        self.hbox_line_mods.Add(self.minus_btn, 1, wx.EXPAND)
-
-        self.hbox_line_mods.AddSpacer(5)
-
-        # add plus command button
-        self.plus_btn = wx.Button(self, label='+', size=(20, -1))
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
-        self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
-
-        self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND)
-
-        self.vbox_action.AddSpacer(10)
-
-        # add advanced command button
-        self.advanced_btn = wx.Button(self, label='Advanced')
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
-        self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
-
-        self.vbox_action.AddStretchSpacer()
-
-        # add record command button
-        self.record_btn = wx.Button(self, label='Record')
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
-        self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
-
-        self.vbox_action.AddSpacer(10)
-
-        # add execute command button
-        self.execute_btn = wx.Button(self, label='Execute')
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
-        self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
-
-        self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
-        self.fg_bottom.AddGrowableCol(0, 0)
-        self.fg_bottom.AddGrowableRow(0, 0)
-
-        self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND)
-        # self.vbox_outer.Add(self.fg_bottom, proportion=2, flag=wx.ALL | wx.EXPAND, border=15)
-
-        # -------------------------------------------------------------------------------------------
-
-        # add margins and inside sizers
-        self.vbox_outer.AddSpacer(5)
-        self.hbox_outer.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
-        self.hbox_outer.SetSizeHints(self)
-        self.SetSizer(self.hbox_outer)
-        self.Show()
-
-    def on_back(self, parent):
-        parent.Show()
-        self.Close()  # close the frame
-
-    def on_about(self, event):
-        create_about_frame(self)
+        self.edit.Show()
+        # self.edit.Update()  # no sure why this produces artifacts
+        # self.Update()  # no sure why this produces artifacts
 
     def create_key_combo_box(self, command):
         self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
@@ -433,6 +683,37 @@ class EditFrame(wx.Frame):
 
         self.label = wx.StaticText(self.edit, label='  )')
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+    def on_open_delete_command_dialog(self):
+        # dlg = wx.MultiChoiceDialog(self, 'Please choose the commands to delete:',
+        #                            '{}: {} - Delete Commands'.format(self.software_info.name, self.workflow_name),
+        #                            self.lines)
+        dlg = AllOrMultiChoiceDialog(self, 'Please choose the commands to delete:',
+                                     '{}: {} - Delete Commands'.format(self.software_info.name, self.workflow_name),
+                                     self.lines)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            indices_to_delete = dlg.get_selections()
+            # print('You chose to delete indices' + str(indices_to_delete))
+            if indices_to_delete:  # if indices_to_delete is not empty
+                for index in sorted(indices_to_delete, reverse=True):
+                    del (self.lines[index])
+
+                # write to workflow file
+                with open(self.workflow_file_name, 'w') as record_file:
+                    for line in self.lines:
+                        record_file.write(line)
+
+                self.create_edit_panel()
+
+        dlg.Destroy()
+
+    def on_open_add_command_dialog(self):
+        pass
+        # self.create_edit_panel()
+
+    def create_advanced_edit_frame(self):
+        AdvancedEdit(self)
 
 
 class WorkflowFrame(wx.Frame):
@@ -504,7 +785,7 @@ class WorkflowFrame(wx.Frame):
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_exit)
         self.button_array.Add(self.cancel_btn)
         self.ok_btn = wx.Button(self.container, label='OK')
-        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_open_frame)
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         self.button_array.Add(self.ok_btn)
         self.vbox_outer.Add(self.button_array, 0, wx.ALIGN_RIGHT)
 
@@ -523,8 +804,8 @@ class WorkflowFrame(wx.Frame):
     def on_exit(self, event):
         self.Close(True)  # close the frame
 
-    def on_open_frame(self, event):
-        if self.workflow_name_input.GetValue() == 'd':
+    def on_ok(self, event):
+        if self.workflow_name_input.GetValue() == '':
             # create a message dialog box
             dlg = wx.MessageDialog(self,
                                    'Invalid file name.\nPlease try again.',
@@ -534,14 +815,15 @@ class WorkflowFrame(wx.Frame):
 
         else:
             dlg = wx.MessageDialog(None, 'Please confirm that "{}" is your desired workflow.'.format(
-                self.workflow_name_input.GetValue()), 'Workflow Name Confirmation', wx.YES_NO | wx.ICON_QUESTION)
+                self.workflow_name_input.GetValue()), '{} Workflow Confirmation'.format(self.software_info.name),
+                                   wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
 
             if result == wx.ID_YES:
-                EditFrame(self, self.software_info, '{} Automation - Workflow: {}'.format(self.software_info.name,
-                                                                                          self.workflow_name_input.GetValue()),
-                          self.workflow_name_input.GetValue())
-
+                self.workflow_directory = ''
+                self.workflow_name = self.workflow_name_input.GetValue()
+                self.workflow_file_name = '{}{}.txt'.format(self.workflow_directory, self.workflow_name)
+                EditFrame(self)
                 self.Hide()
             else:
                 pass  # returns user back to workflow window

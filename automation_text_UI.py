@@ -7,12 +7,6 @@ from pynput import keyboard, mouse
 
 # failsafe - mouse cursor to top left corner
 
-# TODO ctrl key calibration setup
-# TODO re-runs
-# TODO comments
-# TODO allow workflow comments
-# TODO create help guide
-# TODO GUI
 
 df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
 df = df.set_index('Code')
