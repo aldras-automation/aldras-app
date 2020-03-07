@@ -6,13 +6,20 @@ import wx.lib.scrolledpanel
 
 
 # TODO recent workflows
+# TODO alternate row shading (edit frame)
+# TODO command move
+# TODO menu bar exit option
 # TODO control key validation
-# TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO re-runs
 # TODO create help guide
 # TODO investigate image buttons (edit frame - back button)
 # TODO investigate compilation speed increases (numba, cpython, pypy)
+# TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO premium feature separation (any workflow destination)
+
+
+def do_nothing(event=None):
+    pass
 
 
 def create_about_frame(self):
@@ -95,6 +102,21 @@ class SoftwareInfo:
             'Double-click at ({x}, {y})': ['Double-click at (284, 531)', 'Simulates double left click'],
             'Triple-click at ({x}, {y})': ['Triple-click at (284, 531)', 'Simulates triple left click']
         }
+        self.commands = ['Mouse button', 'Type', 'Sleep', 'Special key', 'Function key', 'Media key', 'Hotkey',
+                         'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
+        self.mouse_buttons = ['Left', 'Right']
+        self.mouse_actions = ['Tap', 'Press', 'Release']
+        self.coord_width = 40
+        self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'Pgup',
+                             'Pgdn', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Cmd', 'Option', 'Back nav',
+                             'Capslock', 'Insert', 'Numlock', 'Prtscrn', 'Scrlock']
+        self.media_keys = ['Playpause', 'Nexttrack', 'Prevtrack', 'Volmute', 'Voldown', 'Volup']
+        self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
+        self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                              'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                              '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<',
+                              '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' ']
+        self.all_keys = self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
 
 
 class CustomError(Exception):
@@ -109,18 +131,18 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         self.Bind(wx.EVT_SET_FOCUS, self.on_focus)
         self.Bind(wx.EVT_KILL_FOCUS, self.on_unfocus)
 
-    def on_focus(self, evt):
+    def on_focus(self, event):
         self.SetForegroundColour(wx.BLACK)
         if self.GetValue() == self.default_text:
             self.SetValue('')
-        evt.Skip()
+        event.Skip()
 
-    def on_unfocus(self, evt):
+    def on_unfocus(self, event):
         if self.GetValue().strip() == '':
             self.SetValue(self.default_text)
             self.SetForegroundColour(wx.LIGHT_GREY)
-        if evt:
-            evt.Skip()
+        if event:
+            event.Skip()
 
 
 class AllOrMultiChoiceDialog(wx.Dialog):
@@ -370,6 +392,15 @@ class EditFrame(wx.Frame):
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
         self.workflow_file_name = parent.workflow_file_name
+        self.commands = self.software_info.commands
+        self.mouse_buttons = self.software_info.mouse_buttons
+        self.mouse_actions = self.software_info.mouse_actions
+        self.coord_width = self.software_info.coord_width
+        self.special_keys = self.software_info.special_keys
+        self.media_keys = self.software_info.media_keys
+        self.function_keys = self.software_info.function_keys
+        self.alphanum_keys = self.software_info.alphanum_keys
+        self.all_keys = self.software_info.all_keys
 
         wx.Frame.__init__(self, parent, title='{} Edit - {}'.format(self.software_info.name, self.workflow_name))
 
@@ -406,21 +437,6 @@ class EditFrame(wx.Frame):
         self.vbox_outer.AddSpacer(10)
 
         # ------------------------------------------------------------------------------------------- bottom sizer
-        self.commands = ['Mouse button', 'Type', 'Sleep', 'Special key', 'Function key', 'Media key', 'Hotkey',
-                         'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
-        self.mouse_buttons = ['Left', 'Right']
-        self.mouse_actions = ['Tap', 'Press', 'Release']
-        self.coord_width = 40
-        self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'Pgup',
-                             'Pgdn', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Cmd', 'Option', 'Back nav',
-                             'Capslock', 'Insert', 'Numlock', 'Prtscrn', 'Scrlock']
-        self.media_keys = ['Playpause', 'Nexttrack', 'Prevtrack', 'Volmute', 'Voldown', 'Volup']
-        self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
-        self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-                              'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                              '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<',
-                              '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' ']
-        self.all_keys = self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
 
         self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
@@ -525,12 +541,22 @@ class EditFrame(wx.Frame):
                     self.vbox_edit.AddSpacer(5)
                     self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
                     self.hbox_edit.AddSpacer(5)
+
+                    self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
+                    self.move_up.Bind(wx.EVT_BUTTON, lambda event: self.move_command_up(self.line))
+                    self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
+                    self.move_down.Bind(wx.EVT_BUTTON, lambda event: self.move_command_down(self.line))
+                    self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.hbox_edit.AddSpacer(5)
                     self.line_first_word = self.line.split(' ')[0]
                     if '-mouse' in self.line_first_word:
                         self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         if 'left' in self.line_first_word:
                             self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
@@ -541,7 +567,9 @@ class EditFrame(wx.Frame):
                         else:
                             raise CustomError('Mouse button not specified.')
                         self.hbox_edit.AddSpacer(10)
-                        self.hbox_edit.Add(self.mouse_button)
+                        self.mouse_button.Bind(wx.EVT_MOUSEWHEEL,
+                                               do_nothing)  # prevent mouse wheel from cycling through options
+                        self.hbox_edit.Add(self.mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         if 'tap' in self.line:
                             self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
@@ -555,7 +583,9 @@ class EditFrame(wx.Frame):
                         else:
                             raise CustomError('Mouse action not specified.')
                         self.hbox_edit.AddSpacer(10)
-                        self.hbox_edit.Add(self.mouse_action)
+                        self.mouse_action.Bind(wx.EVT_MOUSEWHEEL,
+                                               do_nothing)  # prevent mouse wheel from cycling through options
+                        self.hbox_edit.Add(self.mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.hbox_edit.AddSpacer(10)
                         self.label = wx.StaticText(self.edit, label='at pt. (  ')
@@ -568,31 +598,30 @@ class EditFrame(wx.Frame):
                     elif 'type:' in self.line_first_word:
                         self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands, style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                         self.hbox_edit.AddSpacer(10)
-                        self.text_to_type = wx.TextCtrl(self.edit,
-                                                        value=str(
-                                                            self.line.replace('type: ', '').replace('Type: ', '')))
-                        self.hbox_edit.Add(self.text_to_type)
+                        self.text_to_type = wx.TextCtrl(self.edit, value=str(
+                            self.line.replace('type: ', '').replace('Type: ', '')))
+                        self.hbox_edit.Add(self.text_to_type, 0, wx.ALIGN_CENTER_VERTICAL)
                         # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
 
                     elif 'sleep' in self.line_first_word:
                         self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.hbox_edit.AddSpacer(10)
 
                         self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
-                        self.hbox_edit.Add(self.sleep_time)
+                        self.hbox_edit.Add(self.sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
                         # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
 
                     elif 'hotkey' in self.line_first_word:
                         self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.combination = [x.capitalize() for x in
                                             self.line.replace('hotkey', '').replace(' ', '').split('+')]
@@ -607,7 +636,9 @@ class EditFrame(wx.Frame):
 
                             self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
                                                          style=wx.CB_READONLY)
-                            self.hbox_edit.Add(self.hotkey_cb)
+                            self.hotkey_cb.Bind(wx.EVT_MOUSEWHEEL,
+                                                do_nothing)  # prevent mouse wheel from cycling through options
+                            self.hbox_edit.Add(self.hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
                             if self.counter < len(self.combination):
                                 self.label = wx.StaticText(self.edit, label='  +  ')
@@ -626,22 +657,13 @@ class EditFrame(wx.Frame):
                             self.create_key_combo_box('Media Key')
 
                         else:
-                            self.unknown_key_message = wx.StaticText(self.edit,
-                                                                     label='**Unknown key from line: \"{}\"'.format(
-                                                                         self.line))
-                            self.unknown_key_message.SetFont(
-                                wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
-                            self.unknown_key_message_contrast = 70
-                            self.unknown_key_message.SetForegroundColour(
-                                (self.unknown_key_message_contrast, self.unknown_key_message_contrast,
-                                 self.unknown_key_message_contrast))  # change font color to (r,g,b)
-                            self.hbox_edit.Add(self.unknown_key_message, 1, wx.ALIGN_CENTER_VERTICAL)
+                            raise CustomError()
 
                     elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
                         self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.hbox_edit.AddSpacer(10)
                         self.label = wx.StaticText(self.edit, label='to pt. (  ')
@@ -655,7 +677,7 @@ class EditFrame(wx.Frame):
                         self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.hbox_edit.AddSpacer(10)
                         self.label = wx.StaticText(self.edit, label='at pt. (  ')
@@ -669,7 +691,7 @@ class EditFrame(wx.Frame):
                         self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
                                                    style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command)
+                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
                         self.hbox_edit.AddSpacer(10)
                         self.label = wx.StaticText(self.edit, label='at pt. (  ')
@@ -681,6 +703,8 @@ class EditFrame(wx.Frame):
 
                     else:
                         raise CustomError()
+
+                    self.command.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # prevent mouse wheel from cycling through options
 
                 except (IndexError, CustomError) as e:
                     # print(e)
@@ -707,7 +731,7 @@ class EditFrame(wx.Frame):
     def create_key_combo_box(self, command):
         self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-        self.hbox_edit.Add(self.command)
+        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.hbox_edit.AddSpacer(10)
 
@@ -721,19 +745,21 @@ class EditFrame(wx.Frame):
             self.key = wx.ComboBox(self.edit, value=str(self.key_in), choices=self.media_keys,
                                    style=wx.CB_READONLY)
 
-        self.hbox_edit.Add(self.key)
+        self.key.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # prevent mouse wheel from cycling through options
+
+        self.hbox_edit.Add(self.key, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_point_input(self, line):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
                                    value=str(coords_of(line)[0]))  # TODO validator
-        self.hbox_edit.Add(self.x_coord)
+        self.hbox_edit.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.label = wx.StaticText(self.edit, label=' , ')
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
                                    value=str(coords_of(line)[1]))  # , validator_float)
-        self.hbox_edit.Add(self.y_coord)
+        self.hbox_edit.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.label = wx.StaticText(self.edit, label='  )')
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -768,6 +794,12 @@ class EditFrame(wx.Frame):
 
     def create_advanced_edit_frame(self):
         AdvancedEdit(self)
+
+    def move_command_up(self, line):
+        pass
+
+    def move_command_down(self, line):
+        pass
 
 
 class WorkflowFrame(wx.Frame):
