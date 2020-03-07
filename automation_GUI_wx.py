@@ -1,11 +1,12 @@
+import os
+
 import wx
 import wx.adv
 import wx.lib.scrolledpanel
 
 
-# TODO status bar
-# TODO control key validation
 # TODO recent workflows
+# TODO control key validation
 # TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO re-runs
 # TODO create help guide
@@ -25,7 +26,10 @@ def create_about_frame(self):
     wx.adv.AboutBox(about_info)
 
 
-def setup_frame(self):
+def setup_frame(self, status_bar=False):
+    if status_bar:
+        self.CreateStatusBar()
+
     # setting up the file menu
     file_menu = wx.Menu()
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about {}'.format(self.software_info.name))
@@ -51,6 +55,25 @@ def coords_of(line):
     return coords
 
 
+def update_status_bar(parent, status):
+    parent.StatusBar.SetStatusText(status)
+
+
+def clear_status_bar(parent):
+    parent.StatusBar.SetStatusText('')
+
+
+def config_status_and_tooltip(parent, obj_to_config, status, tooltip=None):
+    obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, '   ' + status))
+    obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent))
+    if tooltip is None:
+        obj_to_config.SetToolTip(status)
+    elif not tooltip:
+        pass
+    else:
+        obj_to_config.SetToolTip(tooltip)
+
+
 class SoftwareInfo:
     def __init__(self):
         self.name = 'Aldras'
@@ -60,14 +83,17 @@ class SoftwareInfo:
         self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
         self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
         self.advanced_edit_guide_commands = {
-            '{Left/Right}-mouse {tap/press/release} at ({x}, {y})': 'Left-mouse tap at (284, 531)',
-            'Type: {text}': 'Type: This report is initiated by John Smith.',
-            'Sleep {time (seconds)}': 'Sleep 0.5',
-            'Key {key} {tap/press/release} at ({x}, {y})': 'Key Enter Tap',
-            'Hotkey {key 1} + {key 2} + {key 3}': ['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
-            'Mouse-move to ({x}, {y})': 'Mouse-move to (284, 531)',
-            'Double-click at ({x}, {y})': 'Double-click at (284, 531)',
-            'Triple-click at ({x}, {y})': 'Triple-click at (284, 531)'
+            '{Left/Right}-mouse {tap/press/release} at ({x}, {y})': ['Left-mouse tap at (284, 531)',
+                                                                     'Simulates mouse click, press, or release'],
+            'Type: {text}': ['Type: This report is initiated by John Smith.', 'Simulates text keyboard output'],
+            'Sleep {time (seconds)}': ['Sleep 0.5', 'Wait for a specified number of seconds'],
+            'Key {key} {tap/press/release} at ({x}, {y})': ['Key Enter Tap',
+                                                            'Simulates keyboard key tap, press, or release'],
+            'Hotkey {key 1} + {key 2} + {key 3}': [['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
+                                                   'Simulates simultaneous keyboard key presses then releases'],
+            'Mouse-move to ({x}, {y})': ['Mouse-move to (284, 531)', 'Simulates mouse movement'],
+            'Double-click at ({x}, {y})': ['Double-click at (284, 531)', 'Simulates double left click'],
+            'Triple-click at ({x}, {y})': ['Triple-click at (284, 531)', 'Simulates triple left click']
         }
 
 
@@ -131,10 +157,9 @@ class AdvancedEditGuide(wx.Frame):
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
 
-        wx.Frame.__init__(self, parent,
-                          title='{} Edit Guide'.format(self.software_info.name))
+        wx.Frame.__init__(self, parent, title='{} Edit Guide'.format(self.software_info.name))
 
-        setup_frame(self)
+        setup_frame(self, status_bar=True)
 
         # create sizers
         self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
@@ -157,6 +182,7 @@ class AdvancedEditGuide(wx.Frame):
         self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_description.AddSpacer(5)
         self.description = wx.StaticText(self.container, label=self.software_info.advanced_edit_guide_description)
+        config_status_and_tooltip(self, self.description, 'Feel free to use any capitalization scheme')
         self.hbox_description.Add(self.description)
         self.vbox_inner.Add(self.hbox_description)
 
@@ -179,37 +205,59 @@ class AdvancedEditGuide(wx.Frame):
 
         self.nmSizer.AddSpacer(25)
 
-        for command, example in self.software_info.advanced_edit_guide_commands.items():
-            print(command)
+        for command, data in self.software_info.advanced_edit_guide_commands.items():
+            example = data[0]
+            description = data[1]
             self.command = wx.StaticText(self.container, label='  {}     '.format(command))
-            # self.command.SetFont(wx.Font(wx.FontInfo(11)))  # change font size
             self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
+            config_status_and_tooltip(self, self.command, description, tooltip=False)
             self.nmSizer.Add(self.command)
             self.nmSizer.AddSpacer(5)
             if isinstance(example, list):
                 for each_example in example:
-                    print('\t{}'.format(each_example))
                     self.example = wx.StaticText(self.container, label='   {}'.format(each_example))
                     self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                     self.example_contrast = 80
                     self.example.SetForegroundColour(
                         (self.example_contrast, self.example_contrast,
                          self.example_contrast))  # change font color to (r,g,b)
+                    config_status_and_tooltip(self, self.example, description, tooltip=False)
                     self.nmSizer.Add(self.example)
             else:
-                print('\t{}'.format(example))
                 self.example = wx.StaticText(self.container, label='   {}'.format(example))
                 self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                 self.example_contrast = 80
                 self.example.SetForegroundColour(
                     (self.example_contrast, self.example_contrast,
                      self.example_contrast))  # change font color to (r,g,b)
+                config_status_and_tooltip(self, self.example, description, tooltip=False)
                 self.nmSizer.Add(self.example)
 
             self.nmSizer.AddSpacer(15)
 
         self.vbox_inner.Add(self.nmSizer)
 
+        self.vbox_inner.AddSpacer(20)
+
+        self.docs = wx.StaticText(self.container, label='Read the Docs')
+        self.docs.SetFont(wx.Font(13, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
+        self.docs_contrast = 80
+        self.docs.SetForegroundColour(
+            (self.docs_contrast, self.docs_contrast,
+             self.docs_contrast))  # change font color to (r,g,b)
+        config_status_and_tooltip(self, self.docs, 'More Documentation')
+        self.vbox_inner.Add(self.docs, 0, wx.CENTER)
+
+        self.docs_link = wx.adv.HyperlinkCtrl(self.container, wx.ID_ANY,
+                                              label='{}.com/docs'.format(self.software_info.name.lower()),
+                                              url='{}/docs'.format(self.software_info.website),
+                                              style=wx.adv.HL_DEFAULT_STYLE)
+        config_status_and_tooltip(self, self.docs_link, 'More Documentation',
+                                  tooltip='{}/docs'.format(self.software_info.website))
+        self.docs_link.SetFont(wx.Font(11, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
+        self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
+
+        self.vbox_inner.AddSpacer(25)
         self.vbox_inner.AddStretchSpacer()
 
         self.hbox_outer.AddStretchSpacer()
@@ -325,7 +373,7 @@ class EditFrame(wx.Frame):
 
         wx.Frame.__init__(self, parent, title='{} Edit - {}'.format(self.software_info.name, self.workflow_name))
 
-        setup_frame(self)
+        setup_frame(self, status_bar=True)
 
         # set margin
         self.margins = 10
@@ -340,6 +388,7 @@ class EditFrame(wx.Frame):
         # add back button
         self.back_btn = wx.Button(self, size=wx.Size(30, -1), label='<')
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        config_status_and_tooltip(self, self.back_btn, 'Back to workflow selection')
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.hbox_top.AddSpacer(10)
@@ -395,6 +444,7 @@ class EditFrame(wx.Frame):
         # add delete command button
         self.delete_btn = wx.Button(self, label='-', size=(20, -1))
         self.delete_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_open_delete_command_dialog())
+        config_status_and_tooltip(self, self.delete_btn, 'Delete commands')
         self.hbox_line_mods.Add(self.delete_btn, 1, wx.EXPAND)
 
         self.hbox_line_mods.AddSpacer(5)
@@ -402,6 +452,7 @@ class EditFrame(wx.Frame):
         # add plus command button
         self.plus_btn = wx.Button(self, label='+', size=(20, -1))
         self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_open_add_command_dialog())
+        config_status_and_tooltip(self, self.plus_btn, 'Add commands')
         self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
 
         self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND)
@@ -411,6 +462,7 @@ class EditFrame(wx.Frame):
         # add advanced command button
         self.advanced_btn = wx.Button(self, label='Advanced')
         self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.create_advanced_edit_frame())
+        config_status_and_tooltip(self, self.advanced_btn, 'Advanced text-based editor')
         self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
 
         self.vbox_action.AddStretchSpacer()
@@ -418,6 +470,7 @@ class EditFrame(wx.Frame):
         # add record command button
         self.record_btn = wx.Button(self, label='Record')
         # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        config_status_and_tooltip(self, self.record_btn, 'Record workflow actions')
         self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
 
         self.vbox_action.AddSpacer(10)
@@ -425,6 +478,7 @@ class EditFrame(wx.Frame):
         # add execute command button
         self.execute_btn = wx.Button(self, label='Execute')
         # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
 
         self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
@@ -820,7 +874,9 @@ class WorkflowFrame(wx.Frame):
             result = dlg.ShowModal()
 
             if result == wx.ID_YES:
-                self.workflow_directory = ''
+                self.workflow_directory = 'Workflows/'
+                if not os.path.exists(self.workflow_directory):
+                    os.makedirs(self.workflow_directory)
                 self.workflow_name = self.workflow_name_input.GetValue()
                 self.workflow_file_name = '{}{}.txt'.format(self.workflow_directory, self.workflow_name)
                 EditFrame(self)

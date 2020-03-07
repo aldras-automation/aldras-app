@@ -1,82 +1,38 @@
 import wx
-
-class ChangeDepthDialog(wx.Dialog):
-
-    def __init__(self, *args, **kw):
-        super(ChangeDepthDialog, self).__init__(*args, **kw)
-
-        # self.InitUI()
-        # self.SetSize((250, 200))
-        self.SetTitle("Change Color Depth")
-
-        pnl = wx.Panel(self)
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
-        sb = wx.StaticBox(pnl, label='Colors')
-        sbs = wx.StaticBoxSizer(sb, orient=wx.VERTICAL)
-        sbs.Add(wx.RadioButton(pnl, label='256 Colors',
-                               style=wx.RB_GROUP))
-        sbs.Add(wx.RadioButton(pnl, label='16 Colors'))
-        sbs.Add(wx.RadioButton(pnl, label='2 Colors'))
-
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(wx.RadioButton(pnl, label='Custom'))
-        hbox1.Add(wx.TextCtrl(pnl), flag=wx.LEFT, border=5)
-        sbs.Add(hbox1)
-
-        pnl.SetSizer(sbs)
-
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(self, label='Ok')
-        closeButton = wx.Button(self, label='Close')
-        hbox2.Add(okButton)
-        hbox2.Add(closeButton, flag=wx.LEFT, border=5)
-
-        vbox.Add(pnl, proportion=1,
-                 flag=wx.ALL | wx.EXPAND, border=5)
-        vbox.Add(hbox2, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-
-        self.SetSizer(vbox)
-
-        okButton.Bind(wx.EVT_BUTTON, self.OnClose)
-        closeButton.Bind(wx.EVT_BUTTON, self.OnClose)
-
-    def OnClose(self, e):
-        self.Destroy()
+import wx.lib.agw.hyperlink
 
 
-class Example(wx.Frame):
+class MyFrame(wx.Frame):
 
-    def __init__(self, *args, **kw):
-        super(Example, self).__init__(*args, **kw)
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, "HyperLink Demo")
 
-        self.InitUI()
+        panel = wx.Panel(self, -1)
 
-    def InitUI(self):
-        tb = self.CreateToolBar()
-        tb.AddTool(toolId=wx.ID_ANY, label='', bitmap=wx.Bitmap('color.png'))
+        # Default Web links:
+        hyper1 = hl.HyperLinkCtrl(panel, -1, "wxPython Main Page", pos=(100, 100),
+                                  URL="http://www.wxpython.org/")
 
-        tb.Realize()
+        # Web link with underline rollovers, opens in same window
+        hyper2 = hl.HyperLinkCtrl(panel, -1, "My Home Page", pos=(100, 150),
+                                  URL="http://xoomer.virgilio.it/infinity77/")
 
-        tb.Bind(wx.EVT_TOOL, self.OnChangeDepth)
-
-        self.SetSize((350, 250))
-        self.SetTitle('Custom dialog')
-        self.Centre()
-
-    def OnChangeDepth(self, e):
-        cdDialog = ChangeDepthDialog(None,
-                                     title='Change Color Depth')
-        cdDialog.ShowModal()
-        cdDialog.Destroy()
-
-
-def main():
-    app = wx.App()
-    ex = Example(None)
-    ex.Show()
-    app.MainLoop()
+        hyper2.AutoBrowse(False)
+        hyper2.SetColours("BLUE", "BLUE", "BLUE")
+        hyper2.EnableRollover(True)
+        hyper2.SetUnderlines(False, False, True)
+        hyper2.SetBold(True)
+        hyper2.OpenInSameWindow(True)
+        hyper2.SetToolTip(wx.ToolTip("Hello World!"))
+        hyper2.UpdateLink()
 
 
-if __name__ == '__main__':
-    main()
+# our normal wxApp-derived class, as usual
+
+app = wx.App(0)
+
+frame = MyFrame(None)
+app.SetTopWindow(frame)
+frame.Show()
+
+app.MainLoop()
