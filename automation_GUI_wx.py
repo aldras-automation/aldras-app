@@ -5,14 +5,13 @@ import wx.adv
 import wx.lib.scrolledpanel
 
 
-# TODO recent workflows
+# TODO investigate image buttons (edit frame - back button)
 # TODO alternate row shading (edit frame)
 # TODO command move
 # TODO menu bar exit option
 # TODO control key validation
 # TODO re-runs
 # TODO create help guide
-# TODO investigate image buttons (edit frame - back button)
 # TODO investigate compilation speed increases (numba, cpython, pypy)
 # TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO premium feature separation (any workflow destination)
@@ -20,6 +19,12 @@ import wx.lib.scrolledpanel
 
 def do_nothing(event=None):
     pass
+
+
+def eliminate_duplicates(list_with_duplicates):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in list_with_duplicates if not (x in seen or seen_add(x))]
 
 
 def create_about_frame(self):
@@ -372,12 +377,12 @@ class AdvancedEdit(wx.Frame):
         self.Close()
 
     def on_ok(self, parent):
-        print(self.text_edit.GetValue() != ''.join(parent.lines))
+        # print(self.text_edit.GetValue() != ''.join(parent.lines))
         if self.text_edit.GetValue() != ''.join(parent.lines):
             parent.lines = ['{}\n'.format(x) for x in self.text_edit.GetValue().split('\n')]
 
             # write to workflow file
-            with open(parent.workflow_file_name, 'w') as record_file:
+            with open(parent.workflow_path_name, 'w') as record_file:
                 for line in parent.lines:
                     record_file.write(line)
 
@@ -391,7 +396,7 @@ class EditFrame(wx.Frame):
         self.dirname = ''
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
-        self.workflow_file_name = parent.workflow_file_name
+        self.workflow_path_name = parent.workflow_path_name
         self.commands = self.software_info.commands
         self.mouse_buttons = self.software_info.mouse_buttons
         self.mouse_actions = self.software_info.mouse_actions
@@ -446,10 +451,10 @@ class EditFrame(wx.Frame):
 
         # read or create workflow file
         try:
-            with open(self.workflow_file_name, 'r') as record_file:
+            with open(self.workflow_path_name, 'r') as record_file:
                 self.lines = record_file.readlines()
         except FileNotFoundError:  # create file if not found
-            with open(self.workflow_file_name, 'w'):
+            with open(self.workflow_path_name, 'w'):
                 self.lines = []
 
         self.create_edit_panel()
@@ -527,7 +532,7 @@ class EditFrame(wx.Frame):
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        print('lines: {}'.format(self.lines))
+        # print('lines: {}'.format(self.lines))
 
         self.edit.Hide()
 
@@ -765,9 +770,6 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def on_open_delete_command_dialog(self):
-        # dlg = wx.MultiChoiceDialog(self, 'Please choose the commands to delete:',
-        #                            '{}: {} - Delete Commands'.format(self.software_info.name, self.workflow_name),
-        #                            self.lines)
         dlg = AllOrMultiChoiceDialog(self, 'Please choose the commands to delete:',
                                      '{}: {} - Delete Commands'.format(self.software_info.name, self.workflow_name),
                                      self.lines)
@@ -780,7 +782,7 @@ class EditFrame(wx.Frame):
                     del (self.lines[index])
 
                 # write to workflow file
-                with open(self.workflow_file_name, 'w') as record_file:
+                with open(self.workflow_path_name, 'w') as record_file:
                     for line in self.lines:
                         record_file.write(line)
 
@@ -810,12 +812,28 @@ class WorkflowFrame(wx.Frame):
 
         setup_frame(self)
 
+        self.workflow_directory = 'Workflows/'
+        if not os.path.exists(self.workflow_directory):
+            os.makedirs(self.workflow_directory)
+
+        self.data_directory = 'data/'
+        self.data_directory_recent_workflows = self.data_directory + 'recent_workflows.txt'
+        if not os.path.exists(self.data_directory):
+            os.makedirs(self.data_directory)
+        try:
+            with open(self.data_directory_recent_workflows, 'r') as record_file:
+                self.recent_workflows = eliminate_duplicates([line.rstrip('\n') for line in record_file])
+                print(self.recent_workflows)
+        except FileNotFoundError:  # create file if not found
+            with open(self.data_directory_recent_workflows, 'w'):
+                self.recent_workflows = []
+
         # add encompassing panel
         self.container = wx.Panel(self)
 
         # set margins
         self.margin_y = 25
-        self.margin_x = 100
+        self.margin_x = 150
 
         # set padding
         self.padding_y = 25
@@ -853,8 +871,17 @@ class WorkflowFrame(wx.Frame):
         self.vbox.AddSpacer(self.padding_y)
 
         # add input field for the workflow name
-        self.workflow_name_input = PlaceholderTextCtrl(self.container, -1, placeholder='Workflow', size=(200, -1))
+        self.workflow_name_input = PlaceholderTextCtrl(self.container, -1, placeholder='Workflow', size=(200, -1),
+                                                       style=wx.TE_PROCESS_ENTER)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.workflow_name_input)
         self.vbox.Add(self.workflow_name_input, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox.AddSpacer(self.padding_y)
+
+        # add recent workflows
+        self.hbox_recent = wx.BoxSizer(wx.HORIZONTAL)
+        self.update_recent_workflows()
+        self.vbox.Add(self.hbox_recent, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
         self.vbox.AddSpacer(self.padding_y)
 
         self.hbox_outer.Add(self.vbox)
@@ -901,20 +928,64 @@ class WorkflowFrame(wx.Frame):
 
         else:
             dlg = wx.MessageDialog(None, 'Please confirm that "{}" is your desired workflow.'.format(
-                self.workflow_name_input.GetValue()), '{} Workflow Confirmation'.format(self.software_info.name),
+                self.workflow_name_input.GetValue().capitalize()),
+                                   '{} Workflow Confirmation'.format(self.software_info.name),
                                    wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
 
             if result == wx.ID_YES:
-                self.workflow_directory = 'Workflows/'
-                if not os.path.exists(self.workflow_directory):
-                    os.makedirs(self.workflow_directory)
-                self.workflow_name = self.workflow_name_input.GetValue()
-                self.workflow_file_name = '{}{}.txt'.format(self.workflow_directory, self.workflow_name)
-                EditFrame(self)
-                self.Hide()
+                workflow_name = self.workflow_name_input.GetValue().capitalize()
+
+                self.launch_workflow(workflow_path_name='{}{}.txt'.format(self.workflow_directory, workflow_name))
             else:
                 pass  # returns user back to workflow window
+
+    def launch_workflow(self, workflow_path_name):
+        workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+        print(workflow_path_name)
+        print()
+        self.workflow_name = workflow_name
+        self.workflow_path_name = workflow_path_name
+
+        EditFrame(self)
+        self.Hide()
+
+        self.recent_workflows.insert(0, workflow_path_name)
+        self.recent_workflows = eliminate_duplicates(self.recent_workflows)
+        with open(self.data_directory_recent_workflows, 'w') as record_file:
+            for line in self.recent_workflows[0:10]:
+                record_file.write('{}\n'.format(line))
+
+        self.update_recent_workflows()
+        self.hbox_recent.Layout()
+        self.container.SetSizerAndFit(self.vbox_outer)
+        self.Fit()
+
+    def update_recent_workflows(self):
+        self.hbox_recent.ShowItems(show=False)
+        self.hbox_recent.Clear(delete_windows=True)
+        # print(self.hbox_recent.GetChildren())
+
+        self.recent_workflow_btns = [None] * len(self.recent_workflows[0:3])
+        for index, workflow_path_name in enumerate(self.recent_workflows[0:3]):
+            # print(workflow_path_name)
+            workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+            self.recent_workflow_btns[index] = wx.Button(self.container, wx.ID_ANY, label=workflow_name)
+
+        # annoying binding process, if done in loop, binding later widgets rebinds earlier ones, even in array
+        if len(self.recent_workflows[0:3]) > 0:
+            self.recent_workflow_btns[0].Bind(wx.EVT_BUTTON,
+                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][0]))
+        if len(self.recent_workflows[0:3]) > 1:
+            self.recent_workflow_btns[1].Bind(wx.EVT_BUTTON,
+                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][1]))
+        if len(self.recent_workflows[0:3]) > 2:
+            self.recent_workflow_btns[2].Bind(wx.EVT_BUTTON,
+                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][2]))
+
+        self.hbox_recent.AddMany(self.recent_workflow_btns)
+
+        self.hbox_recent.ShowItems(show=True)
 
     # def on_open(self, e):
     #     """ Open a file"""
@@ -936,7 +1007,6 @@ class WorkflowFrame(wx.Frame):
     #     dlg.SetPath(fdir)
     #     print('You selected: %s\n' % dlg.GetPath())
     # dlg.Destroy()
-
 
 def main():
     app = wx.App(False)
