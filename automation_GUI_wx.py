@@ -484,6 +484,14 @@ class EditFrame(wx.Frame):
 
         self.vbox_action.AddSpacer(10)
 
+        # add reorder commands button
+        self.reorder_btn = wx.Button(self, label='Reorder')
+        self.reorder_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
+        config_status_and_tooltip(self, self.reorder_btn, 'Reorder commands')
+        self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddSpacer(10)
+
         # add advanced command button
         self.advanced_btn = wx.Button(self, label='Advanced')
         self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.create_advanced_edit_frame())
@@ -815,6 +823,18 @@ class EditFrame(wx.Frame):
             self.create_edit_panel()
         except IndexError:
             pass
+
+    def open_reorder_dialog(self):
+        items = self.lines
+        order = range(len(self.lines))
+
+        dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
+                                 '{}: {} - Reorder Commands'.format(self.software_info.name, self.workflow_name), order,
+                                 items)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            order = dlg.GetOrder()
+            print(order)
 
 
 class WorkflowFrame(wx.Frame):
