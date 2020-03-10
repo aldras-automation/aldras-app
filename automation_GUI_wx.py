@@ -45,20 +45,30 @@ def setup_frame(self, status_bar=False):
     # setting up the file menu
     file_menu = wx.Menu()
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about {}'.format(self.software_info.name))
+    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit {}'.format(self.software_info.name))
+
     # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
 
     # creating the menu bar
     menu_bar = wx.MenuBar()
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
-    self.Bind(wx.EVT_MENU, self.on_about, menu_about)
-    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open
+    self.Bind(wx.EVT_MENU, lambda event: on_about(self), menu_about)
+    self.Bind(wx.EVT_MENU, lambda event: on_exit(self), menu_exit)
+
+    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
 
     # assign icon
     self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
 
     # set background color
     self.SetBackgroundColour('white')
+
+    def on_about(self):
+        create_about_frame(self)
+
+    def on_exit(self):
+        self.Close()
 
 
 def coords_of(line):
@@ -296,9 +306,6 @@ class AdvancedEditGuide(wx.Frame):
 
         self.Show()
 
-    def on_about(self, event):
-        create_about_frame(self)
-
 
 class AdvancedEdit(wx.Frame):
     def __init__(self, parent):
@@ -366,9 +373,6 @@ class AdvancedEdit(wx.Frame):
         self.vbox_outer.SetSizeHints(self)
 
         self.Show()
-
-    def on_about(self, event):
-        create_about_frame(self)
 
     def advanced_edit_guide(self, event):
         AdvancedEditGuide(self)
@@ -522,9 +526,6 @@ class EditFrame(wx.Frame):
         parent.Show()
         self.Close()  # close the frame
 
-    def on_about(self, event):
-        create_about_frame(self)
-
     def create_edit_panel(self):
         for child in self.edit.GetChildren():
             child.Destroy()
@@ -536,7 +537,7 @@ class EditFrame(wx.Frame):
 
         self.edit.Hide()
 
-        for self.line in self.lines:
+        for index, self.line in enumerate(self.lines):
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
             self.line = self.line.replace('\n', '').lower()
             if '#' in self.line or self.line == '':  # workflow comment so no action
@@ -548,11 +549,12 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.AddSpacer(5)
 
                     self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
-                    self.move_up.Bind(wx.EVT_BUTTON, lambda event: self.move_command_up(self.line))
+                    self.move_up.Bind(wx.EVT_BUTTON, lambda event, index_trap=index: self.move_command_up(index_trap))
                     self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
 
                     self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
-                    self.move_down.Bind(wx.EVT_BUTTON, lambda event: self.move_command_down(self.line))
+                    self.move_down.Bind(wx.EVT_BUTTON,
+                                        lambda event, index_trap=index: self.move_command_down(index_trap))
                     self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
 
                     self.hbox_edit.AddSpacer(5)
@@ -797,11 +799,22 @@ class EditFrame(wx.Frame):
     def create_advanced_edit_frame(self):
         AdvancedEdit(self)
 
-    def move_command_up(self, line):
-        pass
+    def move_command_up(self, index):
+        print('Move up line {}'.format(index))
+        if index > 0:
+            self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
+            print(self.lines)
+            self.create_edit_panel()
 
-    def move_command_down(self, line):
-        pass
+    def move_command_down(self, index):
+        print('Move down line {}'.format(index))
+        # print(len(self.lines))
+        try:
+            self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
+            print(self.lines)
+            self.create_edit_panel()
+        except IndexError:
+            pass
 
 
 class WorkflowFrame(wx.Frame):
@@ -911,9 +924,6 @@ class WorkflowFrame(wx.Frame):
         self.ok_btn.SetFocus()
         self.Show()
 
-    def on_about(self, event):
-        create_about_frame(self)
-
     def on_exit(self, event):
         self.Close(True)  # close the frame
 
@@ -967,23 +977,14 @@ class WorkflowFrame(wx.Frame):
         # print(self.hbox_recent.GetChildren())
 
         self.recent_workflow_btns = [None] * len(self.recent_workflows[0:3])
-        for index, workflow_path_name in enumerate(self.recent_workflows[0:3]):
+        for workflow_path_name in self.recent_workflows[0:3]:
             # print(workflow_path_name)
             workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
-            self.recent_workflow_btns[index] = wx.Button(self.container, wx.ID_ANY, label=workflow_name)
-
-        # annoying binding process, if done in loop, binding later widgets rebinds earlier ones, even in array
-        if len(self.recent_workflows[0:3]) > 0:
-            self.recent_workflow_btns[0].Bind(wx.EVT_BUTTON,
-                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][0]))
-        if len(self.recent_workflows[0:3]) > 1:
-            self.recent_workflow_btns[1].Bind(wx.EVT_BUTTON,
-                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][1]))
-        if len(self.recent_workflows[0:3]) > 2:
-            self.recent_workflow_btns[2].Bind(wx.EVT_BUTTON,
-                                              lambda event: self.launch_workflow(self.recent_workflows[0:3][2]))
-
-        self.hbox_recent.AddMany(self.recent_workflow_btns)
+            self.recent_workflow_btn = wx.Button(self.container, wx.ID_ANY, label=workflow_name)
+            self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
+                                          lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
+                                              workflow_path_trap))
+            self.hbox_recent.Add(self.recent_workflow_btn)
 
         self.hbox_recent.ShowItems(show=True)
 
