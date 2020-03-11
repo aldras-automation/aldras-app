@@ -30,7 +30,7 @@ def eliminate_duplicates(list_with_duplicates):
 def create_about_frame(self):
     about_info = wx.adv.AboutDialogInfo()
     about_info.SetName('{} Automation'.format(self.software_info.name))
-    about_info.SetIcon(wx.Icon('logo.ico'))
+    about_info.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
     about_info.SetVersion(self.software_info.version)
     about_info.SetDescription('Simple, powerful utility for general computer automation.')
     about_info.SetCopyright('(C) 2020 (Not yet)')
@@ -53,11 +53,10 @@ def setup_frame(self, status_bar=False):
     menu_bar = wx.MenuBar()
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
-    # self.Bind(wx.EVT_MENU, self.on_about, menu_about)
     self.Bind(wx.EVT_MENU, lambda event: on_about(self), menu_about)
     self.Bind(wx.EVT_MENU, lambda event: on_exit(self), menu_exit)
 
-    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open
+    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
 
     # assign icon
     self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
@@ -95,6 +94,139 @@ def config_status_and_tooltip(parent, obj_to_config, status, tooltip=None):
         pass
     else:
         obj_to_config.SetToolTip(tooltip)
+
+
+class RecordCtrlCounterDialog(wx.Dialog):
+    def __init__(self, parent, caption):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
+        self.SetTitle(caption)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.directions_a = wx.StaticText(self, label='Press the right control key 3 times')
+        self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(5)
+
+        self.directions_b = wx.StaticText(self, label='to start and stop recording {}.'.format(parent.workflow_name))
+        self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(20)
+
+        self.countdown = wx.StaticText(self, label='')
+        self.vbox.Add(self.countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(20)
+
+        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+        self.vbox.Add(self.btns, 0, wx.ALL, 5)
+
+        self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 20)
+        self.SetSizerAndFit(self.vbox_outer)
+
+    def update_countdown(self, event):
+        self.countdown.SetLabel('Countdown value')
+
+
+class ExecuteCtrlCounterDialog(wx.Dialog):
+    def __init__(self, parent, caption):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
+        self.SetTitle(caption)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.directions_a = wx.StaticText(self, label='Press the right control key 3 times')
+        self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(5)
+
+        self.directions_b = wx.StaticText(self, label='to start executing {}.'.format(parent.workflow_name))
+        self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(20)
+
+        self.countdown = wx.StaticText(self, label='')
+        self.vbox.Add(self.countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.vbox.AddSpacer(20)
+
+        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+        self.vbox.Add(self.btns, 0, wx.ALL, 5)
+
+        self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 20)
+        self.SetSizerAndFit(self.vbox_outer)
+
+    def update_countdown(self, event):
+        self.countdown.SetLabel('Countdown value')
+
+
+class RecordDialog(wx.Dialog):
+    def __init__(self, parent, caption):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
+        self.SetTitle(caption)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.hbox_options = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.some_sleep_thresh = 0.2
+
+        self.record_mthd = wx.RadioBox(self, label='Method', choices=['Overwrite', 'Append'], majorDimension=1,
+                                       style=wx.RA_SPECIFY_COLS)
+        self.record_mthd.SetItemToolTip(0, 'Erase existing data')
+        self.record_mthd.SetItemToolTip(1, 'Add to end of existing data')
+
+        self.record_sleep = wx.RadioBox(self, label='Record pause', choices=['No pauses', 'All pauses', 'Long pauses'],
+                                        majorDimension=1, style=wx.RA_SPECIFY_COLS)
+        self.record_sleep.SetItemToolTip(0, 'Do not record pauses')
+        self.record_sleep.SetItemToolTip(1, 'Record all pauses')
+        self.record_sleep.SetItemToolTip(2, 'Record pauses over {}s'.format(self.some_sleep_thresh))
+
+        self.hbox_options.Add(self.record_mthd, 0, wx.ALL, 5)
+        self.hbox_options.AddSpacer(5)
+        self.hbox_options.Add(self.record_sleep, 0, wx.ALL, 5)
+        self.vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+
+        self.vbox.AddSpacer(10)
+
+        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+
+        self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        self.vbox_outer.Add(self.vbox, 0, wx.ALL, 10)
+        self.SetSizerAndFit(self.vbox_outer)
+
+
+class ExecuteDialog(wx.Dialog):
+    def __init__(self, parent, caption):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
+        self.SetTitle(caption)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.hbox_pause_input = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.execute_pause_text = wx.StaticText(self, label='Pause between commands')
+        self.vbox.Add(self.execute_pause_text)
+
+        self.vbox.AddSpacer(5)
+
+        self.hbox_pause_input.AddSpacer(15)
+        self.execute_pause_input = PlaceholderTextCtrl(self, -1, placeholder='0.1', size=wx.Size(50, -1),
+                                                       style=wx.TE_RIGHT)
+        self.hbox_pause_input.Add(self.execute_pause_input, wx.ALIGN_CENTER_VERTICAL)
+        self.hbox_pause_input.Add(wx.StaticText(self, label='  seconds'), 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.vbox.Add(self.hbox_pause_input)
+
+        self.vbox.AddSpacer(20)
+
+        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+
+        self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox_outer.Add(self.vbox, 0, wx.ALL, 20)
+        self.SetSizerAndFit(self.vbox_outer)
 
 
 class SoftwareInfo:
@@ -161,9 +293,10 @@ class PlaceholderTextCtrl(wx.TextCtrl):
             event.Skip()
 
 
-class AllOrMultiChoiceDialog(wx.Dialog):
+class DeleteCommandsDialog(wx.Dialog):
     def __init__(self, parent, message, caption, choices=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
         if choices is None:
             choices = []
         self.SetTitle(caption)
@@ -315,7 +448,7 @@ class AdvancedEdit(wx.Frame):
         self.workflow_name = parent.workflow_name
 
         wx.Frame.__init__(self, parent,
-                          title='{} Advanced Edit - {}'.format(self.software_info.name, self.workflow_name))
+                          title='{}: Advanced Edit - {}'.format(self.software_info.name, self.workflow_name))
 
         # modal = True  # to make modal but encountering weird behavior
         # if modal and not hasattr(self, '_disabler'):
@@ -412,7 +545,7 @@ class EditFrame(wx.Frame):
         self.alphanum_keys = self.software_info.alphanum_keys
         self.all_keys = self.software_info.all_keys
 
-        wx.Frame.__init__(self, parent, title='{} Edit - {}'.format(self.software_info.name, self.workflow_name))
+        wx.Frame.__init__(self, parent, title='{}: Edit - {}'.format(self.software_info.name, self.workflow_name))
 
         setup_frame(self, status_bar=True)
 
@@ -485,6 +618,14 @@ class EditFrame(wx.Frame):
 
         self.vbox_action.AddSpacer(10)
 
+        # add reorder commands button
+        self.reorder_btn = wx.Button(self, label='Reorder')
+        self.reorder_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
+        config_status_and_tooltip(self, self.reorder_btn, 'Reorder commands')
+        self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND)
+
+        self.vbox_action.AddSpacer(10)
+
         # add advanced command button
         self.advanced_btn = wx.Button(self, label='Advanced')
         self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.create_advanced_edit_frame())
@@ -496,6 +637,7 @@ class EditFrame(wx.Frame):
         # add record command button
         self.record_btn = wx.Button(self, label='Record')
         # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.record_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_record())
         config_status_and_tooltip(self, self.record_btn, 'Record workflow actions')
         self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
 
@@ -504,6 +646,7 @@ class EditFrame(wx.Frame):
         # add execute command button
         self.execute_btn = wx.Button(self, label='Execute')
         # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
+        self.execute_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_execute())
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
 
@@ -773,9 +916,9 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def on_open_delete_command_dialog(self):
-        dlg = AllOrMultiChoiceDialog(self, 'Please choose the commands to delete:',
-                                     '{}: {} - Delete Commands'.format(self.software_info.name, self.workflow_name),
-                                     self.lines)
+        dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
+                                   'Delete Commands - {}'.format(self.workflow_name),
+                                   self.lines)
 
         if dlg.ShowModal() == wx.ID_OK:
             indices_to_delete = dlg.get_selections()
@@ -816,6 +959,35 @@ class EditFrame(wx.Frame):
             self.create_edit_panel()
         except IndexError:
             pass
+
+    def open_reorder_dialog(self):
+        items = self.lines
+        order = range(len(self.lines))
+
+        dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
+                                 'Reorder Commands - {}'.format(self.workflow_name), order,
+                                 items)
+        dlg.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+
+        if dlg.ShowModal() == wx.ID_OK:
+            order = dlg.GetOrder()
+            print(order)
+
+    def on_record(self):
+        dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg_counter = RecordCtrlCounterDialog(self, 'Record - {}'.format(self.workflow_name))
+            if dlg_counter.ShowModal() == wx.ID_OK:
+                print('complete')
+
+    def on_execute(self):
+        dlg = ExecuteDialog(self, 'Execute - {}'.format(self.workflow_name))
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
+            if dlg_counter.ShowModal() == wx.ID_OK:
+                print('complete')
 
 
 class WorkflowFrame(wx.Frame):
@@ -919,20 +1091,6 @@ class WorkflowFrame(wx.Frame):
         # add south margin
         self.vbox_outer.AddSpacer(5)
 
-        # test = wx.adv.EditableListBox(self.container, label="Test", name='Idek')
-        # test.SetStrings(['yo', 'whaddup', 'you'])
-
-        # test = wx.RearrangeList(self.container, items=['yo', 'whaddup', 'you'])
-        # test = wx.RearrangeList(self.container, order = [1, -3, 0], items=["first", "second", "third"])
-        test = wx.RearrangeCtrl(self.container, order=[1, -3, 0], items=["first", "second", "third"])
-        # test = wx.RearrangeList()
-
-        # test = wx.RearrangeDialog(self.container, "Test", title="Idek", items=['yo', 'whaddup', 'you'],)
-
-        self.vbox_outer.Add(test, 0, wx.ALIGN_CENTER_HORIZONTAL)
-
-        self.show_RearrangeDialog()
-
         self.container.SetSizer(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
 
@@ -1002,7 +1160,6 @@ class WorkflowFrame(wx.Frame):
             self.hbox_recent.Add(self.recent_workflow_btn)
 
         self.hbox_recent.ShowItems(show=True)
-
 
     # def on_open(self, e):
     #     """ Open a file"""
