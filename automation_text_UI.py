@@ -166,8 +166,8 @@ def on_press_recording(key):
             output_to_file_bkup(output)
     if 'key.ctrl_r' in output:
         ctrls += 1
-        if not recording:
-            print('{}  '.format(ctrls), end='')
+        # if not recording:
+        print('{}  '.format(ctrls), end='')
     if 'key.ctrl_r' in output and ctrls >= 3:  # toggle recording
         ctrls = 0
         recording = not recording
@@ -180,7 +180,7 @@ def on_press_recording(key):
     return
 
 
-def on_press_release(key):
+def on_release_recording(key):
     global capslock
     global ctrls
     global recording
@@ -405,7 +405,7 @@ def main():
         recording = False
         with mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
                             on_move=on_move_recording) as listener:
-            with keyboard.Listener(on_press=on_press_recording, on_release=on_press_release) as listener:
+            with keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording) as listener:
                 listener.join()
     elif action_status == 'compile':
         compile_recording()
