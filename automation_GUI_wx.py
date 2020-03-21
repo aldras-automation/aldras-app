@@ -1,5 +1,6 @@
 import os
 import threading
+import webbrowser
 
 import pandas as pd
 import pyautogui as pyauto
@@ -9,18 +10,25 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO redo about frame
+# TODO reorder workflow frame buttons to standard placement with OK and Cancel btns elsewhere
 # TODO investigate image buttons (edit frame - back button)
 # TODO image for recording, executing, and stopping
+# TODO investigate compartmentalization for better organization
+# TODO execution integration
 # TODO alternate row shading (edit frame)
+# TODO investigate zoom
+# TODO language switching
 # TODO command move
 # TODO control key validation
 # TODO re-runs
-# TODO for loops
 # TODO create help guide
 # TODO investigate compilation speed increases (numba, cpython, pypy)
 # TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO investigate speed optimization with multiprocessing
 # TODO premium feature separation (any workflow destination)
+# TODO for loops
+# TODO variables from excel or in range, etc.
+# TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
 EVT_RESULT_ID = wx.NewIdRef()
 
@@ -35,15 +43,17 @@ def eliminate_duplicates(list_with_duplicates):
     return [x for x in list_with_duplicates if not (x in seen or seen_add(x))]
 
 
-def create_about_frame(self):
-    about_info = wx.adv.AboutDialogInfo()
-    about_info.SetName('{} Automation'.format(self.software_info.name))
-    about_info.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
-    about_info.SetVersion(self.software_info.version)
-    about_info.SetDescription('Simple, powerful utility for general computer automation.')
-    about_info.SetCopyright('(C) 2020 (Not yet)')
-    about_info.SetWebSite(self.software_info.website)
-    wx.adv.AboutBox(about_info)
+def create_about_dialog(self):
+    # about_info = wx.adv.AboutDialogInfo()
+    # about_info.SetName('{} Automation'.format(self.software_info.name))
+    # about_info.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+    # about_info.SetVersion(self.software_info.version)
+    # about_info.SetDescription('Simple, powerful utility for general computer automation.')
+    # about_info.SetCopyright('(C) 2020')
+    # about_info.SetWebSite(self.software_info.website)
+    # wx.adv.AboutBox(about_info)
+    dlg = AboutDialog(self, 'About {}'.format(self.software_info.name))
+    dlg.ShowModal()
 
 
 def setup_frame(self, status_bar=False):
@@ -73,7 +83,7 @@ def setup_frame(self, status_bar=False):
     self.SetBackgroundColour('white')
 
     def on_about(self):
-        create_about_frame(self)
+        create_about_dialog(self)
 
     def on_exit(self):
         self.Close()
@@ -233,6 +243,93 @@ def on_move_recording(x, y):
 def listener_event_handler(win, func):
     """Define Result Event."""
     win.Connect(-1, -1, int(EVT_RESULT_ID), func)
+
+
+class AboutDialog(wx.Dialog):
+    def __init__(self, parent, caption):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
+        self.SetTitle(caption)
+        self.SetBackgroundColour('white')
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox = wx.FlexGridSizer(2, 1, 10, 10)
+
+        self.vbox_top = wx.BoxSizer(wx.VERTICAL)
+
+        self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
+
+        # add rescaled logo image
+        png = wx.Image('logo.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
+        self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+        self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
+
+        # add program name text
+        self.program_name = wx.StaticText(self, label='{} Automation'.format(parent.software_info.name))
+        self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
+        self.program_name_contrast = 20
+        self.program_name.SetForegroundColour((self.program_name_contrast, self.program_name_contrast,
+                                               self.program_name_contrast))  # change font color to (r,g,b)
+        self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        # add program version text
+        self.program_version = wx.StaticText(self, label='Version {}'.format(parent.software_info.version))
+        self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
+        self.program_version_contrast = 80
+        self.program_version.SetForegroundColour((self.program_version_contrast, self.program_version_contrast,
+                                                  self.program_version_contrast))  # change font color to (r,g,b)
+        self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox_top.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        # add program description text
+        self.program_description = wx.StaticText(self, label=parent.software_info.description)
+        self.program_description.SetFont(wx.Font(wx.FontInfo(10)))  # change font
+        self.program_description_contrast = 40
+        self.program_description.SetForegroundColour((self.program_description_contrast,
+                                                      self.program_description_contrast,
+                                                      self.program_description_contrast))  # change font color to (r,g,b)
+        self.vbox_top.Add(self.program_description, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        # add program link
+        self.program_link = wx.adv.HyperlinkCtrl(self, label=parent.software_info.website,
+                                                 url=parent.software_info.website)
+        self.vbox_top.Add(self.program_link, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 15)
+
+        # add copyright
+        self.program_copyright = wx.StaticText(self, label='© {}'.format(parent.software_info.copyright))
+        self.vbox_top.Add(self.program_copyright, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+
+        self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
+
+        # add license button
+        self.license_btn = wx.Button(self, label='License')
+        self.license_btn.SetFocus()
+        self.license_btn.Bind(wx.EVT_BUTTON, self.licence)
+        self.hbox_btns.Add(self.license_btn)
+
+        self.hbox_btns.AddStretchSpacer()
+        self.hbox_btns.AddSpacer(5)
+        self.hbox_btns.AddStretchSpacer()
+
+        # add privacy statement button
+        self.privacy_btn = wx.Button(self, label='Privacy Statement')
+        self.privacy_btn.Bind(wx.EVT_BUTTON, self.privacy)
+        self.hbox_btns.Add(self.privacy_btn)
+
+        self.vbox.AddMany([(self.vbox_top, 0, wx.EXPAND | wx.NORTH | wx.EAST | wx.WEST, 40),
+                           (self.hbox_btns, 0, wx.EXPAND | wx.NORTH, 20)])
+
+        self.vbox_outer.Add(self.vbox, 0, wx.ALL, 5)
+        self.SetSizerAndFit(self.vbox_outer)
+
+    def licence(self, event):
+        webbrowser.open_new_tab('https://aldras.com/')
+
+    def privacy(self, event):
+        webbrowser.open_new_tab('https://aldras.com/')
 
 
 class ResultEvent(wx.PyEvent):
@@ -548,7 +645,10 @@ class SoftwareInfo:
     def __init__(self):
         self.name = 'Aldras'
         self.version = '2020.0.0 Beta'
+        self.copyright = '2020 Aldras'
         self.website = 'http://www.{}.com'.format(self.name.lower())
+        self.description = '{} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'.format(
+            self.name)
         self.advanced_edit_guide_website = '{}/edit-guide'.format(self.website)
         self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
         self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
