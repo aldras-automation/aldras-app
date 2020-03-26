@@ -9,6 +9,7 @@ import pandas as pd
 import pyautogui as pyauto
 import wx
 import wx.adv
+import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
@@ -1271,7 +1272,7 @@ class EditFrame(wx.Frame):
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
 
         # add edit panel
-        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER, size=(500, 300))
+        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
 
         # read or create workflow file
         try:
@@ -1367,16 +1368,16 @@ class EditFrame(wx.Frame):
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        # print('lines: {}'.format(self.lines))
-
         self.edit.Hide()
-
-        for index, self.line in enumerate(self.lines):
+        self.any_valid_command_lines = False
+        for index, self.line_orig in enumerate(self.lines):
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-            self.line = self.line.replace('\n', '').lower()
+            self.line_orig = self.line_orig.replace('\n', '')
+            self.line = self.line_orig.lower()
             if '#' in self.line or self.line == '':  # workflow comment so no action
                 pass
             else:
+                self.any_valid_command_lines = True
                 try:
                     self.vbox_edit.AddSpacer(5)
                     self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
@@ -1441,8 +1442,14 @@ class EditFrame(wx.Frame):
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                         self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                         self.hbox_edit.AddSpacer(10)
-                        self.text_to_type = wx.TextCtrl(self.edit, value=str(
-                            self.line.replace('type: ', '').replace('Type: ', '')))
+                        self.text_value = str(self.line_orig).replace('type: ', '').replace('Type: ', '')
+                        self.temp_text_control = wx.TextCtrl(self.edit, value='')
+                        self.temp_text_control.Show(False)
+                        self.max_text_ctrl_size = self.temp_text_control.GetSizeFromTextSize(
+                            self.temp_text_control.GetTextExtent(30 * 'W').x)
+                        print(self.max_text_ctrl_size)
+                        self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value,
+                                                                           size=wx.Size(self.max_text_ctrl_size[0], -1))
                         self.hbox_edit.Add(self.text_to_type, 0, wx.ALIGN_CENTER_VERTICAL)
                         # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
 
@@ -1548,7 +1555,6 @@ class EditFrame(wx.Frame):
                     self.command.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # prevent mouse wheel from cycling through options
 
                 except (IndexError, CustomError) as e:
-                    # print(e)
                     self.hbox_edit.AddSpacer(10)
                     self.unknown_command_message = wx.StaticText(self.edit,
                                                                  label='**Unknown command from line: \"{}\"'.format(
@@ -1565,9 +1571,17 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.AddSpacer(5)
                 self.vbox_edit.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
 
+        self.hbox_edit_outer = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_edit_outer.Add(self.vbox_edit)
+
+        if self.any_valid_command_lines:
+            self.hbox_edit_outer.AddSpacer(25)
+        else:
+            self.hbox_edit_outer.AddSpacer(525)
+
+        self.hbox_edit_outer.SetSizeHints(self.edit)
+        print(self.vbox_edit.GetMinSize())
         self.edit.Show()
-        # self.edit.Update()  # no sure why this produces artifacts
-        # self.Update()  # no sure why this produces artifacts
 
     def create_key_combo_box(self, command):
         self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
@@ -1665,30 +1679,30 @@ class EditFrame(wx.Frame):
             print(order)
 
     def on_record(self):
-        dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
+        record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if record_dlg.ShowModal() == wx.ID_OK:
             dlg_counter = RecordCtrlCounterDialog(self, 'Record - {}'.format(self.workflow_name))
             if dlg_counter.ShowModal() == wx.ID_OK:
                 print('complete')
 
     def on_execute(self):
-        dlg = ExecuteDialog(self, 'Execute - {}'.format(self.workflow_name))
+        execute_dlg = ExecuteDialog(self, 'Execute - {}'.format(self.workflow_name))
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if execute_dlg.ShowModal() == wx.ID_OK:
 
-            if dlg.checkbox_pause.GetValue():
-                self.execution_pause = float(dlg.execute_pause_input.GetValue())
+            if execute_dlg.checkbox_pause.GetValue():
+                self.execution_pause = float(execute_dlg.execute_pause_input.GetValue())
             else:
                 self.execution_pause = 0.1
 
-            if dlg.checkbox_mouse_dur.GetValue():
-                self.execution_mouse_dur = float(dlg.execute_mouse_dur_input.GetValue())
+            if execute_dlg.checkbox_mouse_dur.GetValue():
+                self.execution_mouse_dur = float(execute_dlg.execute_mouse_dur_input.GetValue())
             else:
                 self.execution_mouse_dur = 0.1
 
-            if dlg.checkbox_type_interval:
-                self.execution_type_intrv = float(dlg.execute_type_interval_input.GetValue())
+            if execute_dlg.checkbox_type_interval:
+                self.execution_type_intrv = float(execute_dlg.execute_type_interval_input.GetValue())
             else:
                 self.execution_type_intrv = 0.02
             dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
