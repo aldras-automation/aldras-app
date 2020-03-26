@@ -2,9 +2,12 @@ import math
 import threading
 import tkinter as tk
 from time import sleep
+
 import pandas as pd
 import pyautogui as pyauto
 from pynput import keyboard, mouse
+
+
 # failsafe - mouse cursor to top left corner
 
 # TODO ctrl key calibration setup
@@ -407,7 +410,7 @@ def empty_workflow_name_error():
 
 def record(workflow_name_in):
     # await_trigger()
-    global recording
+    global in_action
     global workflow_name
     global recording_control
     global record_text
@@ -474,7 +477,7 @@ def gui_func(num):
 
 def listener_func(num):
     while True:
-        if recording:
+        if in_action:
             global recording_control
             recording_control = False
             with mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
@@ -496,7 +499,7 @@ capslock = False
 ctrls = 0
 drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
 running = False
-recording = False
+in_action = False
 file_name = 'automation1'
 pause = 0.5
 mouse_duration = 0.2

@@ -1,5 +1,6 @@
 import math
-from time import sleep
+import re
+import time
 
 import pandas as pd
 import pyautogui as pyauto
@@ -13,104 +14,144 @@ df = df.set_index('Code')
 capslock = False
 ctrls = 0
 drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
+type_interval = 0.01
+mouse_duration = 0.2
 
 
 def on_press_execute(key):
     global ctrls
-    global running
 
     output = str(key).strip('\'')
     if 'Key.ctrl_r' in output:
         ctrls += 1
         print('{}  '.format(ctrls), end='')
-    if 'Key.ctrl_r' in output and ctrls >= 3:  # toggle running
+    if 'Key.ctrl_r' in output and ctrls >= 3:
         ctrls = 0
-        running = True
         print()
         print('\tExecuting')
         execute()
 
 
+def float_in(input_string):
+    return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
+
+
 def execute():
-    pyauto.PAUSE = pause
-    with open('{}.txt'.format(workflow_name), 'r') as record_file:
+    time.sleep(1)
+    with open('Workflows/{}.txt'.format(workflow_name), 'r') as record_file:
         lines = record_file.readlines()
-    for line in lines:
-        # sleep(0.5)
-        line = line.replace('\n', '').lower()
+    pyauto.PAUSE = pause
+    for line_orig in lines:
+        line = line_orig.replace('\n', '').lower()
         print(line)
 
-        if line[0:2] == '``':  # special functions
-            if '#' in line:  # workflow comment so no action
-                pass
-            elif 'sleep' in line:
-                sleep(float(line.replace('``sleep(', '').replace(')', '')))
-            elif 'doubleclick' in line:
-                coords = coords_of(line)
-                pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
-            elif 'tripleclick' in line:
-                coords = coords_of(line)
-                pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
-            elif 'move' in line:
-                coords = coords_of(line)
-                pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+        if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
+            pyauto.typewrite(
+                line_orig.replace('\n', '').replace('Type: ', '').replace('type: ', '').replace('Type:', '').replace(
+                    'type:', ''), interval=type_interval)
+
+        elif 'sleep' in line:
+            time.sleep(float_in(line))
+
+        elif 'left-mouse' in line or 'right-mouse' in line:
+            coords = coords_of(line)
+            if 'right-mouse' in line:
+                btn = 'right'
             else:
-                action = line.split('```')[1]
-                key = line.split('```')[0].split('.')[1]
-                if 'button.' in line:
-                    coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
-                    coords[0] = int(coords[0])
-                    coords[1] = int(coords[1])
-                    if 'press' in line:
-                        pyauto.mouseDown(button=key, x=coords[0], y=coords[1])
-                        down = coords
-                    elif 'release' in line:
-                        # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
-                        drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
-                        drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
-                        pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
-                        pyauto.mouseUp(button=key)
-                        sleep(0.5 * mouse_duration)
-                    elif 'tapped' in line:
-                        pyauto.click(button=key, x=coords[0], y=coords[1], duration=mouse_duration)
-                        down = coords
-                    sleep(0.5)  # must be here to prevent some later operations from being cut off...
-                elif 'scrolled.' in line:
-                    scroll_amnt = action.split(' at ')[0]
-                    if key == 'down':
-                        pyauto.scroll(-60)
-                    elif key == 'up':
-                        pyauto.scroll(60)
-                elif 'key.' in line:
-                    if key == 'delete':
-                        key = 'del'
-                    elif key == 'alt_l':
-                        key = 'altleft'
-                    elif key == 'alt_r':
-                        key = 'altright'
-                    elif key == 'cmd':
-                        key = 'win'
-                    elif key == 'ctrl_l':
-                        key = 'ctrlleft'
-                        if 'tapped' in action:
-                            try:
-                                coords = coords_of(line)
-                                pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
-                            except IndexError:
-                                pass
-                    elif key == 'page_up':
-                        key = 'pageup'
-                    elif key == 'page_down':
-                        key = 'pagedown'
-                    press(key, action)
-        else:
-            if '```' in line:
-                action = line.split('```')[1]
-                key = line.split('```')[0]
-                press(key, action)
-            else:
-                keys = line
-                pyauto.typewrite(keys)
+                btn = 'left'
+
+            if 'tap' in line:
+                pyauto.click(x=coords[0], y=coords[1], button=btn)
+            elif 'press' in line:
+                pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+            elif 'release' in line:
+                pyauto.mouseUp(x=coords[0], y=coords[1], button=btn)
+
+        elif 'hotkey' in line:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
+            # contained in 'hotkey'
+            hotkeys = line.replace('hotkey ', '').split('+')
+            pyauto.hotkey(*hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+
+        elif 'key' in line:
+            if 'tap' in line:
+                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                pyauto.press(key)
+            elif 'press' in line:
+                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                pyauto.keyDown(key)
+            elif 'release' in line:
+                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                pyauto.keyUp(key)
+
+        elif 'mouse-move' in line:
+            coords = coords_of(line)
+            pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+
+        elif 'doubleclick' in line:
+            coords = coords_of(line)
+            pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
+
+        elif 'tripleclick' in line:
+            coords = coords_of(line)
+            pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+
+    #     else:
+    #         action = line.split('```')[1]
+    #         key = line.split('```')[0].split('.')[1]
+    #         if 'button.' in line:
+    #             coords = line.split('(')[-1].replace(')', '').replace(' ', '').split(',')
+    #             coords[0] = int(coords[0])
+    #             coords[1] = int(coords[1])
+    #             if 'press' in line:
+    #                 pyauto.mouseDown(button=key, x=coords[0], y=coords[1])
+    #                 down = coords
+    #             elif 'release' in line:
+    #                 # pyauto.mouseUp(button='left', x=int(coords[0]), y=int(coords[1]), duration=drag_duration)
+    #                 drag_dist = math.hypot(down[0] - coords[0], down[1] - coords[1])
+    #                 drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
+    #                 pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+    #                 pyauto.mouseUp(button=key)
+    #                 time.sleep(0.5 * mouse_duration)
+    #             elif 'tapped' in line:
+    #                 pyauto.click(button=key, x=coords[0], y=coords[1], duration=mouse_duration)
+    #                 down = coords
+    #             time.sleep(0.5)  # must be here to prevent some later operations from being cut off...
+    #         elif 'scrolled.' in line:
+    #             scroll_amnt = action.split(' at ')[0]
+    #             if key == 'down':
+    #                 pyauto.scroll(-60)
+    #             elif key == 'up':
+    #                 pyauto.scroll(60)
+    #         elif 'key.' in line:
+    #             if key == 'delete':
+    #                 key = 'del'
+    #             elif key == 'alt_l':
+    #                 key = 'altleft'
+    #             elif key == 'alt_r':
+    #                 key = 'altright'
+    #             elif key == 'cmd':
+    #                 key = 'win'
+    #             elif key == 'ctrl_l':
+    #                 key = 'ctrlleft'
+    #                 if 'tapped' in action:
+    #                     try:
+    #                         coords = coords_of(line)
+    #                         pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+    #                     except IndexError:
+    #                         pass
+    #             elif key == 'page_up':
+    #                 key = 'pageup'
+    #             elif key == 'page_down':
+    #                 key = 'pagedown'
+    #             press(key, action)
+    # else:
+    #     if '```' in line:
+    #         action = line.split('```')[1]
+    #         key = line.split('```')[0]
+    #         press(key, action)
+    #     else:
+    #         keys = line
+    #         pyauto.typewrite(keys)
 
     print('\nComplete!')
     return
@@ -157,7 +198,8 @@ def on_press_recording(key):
             output = ''
         if output == '\"\'\"':
             output = '\''
-        if (not output.startswith('key.ctrl_r')) and (not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
+        if (not output.startswith('key.ctrl_r')) and (
+                not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
             output = output + '```pressed'
@@ -203,7 +245,8 @@ def on_release_recording(key):
             output = ''
         if output == '\"\'\"':
             output = '\''
-        if (not output.startswith('key.ctrl_r')) and (not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
+        if (not output.startswith('key.ctrl_r')) and (
+                not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
             if 'key' in output:
                 output = '``' + output
             output = output + '```released'
@@ -250,7 +293,7 @@ def compile_recording():
     for index, line in enumerate(lines[:-1]):
         if not skip:
             # print(line.replace('\n', ''), end='')
-            if lines[index].replace('pressed', '') == lines[index+1].replace('released', ''):
+            if lines[index].replace('pressed', '') == lines[index + 1].replace('released', ''):
                 # print(' -------------- True')
                 skip = True
                 if line[0:2] == '``':  # special functions
@@ -261,8 +304,8 @@ def compile_recording():
                         new_line = ''
                     if 'ctrl_l' in key:
                         coords = coords_of(line)
-                        processed_line = new_line + '``move to {}\n``sleep({})\n'.format((coords[0], coords[1]),
-                                                                                         mouse_hover_duration)
+                        processed_line = new_line + '``move to {}\n``time.sleep({})\n'.format((coords[0], coords[1]),
+                                                                                              mouse_hover_duration)
                     else:
                         processed_line = new_line + lines[index].replace('pressed', 'tapped')
                     previous_normal_key_tap = False
@@ -336,11 +379,9 @@ running = False
 
 def main():
     global pause
-    global mouse_duration
     global mouse_hover_duration
     # pause = 0.02
     pause = 0.5
-    mouse_duration = 0.2
     mouse_hover_duration = 0.5
 
     print('Welcome to the Automation Tool by Noah Baculi, 2020')

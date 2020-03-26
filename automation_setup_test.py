@@ -1,12 +1,11 @@
+import pandas as pd
 from pynput import keyboard
 from pynput import mouse
-import pandas as pd
-from time import sleep
 
 file_name = 'test_pract'
 capslock = False
 ctrls = 0
-recording = False
+in_action = False
 previous_base_key = False
 
 df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
@@ -29,7 +28,7 @@ def output_to_file(output='', end='\n'):
 def on_press(key):
     global capslock
     global ctrls
-    global recording
+    global in_action
     global previous_base_key
     output = str(key).strip('\'')
     if recording:
@@ -69,7 +68,7 @@ def on_press(key):
 
 
 def on_click(x, y, button, pressed):
-    if recording:
+    if in_action:
         if pressed:
             if previous_base_key:
                 output_to_file()
@@ -77,7 +76,7 @@ def on_click(x, y, button, pressed):
 
 
 def on_scroll(x, y, dx, dy):
-    if recording:
+    if in_action:
         if previous_base_key:
             output_to_file()
         output_to_file('`````Scrolled {} at {}'.format('down' if dy < 0 else 'up', (x, y)))

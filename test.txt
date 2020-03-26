@@ -1,0 +1,4 @@
+``move to (2037, 114)
+``sleep(0.5)
+
+``key.ctrl_l```released at (2037, 114)

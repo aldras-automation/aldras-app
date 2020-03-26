@@ -1,5 +1,8 @@
+import math
 import os
+import re
 import threading
+import time
 import webbrowser
 
 import pandas as pd
@@ -9,12 +12,9 @@ import wx.adv
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
-# TODO redo about frame
-# TODO reorder workflow frame buttons to standard placement with OK and Cancel btns elsewhere
 # TODO investigate image buttons (edit frame - back button)
 # TODO image for recording, executing, and stopping
 # TODO investigate compartmentalization for better organization
-# TODO execution integration
 # TODO alternate row shading (edit frame)
 # TODO investigate zoom
 # TODO language switching
@@ -34,6 +34,9 @@ EVT_RESULT_ID = wx.NewIdRef()
 
 
 def do_nothing(event=None):
+    """
+    Function to bind events to be disabled
+    """
     pass
 
 
@@ -44,14 +47,6 @@ def eliminate_duplicates(list_with_duplicates):
 
 
 def create_about_dialog(self):
-    # about_info = wx.adv.AboutDialogInfo()
-    # about_info.SetName('{} Automation'.format(self.software_info.name))
-    # about_info.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
-    # about_info.SetVersion(self.software_info.version)
-    # about_info.SetDescription('Simple, powerful utility for general computer automation.')
-    # about_info.SetCopyright('(C) 2020')
-    # about_info.SetWebSite(self.software_info.website)
-    # wx.adv.AboutBox(about_info)
     dlg = AboutDialog(self, 'About {}'.format(self.software_info.name))
     dlg.ShowModal()
 
@@ -63,18 +58,18 @@ def setup_frame(self, status_bar=False):
     # setting up the file menu
     file_menu = wx.Menu()
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about {}'.format(self.software_info.name))
+    self.Bind(wx.EVT_MENU, lambda event: on_about(self), menu_about)
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit {}'.format(self.software_info.name))
+    self.Bind(wx.EVT_MENU, lambda event: on_exit(self), menu_exit)
 
+    # Menu for open option
     # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
+    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
 
     # creating the menu bar
     menu_bar = wx.MenuBar()
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
-    self.Bind(wx.EVT_MENU, lambda event: on_about(self), menu_about)
-    self.Bind(wx.EVT_MENU, lambda event: on_exit(self), menu_exit)
-
-    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
 
     # assign icon
     self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
@@ -93,6 +88,10 @@ def coords_of(line):
     coords = line.split('(')[1].replace(' ', '').replace(')', '').split(',')
     coords = (int(coords[0]), int(coords[1]))
     return coords
+
+
+def float_in(input_string):
+    return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
 
 
 def update_status_bar(parent, status):
@@ -116,6 +115,7 @@ def config_status_and_tooltip(parent, obj_to_config, status, tooltip=None):
 
 def output_to_file_bkup(output='', end='\n'):
     output = (output + end)
+    # Will add back when recording is enabled
     # with open('{}_bkup.txt'.format(workflow_name), 'a') as record_file:
     #     record_file.write(''.join(output))
     print(output, end='')
@@ -125,12 +125,12 @@ def output_to_file_bkup(output='', end='\n'):
 def on_press_recording(key):
     global capslock
     global ctrls
-    global recording
+    global in_action
     output = str(key).strip('\'').lower()
     coords = ''
     df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
     df = df.set_index('Code')
-    if recording:
+    if in_action:
         if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
             capslock = not capslock
         if output == 'key.space':  # if capslock pressed, swap capslock state
@@ -157,16 +157,15 @@ def on_press_recording(key):
             output_to_file_bkup(output)
     if 'key.ctrl_r' in output:
         ctrls += 1
-        # if not recording:
         print('{}  '.format(ctrls), end='')
-        if not recording:
+        if not in_action:
             if ctrls == 1:
-                disp_message = 'Recording in 3'
+                disp_message = 'Action in 3'
             elif ctrls == 2:
-                disp_message = 'Recording in 3 2'
+                disp_message = 'Action in 3 2'
             elif ctrls == 3:
-                disp_message = 'Recording'
-        elif recording:
+                disp_message = 'Action'
+        elif in_action:
             if ctrls == 1:
                 disp_message = 'Stopping in 3'
             elif ctrls == 2:
@@ -174,14 +173,14 @@ def on_press_recording(key):
             elif ctrls == 3:
                 disp_message = 'Completed!'
 
-        wx.PostEvent(listener_thread._notify_window, ResultEvent('{}'.format(disp_message)))
+        wx.PostEvent(listener_thread.parent, ResultEvent('{}'.format(disp_message)))
 
         if ctrls >= 3:
             ctrls = 0
-            recording = not recording
+            in_action = not in_action
             print()
-            print('RECORDING = {}'.format(recording))
-            if not recording:
+            print('RECORDING = {}'.format(in_action))
+            if not in_action:
                 print('Complete!')
                 # compile_recording()
                 raise SystemExit()
@@ -191,10 +190,10 @@ def on_press_recording(key):
 def on_release_recording(key):
     global capslock
     global ctrls
-    global recording
+    global in_action
     output = str(key).strip('\'').lower()
     coords = ''
-    if recording:
+    if in_action:
         if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
             capslock = not capslock
         if output == 'key.space':  # if capslock pressed, swap capslock state
@@ -223,13 +222,13 @@ def on_release_recording(key):
 
 
 def on_click_recording(x, y, button, pressed):
-    if recording:
+    if in_action:
         output_to_file_bkup('``{}```{} at {}'.format(str(button).lower(), 'pressed' if pressed else 'released', (x, y)))
     return
 
 
 def on_scroll_recording(x, y, dx, dy):
-    if recording:
+    if in_action:
         output_to_file_bkup('``scrolled.{}```1 at {}'.format('down' if dy < 0 else 'up', (x, y)))
     return
 
@@ -240,7 +239,7 @@ def on_move_recording(x, y):
     return
 
 
-def listener_event_handler(win, func):
+def thread_event_handler(win, func):
     """Define Result Event."""
     win.Connect(-1, -1, int(EVT_RESULT_ID), func)
 
@@ -342,35 +341,140 @@ class ResultEvent(wx.PyEvent):
         self.data = data
 
 
-# Thread class that executes processing
 class ListenerThread(threading.Thread):
     """Worker Thread Class."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         global listener_thread
         listener_thread = self
-        self._notify_window = parent
+        self.parent = parent
+        self.listen_to_key = listen_to_key
+        self.listen_to_mouse = listen_to_mouse
 
     def run(self):
         """Run Worker Thread."""
-        global recording
+        global in_action
         global ctrls
-        recording = False
+        in_action = False
         ctrls = 0
-        self.mouse_listener = mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
-                                             on_move=on_move_recording)
-        self.mouse_listener.start()
-        self.key_listener = keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording)
-        self.key_listener.start()
+
+        if self.listen_to_key:
+            self.key_listener = keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording)
+            self.key_listener.start()
+        if self.listen_to_mouse:
+            self.mouse_listener = mouse.Listener(on_click=on_click_recording, on_scroll=on_scroll_recording,
+                                                 on_move=on_move_recording)
+            self.mouse_listener.start()
         # self.listener.join()
 
     def abort(self):
         """abort worker thread."""
         # Method for use by main thread to signal an abort
-        self.mouse_listener.stop()
-        self.key_listener.stop()
+        if self.listen_to_key:
+            self.key_listener.stop()
+        if self.listen_to_mouse:
+            self.mouse_listener.stop()
+
+
+class ExecutionThread(threading.Thread):
+    """Worker Thread Class."""
+
+    def __init__(self, parent):
+        """Init Worker Thread Class."""
+        threading.Thread.__init__(self, daemon=True)
+        self.parent = parent
+        global execution_thread
+        execution_thread = self
+
+    def run(self):
+        """Run Worker Thread."""
+        # execute(self.parent.parent.lines, pause=0.2)
+
+        drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
+        lines = self.parent.parent.lines
+        pause = self.parent.parent.execution_pause
+        type_interval = self.parent.parent.execution_type_intrv
+        mouse_duration = self.parent.parent.execution_mouse_dur
+
+        # print('pause - run: {}'.format(type(self.parent.parent.execution_pause)))
+        # print('execution_mouse_dur - run: {}'.format(type(self.parent.parent.execution_mouse_dur)))
+        # print('execution_type_intrv - run: {}'.format(type(self.parent.parent.execution_type_intrv)))
+
+        mouse_down_coords = [0, 0]
+        pyauto.PAUSE = pause
+        self.keep_running = True
+
+        try:
+            for line_orig in lines:
+                if self.keep_running:
+                    line = line_orig.replace('\n', '').lower()
+                    print(line)
+
+                    if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
+                        pyauto.typewrite(
+                            line_orig.replace('\n', '').replace('Type: ', '').replace('type: ', '').replace('Type:',
+                                                                                                            '').replace(
+                                'type:', ''), interval=type_interval)
+
+                    elif 'sleep' in line:
+                        time.sleep(float_in(line))
+
+                    elif 'left-mouse' in line or 'right-mouse' in line:
+                        coords = coords_of(line)
+                        if 'right-mouse' in line:
+                            btn = 'right'
+                        else:
+                            btn = 'left'
+
+                        if 'tap' in line:
+                            pyauto.click(x=coords[0], y=coords[1], button=btn)
+                        elif 'press' in line:
+                            pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+                            mouse_down_coords = coords
+                        elif 'release' in line:
+                            drag_dist = math.hypot(mouse_down_coords[0] - coords[0], mouse_down_coords[1] - coords[1])
+                            drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
+                            pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+                            pyauto.mouseUp(button=btn)
+                            time.sleep(0.5 * mouse_duration)
+
+                    elif 'hotkey' in line:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
+                        # contained in 'hotkey'
+                        hotkeys = line.replace('hotkey ', '').split('+')
+                        pyauto.hotkey(
+                            *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+
+                    elif 'key' in line:
+                        if 'tap' in line:
+                            key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                            pyauto.press(key)
+                        elif 'press' in line:
+                            key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                            pyauto.keyDown(key)
+                        elif 'release' in line:
+                            key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                            pyauto.keyUp(key)
+
+                    elif 'mouse-move' in line:
+                        coords = coords_of(line)
+                        pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+
+                    elif 'doubleclick' in line:
+                        coords = coords_of(line)
+                        pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
+
+                    elif 'tripleclick' in line:
+                        coords = coords_of(line)
+                        pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+
+            wx.PostEvent(self.parent, ResultEvent('{}'.format('Completed!')))
+        except pyauto.FailSafeException:
+            wx.PostEvent(self.parent, ResultEvent('{}'.format('Failsafe triggered')))
+
+    def abort(self):
+        self.keep_running = False
 
 
 class RecordCtrlCounterDialog(wx.Dialog):
@@ -378,10 +482,13 @@ class RecordCtrlCounterDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
         self.SetTitle(caption)
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.BoxSizer(wx.VERTICAL)
 
-        self.directions_a = wx.StaticText(self, label='Start/Stop: Press the right control key 3 times')
+        self.directions_a_rest = ': Press the right control key 3 times'
+
+        self.directions_a = wx.StaticText(self, label='Start' + self.directions_a_rest)
         self.directions_a.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
         self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -420,60 +527,59 @@ class RecordCtrlCounterDialog(wx.Dialog):
         self.vbox.Add(self.recording_message_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.recording_message_b.Show(False)
 
-        self.finish_btn = wx.Button(self, label='Finish')
-        self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
-        self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        self.finish_btn.Show(False)
-
         self.spacer_a = wx.StaticText(self, label='')
-        self.spacer_a.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+        self.spacer_a.SetFont(wx.Font(wx.FontInfo(5)))  # change font size
         self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.spacer_a.Show(False)
+
+        self.finish_btn = wx.Button(self, label='Finish')
+        self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
+        self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
+        self.finish_btn.Show(False)
+
+        self.spacer_b = wx.StaticText(self, label='')
+        self.spacer_b.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+        self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.spacer_b.Show(False)
 
         self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
         self.SetSizerAndFit(self.vbox_outer)
 
         # Set up event handler for any worker thread results
-        listener_event_handler(self, self.read_listener_input)
+        thread_event_handler(self, self.read_thread_event_input)
 
-        self.worker = None
-        self.worker_hist = None
         self.start_listener()
 
         self.Bind(wx.EVT_CLOSE, self.close_window)
 
     def start_listener(self):
         """Start Computation."""
-        # Trigger the worker thread unless it's already busy
-        if not self.worker:
-            self.worker = ListenerThread(self)
-            self.worker.start()
-        self.worker_hist = self.worker
+        self.listener_thread = ListenerThread(self)
+        self.listener_thread.start()
 
-    def read_listener_input(self, event):
+    def read_thread_event_input(self, event):
         """Show Result status."""
         if event.data is None:
             # Thread aborted (using our convention of None return)
             self.countdown_light.SetLabel('Some error occurred')
             self.countdown_light.Show(True)
-        else:
-            # Process results
-
+        else:  # Process results
             self.countdown_dark.Show(True)
             self.countdown_light.Show(True)
 
-            self.countdown_dark.SetLabel(event.data)
+            self.countdown_dark.SetLabel(event.data.replace('Action', 'Recording'))
             self.countdown_dark.SetForegroundColour((0, 0, 0))  # change font color to (r,g,b)
 
-            if event.data == 'Recording in 3':
+            if event.data == 'Action in 3':
                 self.countdown_light.SetLabel(' 2 1')
-                self.spacer_a.Show(True)
+                self.spacer_b.Show(True)
 
-            elif event.data == 'Recording in 3 2':
+            elif event.data == 'Action in 3 2':
                 self.countdown_light.SetLabel(' 1')
 
-            elif event.data == 'Recording':
+            elif event.data == 'Action':
                 self.countdown_dark.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                self.directions_a.SetLabel('Stop' + self.directions_a_rest)
                 self.countdown_light.SetLabel('')
                 self.countdown_light.Show(False)
                 self.recording_message_a.Show(True)
@@ -486,31 +592,33 @@ class RecordCtrlCounterDialog(wx.Dialog):
                 self.countdown_light.SetLabel(' 1')
 
             elif event.data == 'Completed!':
+                self.directions_a.Show(False)
                 self.countdown_light.SetLabel('')
                 self.countdown_light.Show(False)
-                self.countdown_dark.SetFont(wx.Font(22, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
+                self.countdown_dark.SetFont(wx.Font(22, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
                 self.recording_message_a.Show(False)
                 self.recording_message_b.Show(False)
+                self.spacer_a.Show(True)
                 self.finish_btn.Show(True)
 
             self.vbox.Layout()
             self.vbox_outer.Layout()
             self.SetSizerAndFit(self.vbox_outer)
             self.Fit()
-        # In either event, the worker is done
-        self.worker = None
 
     def close_window(self, event):
-        print(self.worker_hist)
-        self.worker_hist.abort()
+        self.listener_thread.abort()
+        print(self.listener_thread)
         self.Destroy()
 
 
 class ExecuteCtrlCounterDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
+        self.parent = parent
         self.SetTitle(caption)
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -522,28 +630,140 @@ class ExecuteCtrlCounterDialog(wx.Dialog):
 
         self.directions_b = wx.StaticText(self, label='Stop: Move the mouse to the upper-left screen corner')
         self.directions_b.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
+        self.directions_b.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
         self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         self.vbox.AddSpacer(30)
 
-        self.countdown = wx.StaticText(self, label=''.format(parent.workflow_name))
-        self.countdown.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-        self.vbox.Add(self.countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.countdown_dark = wx.StaticText(self, label=''.format(parent.workflow_name))
+        self.countdown_dark.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
+        self.hbox.Add(self.countdown_dark)
+        self.countdown_dark.Show(False)
+
+        self.countdown_light = wx.StaticText(self, label=''.format(parent.workflow_name))
+        self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
+        self.countdown_light_contrast = 150
+        self.countdown_light.SetForegroundColour((self.countdown_light_contrast, self.countdown_light_contrast,
+                                                  self.countdown_light_contrast))  # change font color to (r,g,b)
+        self.hbox.Add(self.countdown_light)
+        self.countdown_light.Show(False)
+
+        self.vbox.Add(self.hbox, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         self.vbox.AddSpacer(20)
 
-        self.recording_message_a = wx.StaticText(self, label='Now executing')
-        self.recording_message_a.SetFont(wx.Font(wx.FontInfo(13)))  # change font size
-        self.vbox.Add(self.recording_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        self.recording_message_a.Show(False)
+        self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
+        self.executing_message_a.SetFont(wx.Font(wx.FontInfo(13)))  # change font size
+        self.executing_message_a.SetForegroundColour((20, 120, 20))  # change font color to (r,g,b)
+        self.vbox.Add(self.executing_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.executing_message_a.Show(False)
 
-        self.vbox.AddSpacer(5)
+        self.spacer_a = wx.StaticText(self, label='')
+        self.spacer_a.SetFont(wx.Font(wx.FontInfo(5)))  # change font size
+        self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.spacer_a.Show(False)
 
-        self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 40)
+        self.finish_btn = wx.Button(self, label='Finish')
+        self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
+        self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
+        self.finish_btn.Show(False)
+
+        self.spacer_b = wx.StaticText(self, label='')
+        self.spacer_b.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+        self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.spacer_b.Show(False)
+
+        self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
         self.SetSizerAndFit(self.vbox_outer)
 
-    def update_countdown(self, event):
-        self.countdown.SetLabel('Countdown value')
+        # Set up event handler for any worker thread results
+        thread_event_handler(self, self.read_thread_input)
+
+        self.start_listener()
+
+        self.Bind(wx.EVT_CLOSE, self.close_window)
+
+    def start_listener(self):
+        """Start Computation."""
+        self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
+        self.listener_thread.start()
+
+    def start_execution_thread(self):
+        self.execution_thread = ExecutionThread(self)
+        self.execution_thread.start()
+
+    def read_thread_input(self, event):
+        """Show Result status."""
+        if event.data is None:
+            # Thread aborted (using our convention of None return)
+            self.countdown_light.SetLabel('Some error occurred')
+            self.countdown_light.Show(True)
+        else:  # Process results
+            self.countdown_dark.Show(True)
+            self.countdown_light.Show(True)
+
+            self.countdown_dark.SetLabel(event.data.replace('Action', 'Executing'))
+            self.countdown_dark.SetForegroundColour((0, 0, 0))  # change font color to (r,g,b)
+
+            if event.data == 'Action in 3':
+                self.countdown_light.SetLabel(' 2 1')
+                self.spacer_b.Show(True)
+
+            elif event.data == 'Action in 3 2':
+                self.countdown_light.SetLabel(' 1')
+
+            elif event.data == 'Action':
+                self.countdown_dark.SetForegroundColour((20, 120, 20))  # change font color to (r,g,b)
+                self.countdown_light.SetLabel('')
+                self.countdown_light.Show(False)
+                self.executing_message_a.Show(True)
+                self.start_execution_thread()
+
+            elif event.data == 'Stopping in 3':
+                self.countdown_light.SetLabel(' 2 1')
+
+            elif event.data == 'Stopping in 3 2':
+                self.countdown_light.SetLabel(' 1')
+
+            elif event.data == 'Completed!':
+                self.directions_a.Show(False)
+                self.directions_b.Show(False)
+                self.countdown_light.SetLabel('')
+                self.countdown_light.Show(False)
+                self.countdown_dark.SetFont(wx.Font(22, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
+                self.executing_message_a.Show(False)
+                self.spacer_a.Show(True)
+                self.finish_btn.Show(True)
+
+            elif event.data == 'Failsafe triggered':
+                print('Failsafe triggered')
+                self.listener_thread.abort()
+                self.execution_thread.abort()
+
+                self.directions_a.Show(False)
+                self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
+                self.countdown_light.SetLabel('')
+                self.countdown_light.Show(False)
+                self.countdown_dark.SetLabel('Execution Stopped')
+                self.countdown_dark.SetFont(wx.Font(22, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
+                self.countdown_dark.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                self.executing_message_a.Show(False)
+                self.spacer_a.Show(True)
+                self.finish_btn.Show(True)
+
+            self.vbox.Layout()
+            self.vbox_outer.Layout()
+            self.SetSizerAndFit(self.vbox_outer)
+            self.Fit()
+
+    def close_window(self, event):
+        self.listener_thread.abort()
+        self.execution_thread.abort()
+        print(self.listener_thread)
+        print(self.execution_thread)
+        self.Destroy()
 
 
 class RecordDialog(wx.Dialog):
@@ -551,6 +771,7 @@ class RecordDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
         self.SetTitle(caption)
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.hbox_options = wx.BoxSizer(wx.HORIZONTAL)
@@ -615,30 +836,80 @@ class ExecuteDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
         self.SetTitle(caption)
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.hbox_pause_input = wx.BoxSizer(wx.HORIZONTAL)
+        self.options_box = wx.StaticBox(self, wx.ID_ANY, 'Options')
+        self.vbox = wx.StaticBoxSizer(self.options_box, wx.VERTICAL)
+        self.vbox.AddSpacer(10)
 
-        self.execute_pause_text = wx.StaticText(self, label='Pause between commands')
-        self.vbox.Add(self.execute_pause_text)
+        # Pause input
+        self.hbox_pause = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.vbox.AddSpacer(5)
+        self.checkbox_pause = wx.CheckBox(self, label=' Pause between commands: ')
+        self.checkbox_pause.SetValue(True)
+        self.checkbox_pause.Bind(wx.EVT_CHECKBOX, self.checkbox_pause_pressed)
+        self.hbox_pause.Add(self.checkbox_pause, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        self.hbox_pause_input.AddSpacer(15)
-        self.execute_pause_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.1', size=wx.Size(50, -1),
-                                                       style=wx.TE_RIGHT)
-        self.hbox_pause_input.Add(self.execute_pause_input, wx.ALIGN_CENTER_VERTICAL)
-        self.hbox_pause_input.Add(wx.StaticText(self, label='  seconds'), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.execute_pause_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
+                                                       style=wx.TE_CENTER)
+        self.hbox_pause.Add(self.execute_pause_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        self.vbox.Add(self.hbox_pause_input)
+        self.hbox_pause.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox.Add(self.hbox_pause, 0, wx.EAST | wx.WEST, 10)
 
         self.vbox.AddSpacer(20)
 
+        # Mouse duration input
+        self.hbox_mouse_dur = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.checkbox_mouse_dur = wx.CheckBox(self, label=' Mouse command duration: ')
+        self.checkbox_mouse_dur.SetValue(True)
+        self.checkbox_mouse_dur.Bind(wx.EVT_CHECKBOX, self.checkbox_mouse_dur_pressed)
+        self.hbox_mouse_dur.Add(self.checkbox_mouse_dur, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.execute_mouse_dur_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='1', size=wx.Size(50, -1),
+                                                           style=wx.TE_CENTER)
+        self.hbox_mouse_dur.Add(self.execute_mouse_dur_input, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.hbox_mouse_dur.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox.Add(self.hbox_mouse_dur, 0, wx.EAST | wx.WEST, 10)
+
+        self.vbox.AddSpacer(20)
+
+        # Text type interval duration input
+        self.hbox_type_interval = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.checkbox_type_interval = wx.CheckBox(self, label=' Interval between text character outputs: ')
+        self.checkbox_type_interval.SetValue(True)
+        self.checkbox_type_interval.Bind(wx.EVT_CHECKBOX, self.checkbox_type_interval_pressed)
+        self.hbox_type_interval.Add(self.checkbox_type_interval, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.execute_type_interval_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.05', size=wx.Size(50, -1)
+                                                               , style=wx.TE_CENTER)
+        self.hbox_type_interval.Add(self.execute_type_interval_input, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.hbox_type_interval.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox.Add(self.hbox_type_interval, 0, wx.EAST | wx.WEST, 10)
+
+        self.vbox.AddSpacer(10)
+
         self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
 
-        self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        self.vbox_outer.Add(self.vbox, 0, wx.ALL, 20)
+        # self.vbox_outer.Add(wx.StaticLine(self), 0, wx.EXPAND)
+        self.vbox_outer.Add(wx.StaticText(self, label='Uncheck option(s) for fastest execution'), 0,
+                            wx.ALIGN_RIGHT | wx.NORTH | wx.EAST | wx.WEST, 20)
+        self.vbox_outer.Add(self.vbox, 0, wx.EAST | wx.WEST | wx.SOUTH, 20)
+        self.vbox_outer.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 15)
         self.SetSizerAndFit(self.vbox_outer)
+
+    def checkbox_pause_pressed(self, event):
+        self.execute_pause_input.Enable(self.checkbox_pause.GetValue())
+
+    def checkbox_mouse_dur_pressed(self, event):
+        self.execute_mouse_dur_input.Enable(self.checkbox_mouse_dur.GetValue())
+
+    def checkbox_type_interval_pressed(self, event):
+        self.execute_type_interval_input.Enable(self.checkbox_type_interval.GetValue())
 
 
 class SoftwareInfo:
@@ -670,10 +941,10 @@ class SoftwareInfo:
         self.mouse_buttons = ['Left', 'Right']
         self.mouse_actions = ['Tap', 'Press', 'Release']
         self.coord_width = 40
-        self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'Pgup',
-                             'Pgdn', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Cmd', 'Option', 'Back nav',
-                             'Capslock', 'Insert', 'Numlock', 'Prtscrn', 'Scrlock']
-        self.media_keys = ['Playpause', 'Nexttrack', 'Prevtrack', 'Volmute', 'Voldown', 'Volup']
+        self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'PageUp',
+                             'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option',
+                             'BrowserBack', 'BrowserForward', 'CapsLock', 'Insert', 'NumLock', 'PrntScrn', 'ScrollLock']
+        self.media_keys = ['PlayPause', 'NextTrack', 'PrevTrack', 'VolumeMute', 'VolumeUp', 'VolumeDown']
         self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
         self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
                               'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -698,23 +969,23 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         self.SetForegroundColour(wx.BLACK)
         if self.GetValue() == self.default_text:
             self.SetValue('')
-        event.Skip()
 
     def on_unfocus(self, event):
         if self.GetValue().strip() == '':
             self.SetValue(self.default_text)
-            self.SetForegroundColour(wx.LIGHT_GREY)
-        if event:
-            event.Skip()
+            self.placeholder_text_contrast = 120
+            self.SetForegroundColour(
+                (self.placeholder_text_contrast, self.placeholder_text_contrast, self.placeholder_text_contrast))
 
 
 class DeleteCommandsDialog(wx.Dialog):
     def __init__(self, parent, message, caption, choices=None):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetTitle(caption)
+        self.SetBackgroundColour('white')
         if choices is None:
             choices = []
-        self.SetTitle(caption)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.message = wx.StaticText(self, wx.ID_ANY, message)
         self.clb = wx.CheckListBox(self, wx.ID_ANY, choices=choices)
@@ -1387,6 +1658,7 @@ class EditFrame(wx.Frame):
                                  'Reorder Commands - {}'.format(self.workflow_name), order,
                                  items)
         dlg.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        dlg.SetBackgroundColour('white')
 
         if dlg.ShowModal() == wx.ID_OK:
             order = dlg.GetOrder()
@@ -1404,6 +1676,21 @@ class EditFrame(wx.Frame):
         dlg = ExecuteDialog(self, 'Execute - {}'.format(self.workflow_name))
 
         if dlg.ShowModal() == wx.ID_OK:
+
+            if dlg.checkbox_pause.GetValue():
+                self.execution_pause = float(dlg.execute_pause_input.GetValue())
+            else:
+                self.execution_pause = 0.1
+
+            if dlg.checkbox_mouse_dur.GetValue():
+                self.execution_mouse_dur = float(dlg.execute_mouse_dur_input.GetValue())
+            else:
+                self.execution_mouse_dur = 0.1
+
+            if dlg.checkbox_type_interval:
+                self.execution_type_intrv = float(dlg.execute_type_interval_input.GetValue())
+            else:
+                self.execution_type_intrv = 0.02
             dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
             if dlg_counter.ShowModal() == wx.ID_OK:
                 print('complete')
@@ -1500,12 +1787,12 @@ class WorkflowFrame(wx.Frame):
         self.vbox_outer.AddStretchSpacer()
 
         self.button_array = wx.StdDialogButtonSizer()
-        self.cancel_btn = wx.Button(self.container, label='Quit')
-        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_exit)
-        self.button_array.Add(self.cancel_btn)
         self.ok_btn = wx.Button(self.container, label='OK')
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         self.button_array.Add(self.ok_btn)
+        self.cancel_btn = wx.Button(self.container, label='Exit')
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_exit)
+        self.button_array.Add(self.cancel_btn)
         self.vbox_outer.Add(self.button_array, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 
         self.container.SetSizer(self.vbox_outer)

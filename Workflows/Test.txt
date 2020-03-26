@@ -1,0 +1,5 @@
+Mouse-move to (700, 800)
+sleep 3
+Mouse-move to (1800, 800)
+Mouse-move to (1800, 200)
+Mouse-move to (700, 200)
