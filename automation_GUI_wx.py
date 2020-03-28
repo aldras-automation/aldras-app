@@ -13,6 +13,7 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
+# TODO comments
 # TODO investigate image buttons (edit frame - back button)
 # TODO image for recording, executing, and stopping
 # TODO investigate compartmentalization for better organization
@@ -31,28 +32,30 @@ from pynput import keyboard, mouse
 # TODO variables from excel or in range, etc.
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
-EVT_RESULT_ID = wx.NewIdRef()
+EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event recieving
 
 
 def do_nothing(event=None):
-    """
-    Function to bind events to be disabled
-    """
+    """Function to bind events to be disabled."""
     pass
 
 
 def eliminate_duplicates(list_with_duplicates):
+    """Function eliminate duplicates from list"""
     seen = set()
     seen_add = seen.add
     return [x for x in list_with_duplicates if not (x in seen or seen_add(x))]
 
 
 def create_about_dialog(self):
-    dlg = AboutDialog(self, 'About {}'.format(self.software_info.name))
-    dlg.ShowModal()
+    """Creates about dialog."""
+    about_dlg = AboutDialog(self, 'About {}'.format(self.software_info.name))
+    about_dlg.ShowModal()
 
 
 def setup_frame(self, status_bar=False):
+    """Setup standardized frame characteristics including file menu and status bar."""
+
     if status_bar:
         self.CreateStatusBar()
 
@@ -63,20 +66,18 @@ def setup_frame(self, status_bar=False):
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit {}'.format(self.software_info.name))
     self.Bind(wx.EVT_MENU, lambda event: on_exit(self), menu_exit)
 
-    # Menu for open option
+    # Menu for open option (future)
     # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
     # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
 
-    # creating the menu bar
+    # create menu bar
     menu_bar = wx.MenuBar()
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
 
-    # assign icon
-    self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+    self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))  # assign icon
 
-    # set background color
-    self.SetBackgroundColour('white')
+    self.SetBackgroundColour('white')  # set background color
 
     def on_about(self):
         create_about_dialog(self)
@@ -86,35 +87,51 @@ def setup_frame(self, status_bar=False):
 
 
 def coords_of(line):
+    """Returns tuple of parsed coordinates from string."""
     coords = line.split('(')[1].replace(' ', '').replace(')', '').split(',')
     coords = (int(coords[0]), int(coords[1]))
     return coords
 
 
 def float_in(input_string):
+    """Returns parsed float from string."""
     return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
 
 
 def update_status_bar(parent, status):
+    """Update status bar."""
     parent.StatusBar.SetStatusText(status)
 
 
 def clear_status_bar(parent):
+    """Clear status bar."""
     parent.StatusBar.SetStatusText('')
 
 
-def config_status_and_tooltip(parent, obj_to_config, status, tooltip=None):
+def config_status_and_tooltip(parent, obj_to_config, status, tooltip=True):
+    """
+    Configure status bar and tooltip for object.
+
+    Parameters:
+        parent (wx.Frame): The parent frame for which the status and tool tip should be configured.
+        obj_to_config (wx.Widget): The widget for which the status and tool tip should be configured.
+        status (str): The string that should be displayed for the status.
+        tooltip (bool or str): 'True' should be passed if the tooltip should be configured with the status string. Another string should be passed if the tooltip should be configured with another string.
+    """
+    # TODO allow for just status bar or tooltip (for windows without status bars) -- TEST first
     obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, '   ' + status))
     obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent))
-    if tooltip is None:
-        obj_to_config.SetToolTip(status)
-    elif not tooltip:
-        pass
-    else:
+    if isinstance(tooltip, str):
         obj_to_config.SetToolTip(tooltip)
+    elif tooltip:
+        obj_to_config.SetToolTip(status)
 
 
 def output_to_file_bkup(output='', end='\n'):
+    """Print string and write to file."""
+
+    # TODO function still needed?
+
     output = (output + end)
     # Will add back when recording is enabled
     # with open('{}_bkup.txt'.format(workflow_name), 'a') as record_file:
@@ -124,17 +141,19 @@ def output_to_file_bkup(output='', end='\n'):
 
 
 def on_press_recording(key):
+    """Process keystroke press for keyboard listener for ListenerThread instances."""
     global capslock
     global ctrls
     global in_action
     output = str(key).strip('\'').lower()
     coords = ''
-    df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
+    df = pd.read_csv('ctrl_keys_ref.csv',
+                     names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
     df = df.set_index('Code')
     if in_action:
         if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
             capslock = not capslock
-        if output == 'key.space':  # if capslock pressed, swap capslock state
+        if output == 'key.space':
             output = ' '
         if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
             coords = pyauto.position()
@@ -161,21 +180,24 @@ def on_press_recording(key):
         print('{}  '.format(ctrls), end='')
         if not in_action:
             if ctrls == 1:
-                disp_message = 'Action in 3'
+                event_message = 'Action in 3'
             elif ctrls == 2:
-                disp_message = 'Action in 3 2'
+                event_message = 'Action in 3 2'
             elif ctrls == 3:
-                disp_message = 'Action'
+                event_message = 'Action'
         elif in_action:
             if ctrls == 1:
-                disp_message = 'Stopping in 3'
+                event_message = 'Stopping in 3'
             elif ctrls == 2:
-                disp_message = 'Stopping in 3 2'
+                event_message = 'Stopping in 3 2'
             elif ctrls == 3:
-                disp_message = 'Completed!'
+                event_message = 'Completed!'
+        else:
+            event_message = 'Error!'
 
-        wx.PostEvent(listener_thread.parent, ResultEvent('{}'.format(disp_message)))
+        wx.PostEvent(listener_thread.parent, ResultEvent('{}'.format(event_message)))
 
+        # TODO revisit and optimize
         if ctrls >= 3:
             ctrls = 0
             in_action = not in_action
@@ -189,6 +211,8 @@ def on_press_recording(key):
 
 
 def on_release_recording(key):
+    """Process keystroke release for keyboard listener for ListenerThread instances."""
+    # TODO revisit and optimize
     global capslock
     global ctrls
     global in_action
@@ -223,25 +247,28 @@ def on_release_recording(key):
 
 
 def on_click_recording(x, y, button, pressed):
+    """Process click for mouse listener for ListenerThread instances."""
     if in_action:
         output_to_file_bkup('``{}```{} at {}'.format(str(button).lower(), 'pressed' if pressed else 'released', (x, y)))
     return
 
 
 def on_scroll_recording(x, y, dx, dy):
+    """Process scroll for mouse listener for ListenerThread instances."""
     if in_action:
         output_to_file_bkup('``scrolled.{}```1 at {}'.format('down' if dy < 0 else 'up', (x, y)))
     return
 
 
 def on_move_recording(x, y):
+    """Process move for mouse listener for ListenerThread instances."""
     # if recording:
     #     output_to_file_bkup('``moved```{}'.format((x, y)))
     return
 
 
 def thread_event_handler(win, func):
-    """Define Result Event."""
+    """Process message events from threads."""
     win.Connect(-1, -1, int(EVT_RESULT_ID), func)
 
 
@@ -916,7 +943,7 @@ class ExecuteDialog(wx.Dialog):
 class SoftwareInfo:
     def __init__(self):
         self.name = 'Aldras'
-        self.version = '2020.0.0 Beta'
+        self.version = '2020.0.0 Alpha'
         self.copyright = '2020 Aldras'
         self.website = 'http://www.{}.com'.format(self.name.lower())
         self.description = '{} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'.format(
@@ -1211,7 +1238,7 @@ class AdvancedEdit(wx.Frame):
                 for line in parent.lines:
                     record_file.write(line)
 
-            parent.create_edit_panel()
+            parent.refresh_edit_panel()
 
         self.Close()
 
@@ -1272,7 +1299,7 @@ class EditFrame(wx.Frame):
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
 
         # add edit panel
-        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
+        # self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
 
         # read or create workflow file
         try:
@@ -1282,7 +1309,23 @@ class EditFrame(wx.Frame):
             with open(self.workflow_path_name, 'w'):
                 self.lines = []
 
+        self.edit_rows = []
+
+        # self.create_edit_rows()
         self.create_edit_panel()
+
+        # print('self.edit_rows: {}'.format(self.edit_rows))
+        # print('self.edit.GetChildren(): {}'.format(self.edit.GetChildren()))
+        # for child in self.edit.GetChildren():
+        #     print('\t{}'.format(type(child)))
+        # print('self.edit_rows: {}'.format(self.edit_rows))
+        print()
+
+        # for child in self.edit.GetChildren():
+        #     print('\t{}'.format(type(child)))
+        # print('self.edit.GetChildren(): {}'.format(self.edit.GetChildren()))
+        # print(self.vbox_edit)
+        # print('self.vbox_edit: {}'.format(self.vbox_edit.GetChildren()))
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -1337,7 +1380,8 @@ class EditFrame(wx.Frame):
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
 
-        self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+        # self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+        self.fg_bottom.AddMany([(self.vbox_edit_container, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
         self.fg_bottom.AddGrowableCol(0, 0)
         self.fg_bottom.AddGrowableRow(0, 0)
 
@@ -1362,29 +1406,25 @@ class EditFrame(wx.Frame):
             parent.Show()
 
     def create_edit_panel(self):
-        for child in self.edit.GetChildren():
-            child.Destroy()
+        self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        self.edit.Hide()
-        self.any_valid_command_lines = False
         for index, self.line_orig in enumerate(self.lines):
-            self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
             self.line_orig = self.line_orig.replace('\n', '')
             self.line = self.line_orig.lower()
             if '#' in self.line or self.line == '':  # workflow comment so no action
                 pass
             else:
-                self.any_valid_command_lines = True
+                self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
                 try:
-                    self.vbox_edit.AddSpacer(5)
-                    self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+                    # self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
                     self.hbox_edit.AddSpacer(5)
 
                     self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
-                    self.move_up.Bind(wx.EVT_BUTTON, lambda event, index_trap=index: self.move_command_up(index_trap))
+                    self.move_up.Bind(wx.EVT_BUTTON,
+                                      lambda event, index_trap=index: self.move_command_up(index_trap))
                     self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
 
                     self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
@@ -1438,7 +1478,8 @@ class EditFrame(wx.Frame):
                         self.create_point_input(self.line)
 
                     elif 'type:' in self.line_first_word:
-                        self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands, style=wx.CB_READONLY)
+                        self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
+                                                   style=wx.CB_READONLY)
                         # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                         self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                         self.hbox_edit.AddSpacer(10)
@@ -1446,7 +1487,7 @@ class EditFrame(wx.Frame):
                         self.temp_text_control = wx.TextCtrl(self.edit, value='')
                         self.temp_text_control.Show(False)
                         self.max_text_ctrl_size = self.temp_text_control.GetSizeFromTextSize(
-                            self.temp_text_control.GetTextExtent(30 * 'W').x)
+                            self.temp_text_control.GetTextExtent(25 * 'W').x)
                         print(self.max_text_ctrl_size)
                         self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value,
                                                                            size=wx.Size(self.max_text_ctrl_size[0], -1))
@@ -1552,7 +1593,8 @@ class EditFrame(wx.Frame):
                     else:
                         raise CustomError()
 
-                    self.command.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # prevent mouse wheel from cycling through options
+                    self.command.Bind(wx.EVT_MOUSEWHEEL,
+                                      do_nothing)  # prevent mouse wheel from cycling through options
 
                 except (IndexError, CustomError) as e:
                     self.hbox_edit.AddSpacer(10)
@@ -1566,22 +1608,54 @@ class EditFrame(wx.Frame):
                         (self.unknown_command_message_contrast, self.unknown_command_message_contrast,
                          self.unknown_command_message_contrast))  # change font color to (r,g,b)
                     self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
+                self.edit_rows.append(self.hbox_edit)
+                self.edit_rows.append(wx.StaticLine(self.edit, wx.ID_ANY))
 
-                self.vbox_edit.Add(self.hbox_edit)
-                self.vbox_edit.AddSpacer(5)
-                self.vbox_edit.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
+        print([type(self.edit_rows[0]), type(self.edit_rows[1])])
 
-        self.hbox_edit_outer = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox_edit_outer.Add(self.vbox_edit)
+        for self.edit_row in self.edit_rows:
+            if isinstance(self.edit_row, wx.StaticLine):
+                self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
+            else:
+                self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
+            # self.vbox_edit.Add(, 0, wx.EXPAND)
 
-        if self.any_valid_command_lines:
-            self.hbox_edit_outer.AddSpacer(25)
-        else:
-            self.hbox_edit_outer.AddSpacer(525)
+        self.edit.SetSizer(self.vbox_edit)
 
-        self.hbox_edit_outer.SetSizeHints(self.edit)
-        print(self.vbox_edit.GetMinSize())
-        self.edit.Show()
+        self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
+        print(len(self.edit_rows))
+        # if 0 < len(self.edit_rows) <= 25:
+        #     # self.vbox_edit_container.SetMinSize(wx.Size(self.vbox_edit.GetMinSize()[0] + 30, self.vbox_edit.GetMinSize()[1] + 5))
+        #     # print('self.vbox_edit_container.GetMinSize(): {}'.format(self.vbox_edit_container.GetMinSize()))
+        # else:
+        #     self.vbox_edit_container.SetMinSize(wx.Size(500, 300))
+        self.vbox_edit_container.SetMinSize(wx.Size(500, 300))
+
+    def refresh_edit_panel(self):
+        # hide all vbox_edit children
+        for child in self.vbox_edit.GetChildren():
+            child.Show(False)
+
+        print('self.edit_rows: {}'.format(self.edit_rows))
+
+        for self.edit_row in self.edit_rows:
+            if isinstance(self.edit_row, wx.StaticLine):  # if the row is a dividing line
+                if not self.edit_row.IsShown():
+                    # if the row is hidden (previous added to sizer), just show it
+                    self.edit_row.Show(True)
+                else:
+                    # if the row is not hidden, add it to sizer
+                    self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
+            else:
+                for child in self.edit_row.GetChildren():  # recursively show all row elements
+                    child.Show(True)
+
+                if not self.edit_row.GetSize()[1] > 0:
+                    # if the row is not added to sizer, add it
+                    self.vbox_edit.Add(self.edit_row, 0, wx.NORTH | wx.SOUTH, 5)
+
+        self.Layout()
 
     def create_key_combo_box(self, command):
         self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
@@ -1636,13 +1710,24 @@ class EditFrame(wx.Frame):
                     for line in self.lines:
                         record_file.write(line)
 
-                self.create_edit_panel()
+                self.refresh_edit_panel()
 
         dlg.Destroy()
 
     def on_open_add_command_dialog(self):
-        pass
-        # self.create_edit_panel()
+        # for testing new rows
+        for ii in range(2):
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox.Add(wx.StaticText(self.edit, wx.ID_ANY, label='Blah blah blah'), 0, wx.ALIGN_CENTER)
+            hbox.AddSpacer(10)
+            hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
+            self.edit_rows.append(hbox)
+            self.edit_rows.append(wx.StaticLine(self.edit, wx.ID_ANY))
+
+        # # for testing deleting rows
+        # self.edit_rows = self.edit_rows[0:3]
+
+        self.refresh_edit_panel()
 
     def create_advanced_edit_frame(self):
         AdvancedEdit(self)
@@ -1652,7 +1737,7 @@ class EditFrame(wx.Frame):
         if index > 0:
             self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
             print(self.lines)
-            self.create_edit_panel()
+            self.refresh_edit_panel()
 
     def move_command_down(self, index):
         print('Move down line {}'.format(index))
@@ -1660,7 +1745,7 @@ class EditFrame(wx.Frame):
         try:
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
             print(self.lines)
-            self.create_edit_panel()
+            self.refresh_edit_panel()
         except IndexError:
             pass
 
