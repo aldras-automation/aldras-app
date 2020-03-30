@@ -14,6 +14,9 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO comments
+# TODO implement better edit panel index tracking for all widgets
+# TODO implement save lines on close
+# TODO wx.adv.AnimationCtrl for wait animation
 # TODO investigate image buttons (edit frame - back button)
 # TODO image for recording, executing, and stopping
 # TODO investigate compartmentalization for better organization
@@ -279,7 +282,6 @@ class AboutDialog(wx.Dialog):
         self.SetBackgroundColour('white')
         self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.FlexGridSizer(2, 1, 10, 10)
 
         self.vbox_top = wx.BoxSizer(wx.VERTICAL)
@@ -295,17 +297,13 @@ class AboutDialog(wx.Dialog):
         # add program name text
         self.program_name = wx.StaticText(self, label='{} Automation'.format(parent.software_info.name))
         self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
-        self.program_name_contrast = 20
-        self.program_name.SetForegroundColour((self.program_name_contrast, self.program_name_contrast,
-                                               self.program_name_contrast))  # change font color to (r,g,b)
+        self.program_name.SetForegroundColour(3 * (20,))  # change font color to (r,g,b)
         self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
         self.program_version = wx.StaticText(self, label='Version {}'.format(parent.software_info.version))
         self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
-        self.program_version_contrast = 80
-        self.program_version.SetForegroundColour((self.program_version_contrast, self.program_version_contrast,
-                                                  self.program_version_contrast))  # change font color to (r,g,b)
+        self.program_version.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
         self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -314,10 +312,7 @@ class AboutDialog(wx.Dialog):
         # add program description text
         self.program_description = wx.StaticText(self, label=parent.software_info.description)
         self.program_description.SetFont(wx.Font(wx.FontInfo(10)))  # change font
-        self.program_description_contrast = 40
-        self.program_description.SetForegroundColour((self.program_description_contrast,
-                                                      self.program_description_contrast,
-                                                      self.program_description_contrast))  # change font color to (r,g,b)
+        self.program_description.SetForegroundColour(3 * (40,))  # change font color to (r,g,b)
         self.vbox_top.Add(self.program_description, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program link
@@ -531,9 +526,7 @@ class RecordCtrlCounterDialog(wx.Dialog):
 
         self.countdown_light = wx.StaticText(self, label=''.format(parent.workflow_name))
         self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-        self.countdown_light_contrast = 150
-        self.countdown_light.SetForegroundColour((self.countdown_light_contrast, self.countdown_light_contrast,
-                                                  self.countdown_light_contrast))  # change font color to (r,g,b)
+        self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
         self.hbox.Add(self.countdown_light)
         self.countdown_light.Show(False)
 
@@ -596,7 +589,7 @@ class RecordCtrlCounterDialog(wx.Dialog):
             self.countdown_light.Show(True)
 
             self.countdown_dark.SetLabel(event.data.replace('Action', 'Recording'))
-            self.countdown_dark.SetForegroundColour((0, 0, 0))  # change font color to (r,g,b)
+            self.countdown_dark.SetForegroundColour(wx.BLACK)
 
             if event.data == 'Action in 3':
                 self.countdown_light.SetLabel(' 2 1')
@@ -672,9 +665,7 @@ class ExecuteCtrlCounterDialog(wx.Dialog):
 
         self.countdown_light = wx.StaticText(self, label=''.format(parent.workflow_name))
         self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-        self.countdown_light_contrast = 150
-        self.countdown_light.SetForegroundColour((self.countdown_light_contrast, self.countdown_light_contrast,
-                                                  self.countdown_light_contrast))  # change font color to (r,g,b)
+        self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
         self.hbox.Add(self.countdown_light)
         self.countdown_light.Show(False)
 
@@ -733,7 +724,7 @@ class ExecuteCtrlCounterDialog(wx.Dialog):
             self.countdown_light.Show(True)
 
             self.countdown_dark.SetLabel(event.data.replace('Action', 'Executing'))
-            self.countdown_dark.SetForegroundColour((0, 0, 0))  # change font color to (r,g,b)
+            self.countdown_dark.SetForegroundColour(wx.BLACK)
 
             if event.data == 'Action in 3':
                 self.countdown_light.SetLabel(' 2 1')
@@ -1001,9 +992,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
     def on_unfocus(self, event):
         if self.GetValue().strip() == '':
             self.SetValue(self.default_text)
-            self.placeholder_text_contrast = 120
-            self.SetForegroundColour(
-                (self.placeholder_text_contrast, self.placeholder_text_contrast, self.placeholder_text_contrast))
+            self.SetForegroundColour(3 * (120,))  # change font color to (r,g,b)
 
 
 class DeleteCommandsDialog(wx.Dialog):
@@ -1016,24 +1005,24 @@ class DeleteCommandsDialog(wx.Dialog):
             choices = []
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.message = wx.StaticText(self, wx.ID_ANY, message)
-        self.clb = wx.CheckListBox(self, wx.ID_ANY, choices=choices)
+        self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=choices)
         self.checkbox = wx.CheckBox(self, wx.ID_ANY, 'Select all')
         self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
         self.Bind(wx.EVT_CHECKBOX, self.check_all, self.checkbox)
 
         sizer.Add(self.message, 0, wx.ALL | wx.EXPAND, 5)
-        sizer.Add(self.clb, 1, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(self.check_list_box, 1, wx.ALL | wx.EXPAND, 5)
         sizer.Add(self.checkbox, 0, wx.ALL | wx.EXPAND, 5)
         sizer.Add(self.btns, 0, wx.ALL | wx.EXPAND, 5)
         self.SetSizerAndFit(sizer)
 
     def get_selections(self):
-        return self.clb.GetCheckedItems()
+        return self.check_list_box.GetCheckedItems()
 
     def check_all(self, event):
         state = self.checkbox.IsChecked()
-        for i in range(self.clb.GetCount()):
-            self.clb.Check(i, state)
+        for i in range(self.check_list_box.GetCount()):
+            self.check_list_box.Check(i, state)
 
 
 class AdvancedEditGuide(wx.Frame):
@@ -1058,8 +1047,7 @@ class AdvancedEditGuide(wx.Frame):
         self.title = wx.StaticText(self.container, label='Advanced Edit Guide')
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.title_contrast = 60
-        self.title.SetForegroundColour(
-            (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
+        self.title.SetForegroundColour(3 * (self.title_contrast,))  # change font color to (r,g,b)
         self.vbox_inner.Add(self.title)
 
         self.vbox_inner.AddSpacer(5)
@@ -1077,9 +1065,7 @@ class AdvancedEditGuide(wx.Frame):
         self.command_title = wx.StaticText(self.container, label='Commands')
         self.command_title.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
         self.command_title_contrast = self.title_contrast
-        self.command_title.SetForegroundColour(
-            (self.command_title_contrast, self.command_title_contrast,
-             self.command_title_contrast))  # change font color to (r,g,b)
+        self.command_title.SetForegroundColour(3 * (self.command_title_contrast,))  # change font color to (r,g,b)
         self.vbox_inner.Add(self.command_title)
 
         self.nmSizer = wx.StaticBoxSizer(wx.StaticBox(self.container, wx.ID_ANY, ''), wx.VERTICAL)
@@ -1102,19 +1088,13 @@ class AdvancedEditGuide(wx.Frame):
                 for each_example in example:
                     self.example = wx.StaticText(self.container, label='   {}'.format(each_example))
                     self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
-                    self.example_contrast = 80
-                    self.example.SetForegroundColour(
-                        (self.example_contrast, self.example_contrast,
-                         self.example_contrast))  # change font color to (r,g,b)
+                    self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                     config_status_and_tooltip(self, self.example, description, tooltip=False)
                     self.nmSizer.Add(self.example)
             else:
                 self.example = wx.StaticText(self.container, label='   {}'.format(example))
                 self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
-                self.example_contrast = 80
-                self.example.SetForegroundColour(
-                    (self.example_contrast, self.example_contrast,
-                     self.example_contrast))  # change font color to (r,g,b)
+                self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                 config_status_and_tooltip(self, self.example, description, tooltip=False)
                 self.nmSizer.Add(self.example)
 
@@ -1126,10 +1106,7 @@ class AdvancedEditGuide(wx.Frame):
 
         self.docs = wx.StaticText(self.container, label='Read the Docs')
         self.docs.SetFont(wx.Font(13, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
-        self.docs_contrast = 80
-        self.docs.SetForegroundColour(
-            (self.docs_contrast, self.docs_contrast,
-             self.docs_contrast))  # change font color to (r,g,b)
+        self.docs.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
         config_status_and_tooltip(self, self.docs, 'More Documentation')
         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
@@ -1183,9 +1160,7 @@ class AdvancedEdit(wx.Frame):
         # add workflow title
         self.title = wx.StaticText(self.container, label='{}'.format(self.workflow_name))
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
-        self.title_contrast = 60
-        self.title.SetForegroundColour(
-            (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
+        self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.vbox_inner.Add(self.title)
 
         self.vbox_inner.AddSpacer(5)
@@ -1243,6 +1218,18 @@ class AdvancedEdit(wx.Frame):
         self.Close()
 
 
+class MoveButton(wx.Button):
+    def __init__(self, parent, index, label):
+        wx.Button.__init__(self, parent, size=wx.Size(25, -1), label=label)
+        self.index_position = index
+
+
+# may not need
+class EditRow(wx.BoxSizer):
+    def __init__(self):
+        wx.BoxSizer.__init__(wx.HORIZONTAL)
+
+
 class EditFrame(wx.Frame):
     def __init__(self, parent):
         self.dirname = ''
@@ -1284,9 +1271,7 @@ class EditFrame(wx.Frame):
         # add workflow title
         self.title = wx.StaticText(self, label='{}'.format(self.workflow_name))
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
-        self.title_contrast = 60
-        self.title.SetForegroundColour(
-            (self.title_contrast, self.title_contrast, self.title_contrast))  # change font color to (r,g,b)
+        self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_outer.Add(self.hbox_top)
@@ -1298,9 +1283,6 @@ class EditFrame(wx.Frame):
         self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
 
-        # add edit panel
-        # self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
-
         # read or create workflow file
         try:
             with open(self.workflow_path_name, 'r') as record_file:
@@ -1311,21 +1293,7 @@ class EditFrame(wx.Frame):
 
         self.edit_rows = []
 
-        # self.create_edit_rows()
         self.create_edit_panel()
-
-        # print('self.edit_rows: {}'.format(self.edit_rows))
-        # print('self.edit.GetChildren(): {}'.format(self.edit.GetChildren()))
-        # for child in self.edit.GetChildren():
-        #     print('\t{}'.format(type(child)))
-        # print('self.edit_rows: {}'.format(self.edit_rows))
-        print()
-
-        # for child in self.edit.GetChildren():
-        #     print('\t{}'.format(type(child)))
-        # print('self.edit.GetChildren(): {}'.format(self.edit.GetChildren()))
-        # print(self.vbox_edit)
-        # print('self.vbox_edit: {}'.format(self.vbox_edit.GetChildren()))
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -1366,7 +1334,6 @@ class EditFrame(wx.Frame):
 
         # add record command button
         self.record_btn = wx.Button(self, label='Record')
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
         self.record_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_record())
         config_status_and_tooltip(self, self.record_btn, 'Record workflow actions')
         self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
@@ -1375,20 +1342,15 @@ class EditFrame(wx.Frame):
 
         # add execute command button
         self.execute_btn = wx.Button(self, label='Execute')
-        # self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_back(parent))
         self.execute_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_execute())
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
 
-        # self.fg_bottom.AddMany([(self.edit, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
         self.fg_bottom.AddMany([(self.vbox_edit_container, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
         self.fg_bottom.AddGrowableCol(0, 0)
         self.fg_bottom.AddGrowableRow(0, 0)
 
         self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND)
-        # self.vbox_outer.Add(self.fg_bottom, proportion=2, flag=wx.ALL | wx.EXPAND, border=15)
-
-        # -------------------------------------------------------------------------------------------
 
         # add margins and inside sizers
         self.vbox_outer.AddSpacer(5)
@@ -1405,231 +1367,258 @@ class EditFrame(wx.Frame):
         else:
             parent.Show()
 
+    def add_edit_row(self, row_to_add):
+        edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
+        edit_row_vbox.Add(row_to_add, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
+        edit_row_vbox.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
+        self.edit_rows.append(edit_row_vbox)
+
     def create_edit_panel(self):
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
+        self.move_up_btns = []
+        self.move_down_btns = []
+
         for index, self.line_orig in enumerate(self.lines):
             self.line_orig = self.line_orig.replace('\n', '')
             self.line = self.line_orig.lower()
-            if '#' in self.line or self.line == '':  # workflow comment so no action
-                pass
-            else:
-                self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-                try:
-                    # self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+
+            self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+            try:
+                self.hbox_edit.AddSpacer(5)
+
+                self.move_up = MoveButton(self.edit, index, label='▲')
+                self.move_up.Bind(wx.EVT_BUTTON,
+                                  lambda event, move_btn_trap=self.move_up: self.move_command_up(move_btn_trap))
+                self.move_up_btns.append(self.move_up)
+                self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                self.move_down = MoveButton(self.edit, index, label='▼')
+                self.move_down.Bind(wx.EVT_BUTTON,
+                                    lambda event, move_btn_trap=self.move_down: self.move_command_down(move_btn_trap))
+                self.move_down_btns.append(self.move_down)
+                self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                self.hbox_edit.AddSpacer(5)
+                self.line_first_word = self.line.split(' ')[0]
+                if self.line.replace(' ', '')[0] == '#':  # workflow comment`
+                    self.vbox_comment = wx.BoxSizer(wx.VERTICAL)
+                    self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY, size=wx.Size(200, 3)), 0, wx.ALIGN_CENTER)
+                    self.vbox_comment.AddSpacer(5)
+                    self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
+                    self.vbox_comment.AddSpacer(5)
+
+                    self.hbox_comment = wx.BoxSizer(wx.HORIZONTAL)
+
+                    self.comment_label = wx.StaticText(self.edit, label='#')
+                    self.comment_contrast = 100
+                    # self.comment_label.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.BOLD))  # change font size
+                    self.comment_label.SetFont(wx.Font(wx.FontInfo(12)))  # change font size
+                    self.comment_label.SetForegroundColour(3 * (self.comment_contrast,))  # change font color to (r,g,b)
+                    self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL)
+
                     self.hbox_edit.AddSpacer(5)
 
-                    self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
-                    self.move_up.Bind(wx.EVT_BUTTON,
-                                      lambda event, index_trap=index: self.move_command_up(index_trap))
-                    self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.comment_value = str(self.line_orig).replace('#', '').strip()
+                    self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit,
+                                                                  value=self.comment_value)  # , size=wx.Size(300, -1))
+                    self.comment.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
+                    self.comment.SetForegroundColour(3 * (self.comment_contrast,))  # change font color to (r,g,b)
+                    self.hbox_edit.Add(self.comment, 3, wx.EXPAND)
 
-                    self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
-                    self.move_down.Bind(wx.EVT_BUTTON,
-                                        lambda event, index_trap=index: self.move_command_down(index_trap))
-                    self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.hbox_edit.AddStretchSpacer()
+                    self.hbox_edit.AddSpacer(15)
 
-                    self.hbox_edit.AddSpacer(5)
-                    self.line_first_word = self.line.split(' ')[0]
-                    if '-mouse' in self.line_first_word:
-                        self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.vbox_comment.Add(self.hbox_edit, 1, wx.EXPAND)
 
-                        if 'left' in self.line_first_word:
-                            self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
-                                                            style=wx.CB_READONLY)
-                        elif 'right' in self.line_first_word:
-                            self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
-                                                            style=wx.CB_READONLY)
-                        else:
-                            raise CustomError('Mouse button not specified.')
-                        self.hbox_edit.AddSpacer(10)
-                        self.mouse_button.Bind(wx.EVT_MOUSEWHEEL,
-                                               do_nothing)  # prevent mouse wheel from cycling through options
-                        self.hbox_edit.Add(self.mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.hbox_edit = self.vbox_comment
 
-                        if 'tap' in self.line:
-                            self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
-                                                            style=wx.CB_READONLY)
-                        elif 'press' in self.line:
-                            self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
-                                                            style=wx.CB_READONLY)
-                        elif 'release' in self.line:
-                            self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
-                                                            style=wx.CB_READONLY)
-                        else:
-                            raise CustomError('Mouse action not specified.')
-                        self.hbox_edit.AddSpacer(10)
-                        self.mouse_action.Bind(wx.EVT_MOUSEWHEEL,
-                                               do_nothing)  # prevent mouse wheel from cycling through options
-                        self.hbox_edit.Add(self.mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
+                elif '-mouse' in self.line_first_word:
+                    self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                        self.hbox_edit.AddSpacer(10)
-                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+                    if 'left' in self.line_first_word:
+                        self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
+                                                        style=wx.CB_READONLY)
+                    elif 'right' in self.line_first_word:
+                        self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
+                                                        style=wx.CB_READONLY)
+                    else:
+                        raise CustomError('Mouse button not specified.')
+                    self.hbox_edit.AddSpacer(10)
+                    self.mouse_button.Bind(wx.EVT_MOUSEWHEEL,
+                                           do_nothing)  # prevent mouse wheel from cycling through options
+                    self.hbox_edit.Add(self.mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.create_point_input(self.line)
+                    if 'tap' in self.line:
+                        self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
+                                                        style=wx.CB_READONLY)
+                    elif 'press' in self.line:
+                        self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
+                                                        style=wx.CB_READONLY)
+                    elif 'release' in self.line:
+                        self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
+                                                        style=wx.CB_READONLY)
+                    else:
+                        raise CustomError('Mouse action not specified.')
+                    self.hbox_edit.AddSpacer(10)
+                    self.mouse_action.Bind(wx.EVT_MOUSEWHEEL,
+                                           do_nothing)  # prevent mouse wheel from cycling through options
+                    self.hbox_edit.Add(self.mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    elif 'type:' in self.line_first_word:
-                        self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                        self.hbox_edit.AddSpacer(10)
-                        self.text_value = str(self.line_orig).replace('type: ', '').replace('Type: ', '')
-                        self.temp_text_control = wx.TextCtrl(self.edit, value='')
-                        self.temp_text_control.Show(False)
-                        self.max_text_ctrl_size = self.temp_text_control.GetSizeFromTextSize(
-                            self.temp_text_control.GetTextExtent(25 * 'W').x)
-                        print(self.max_text_ctrl_size)
-                        self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value,
-                                                                           size=wx.Size(self.max_text_ctrl_size[0], -1))
-                        self.hbox_edit.Add(self.text_to_type, 0, wx.ALIGN_CENTER_VERTICAL)
-                        # self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
+                    self.hbox_edit.AddSpacer(10)
+                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    elif 'sleep' in self.line_first_word:
-                        self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.create_point_input(self.line)
 
-                        self.hbox_edit.AddSpacer(10)
+                elif 'type:' in self.line_first_word:
+                    self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.hbox_edit.AddSpacer(10)
+                    self.text_value = str(self.line_orig).replace('type: ', '').replace('Type: ', '')
 
-                        self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
-                        self.hbox_edit.Add(self.sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
-                        # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
+                    # # max text size without expansion
+                    # self.temp_text_control = wx.TextCtrl(self.edit, value='')
+                    # self.temp_text_control.Show(False)
+                    # self.max_text_ctrl_size = self.temp_text_control.GetSizeFromTextSize(
+                    #     self.temp_text_control.GetTextExtent(25 * 'W').x)
+                    # self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value, size=wx.Size(self.max_text_ctrl_size[0], -1))
+                    # self.hbox_edit.Add(self.text_to_type, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    elif 'hotkey' in self.line_first_word:
-                        self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value)
+                    self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
+                    self.hbox_edit.AddSpacer(15)
 
-                        self.combination = [x.capitalize() for x in
-                                            self.line.replace('hotkey', '').replace(' ', '').split('+')]
+                elif 'sleep' in self.line_first_word:
+                    self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                        # print(self.combination)
+                    self.hbox_edit.AddSpacer(10)
 
-                        self.hbox_edit.AddSpacer(10)
+                    self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
+                    self.hbox_edit.Add(self.sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
+                    # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
 
-                        self.counter = 0
-                        for self.key in self.combination:
-                            self.counter += 1
+                elif 'hotkey' in self.line_first_word:
+                    self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                            self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
-                                                         style=wx.CB_READONLY)
-                            self.hotkey_cb.Bind(wx.EVT_MOUSEWHEEL,
-                                                do_nothing)  # prevent mouse wheel from cycling through options
-                            self.hbox_edit.Add(self.hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.combination = [x.capitalize() for x in
+                                        self.line.replace('hotkey', '').replace(' ', '').split('+')]
 
-                            if self.counter < len(self.combination):
-                                self.label = wx.StaticText(self.edit, label='  +  ')
-                                self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+                    # print(self.combination)
 
-                    elif 'key' in self.line_first_word:
-                        self.key_in = self.line.split(' ')[1]
-                        self.key = None  # redefined in self.create_key_combo_box(command) method
-                        if self.key_in in [x.lower() for x in self.special_keys]:
-                            self.create_key_combo_box('Special Key')
+                    self.hbox_edit.AddSpacer(10)
 
-                        elif self.key_in in [x.lower() for x in self.function_keys]:
-                            self.create_key_combo_box('Function Key')
+                    self.counter = 0
+                    for self.key in self.combination:
+                        self.counter += 1
 
-                        elif self.key_in in [x.lower() for x in self.media_keys]:
-                            self.create_key_combo_box('Media Key')
+                        self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
+                                                     style=wx.CB_READONLY)
+                        self.hotkey_cb.Bind(wx.EVT_MOUSEWHEEL,
+                                            do_nothing)  # prevent mouse wheel from cycling through options
+                        self.hbox_edit.Add(self.hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                        else:
-                            raise CustomError()
+                        if self.counter < len(self.combination):
+                            self.label = wx.StaticText(self.edit, label='  +  ')
+                            self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                        self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                elif 'key' in self.line_first_word:
+                    self.key_in = self.line.split(' ')[1]
+                    self.key = None  # redefined in self.create_key_combo_box(command) method
+                    if self.key_in in [x.lower() for x in self.special_keys]:
+                        self.create_key_combo_box('Special Key')
 
-                        self.hbox_edit.AddSpacer(10)
-                        self.label = wx.StaticText(self.edit, label='to pt. (  ')
-                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+                    elif self.key_in in [x.lower() for x in self.function_keys]:
+                        self.create_key_combo_box('Function Key')
 
-                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.create_point_input(self.line)
-
-                    elif ('double' in self.line) and ('click' in self.line):
-                        self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                        self.hbox_edit.AddSpacer(10)
-                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.create_point_input(self.line)
-
-                    elif ('triple' in self.line) and ('click' in self.line):
-                        self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
-                                                   style=wx.CB_READONLY)
-                        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                        self.hbox_edit.AddSpacer(10)
-                        self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                        self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                        self.x_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.y_coord = None  # redefined in self.create_point_input(self.line) method
-                        self.create_point_input(self.line)
+                    elif self.key_in in [x.lower() for x in self.media_keys]:
+                        self.create_key_combo_box('Media Key')
 
                     else:
                         raise CustomError()
 
-                    self.command.Bind(wx.EVT_MOUSEWHEEL,
-                                      do_nothing)  # prevent mouse wheel from cycling through options
+                elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
+                    self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                except (IndexError, CustomError) as e:
                     self.hbox_edit.AddSpacer(10)
-                    self.unknown_command_message = wx.StaticText(self.edit,
-                                                                 label='**Unknown command from line: \"{}\"'.format(
-                                                                     self.line))
-                    self.unknown_command_message.SetFont(
-                        wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
-                    self.unknown_command_message_contrast = 70
-                    self.unknown_command_message.SetForegroundColour(
-                        (self.unknown_command_message_contrast, self.unknown_command_message_contrast,
-                         self.unknown_command_message_contrast))  # change font color to (r,g,b)
-                    self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
-                self.edit_rows.append(self.hbox_edit)
-                self.edit_rows.append(wx.StaticLine(self.edit, wx.ID_ANY))
+                    self.label = wx.StaticText(self.edit, label='to pt. (  ')
+                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        print([type(self.edit_rows[0]), type(self.edit_rows[1])])
+                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.create_point_input(self.line)
+
+                elif ('double' in self.line) and ('click' in self.line):
+                    self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.hbox_edit.AddSpacer(10)
+                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.create_point_input(self.line)
+
+                elif ('triple' in self.line) and ('click' in self.line):
+                    self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
+                                               style=wx.CB_READONLY)
+                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.hbox_edit.AddSpacer(10)
+                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
+                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    self.x_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.y_coord = None  # redefined in self.create_point_input(self.line) method
+                    self.create_point_input(self.line)
+
+                else:
+                    raise CustomError()
+
+                self.command.Bind(wx.EVT_MOUSEWHEEL,
+                                  do_nothing)  # prevent mouse wheel from cycling through options
+
+            except (IndexError, CustomError) as e:
+                self.hbox_edit.AddSpacer(10)
+                self.unknown_command_message = wx.StaticText(self.edit,
+                                                             label='**Unknown command from line: \"{}\"'.format(
+                                                                 self.line))
+                self.unknown_command_message.SetFont(
+                    wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
+                self.unknown_command_message.SetForegroundColour(3 * (70,))  # change font color to (r,g,b)
+                self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
+            self.add_edit_row(self.hbox_edit)
 
         for self.edit_row in self.edit_rows:
-            if isinstance(self.edit_row, wx.StaticLine):
-                self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
-            else:
-                self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
-            # self.vbox_edit.Add(, 0, wx.EXPAND)
+            self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
 
         self.edit.SetSizer(self.vbox_edit)
 
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
-        print(len(self.edit_rows))
-        # if 0 < len(self.edit_rows) <= 25:
-        #     # self.vbox_edit_container.SetMinSize(wx.Size(self.vbox_edit.GetMinSize()[0] + 30, self.vbox_edit.GetMinSize()[1] + 5))
-        #     # print('self.vbox_edit_container.GetMinSize(): {}'.format(self.vbox_edit_container.GetMinSize()))
-        # else:
-        #     self.vbox_edit_container.SetMinSize(wx.Size(500, 300))
         self.vbox_edit_container.SetMinSize(wx.Size(500, 300))
 
     def refresh_edit_panel(self):
@@ -1640,22 +1629,13 @@ class EditFrame(wx.Frame):
         print('self.edit_rows: {}'.format(self.edit_rows))
 
         for self.edit_row in self.edit_rows:
-            if isinstance(self.edit_row, wx.StaticLine):  # if the row is a dividing line
-                if not self.edit_row.IsShown():
-                    # if the row is hidden (previous added to sizer), just show it
-                    self.edit_row.Show(True)
-                else:
-                    # if the row is not hidden, add it to sizer
-                    self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
-            else:
-                for child in self.edit_row.GetChildren():  # recursively show all row elements
-                    child.Show(True)
+            for child in self.edit_row.GetChildren():  # recursively show all row elements
+                child.Show(True)
 
-                if not self.edit_row.GetSize()[1] > 0:
-                    # if the row is not added to sizer, add it
-                    self.vbox_edit.Add(self.edit_row, 0, wx.NORTH | wx.SOUTH, 5)
+            if not self.edit_row.GetSize()[1] > 0:  # if the row is not added to sizer, add it
+                self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
 
-        self.Layout()
+        self.Layout()  # update frame
 
     def create_key_combo_box(self, command):
         self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
@@ -1694,16 +1674,17 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def on_open_delete_command_dialog(self):
-        dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
-                                   'Delete Commands - {}'.format(self.workflow_name),
-                                   self.lines)
+        delete_dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
+                                          'Delete Commands - {}'.format(self.workflow_name),
+                                          self.lines)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            indices_to_delete = dlg.get_selections()
+        if delete_dlg.ShowModal() == wx.ID_OK:
+            indices_to_delete = delete_dlg.get_selections()
             # print('You chose to delete indices' + str(indices_to_delete))
             if indices_to_delete:  # if indices_to_delete is not empty
                 for index in sorted(indices_to_delete, reverse=True):
                     del (self.lines[index])
+                    del (self.edit_rows[index])
 
                 # write to workflow file
                 with open(self.workflow_path_name, 'w') as record_file:
@@ -1712,7 +1693,7 @@ class EditFrame(wx.Frame):
 
                 self.refresh_edit_panel()
 
-        dlg.Destroy()
+        delete_dlg.Destroy()
 
     def on_open_add_command_dialog(self):
         # for testing new rows
@@ -1721,47 +1702,80 @@ class EditFrame(wx.Frame):
             hbox.Add(wx.StaticText(self.edit, wx.ID_ANY, label='Blah blah blah'), 0, wx.ALIGN_CENTER)
             hbox.AddSpacer(10)
             hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
-            self.edit_rows.append(hbox)
-            self.edit_rows.append(wx.StaticLine(self.edit, wx.ID_ANY))
+            self.add_edit_row(hbox)
 
         # # for testing deleting rows
         # self.edit_rows = self.edit_rows[0:3]
 
         self.refresh_edit_panel()
 
-    def create_advanced_edit_frame(self):
-        AdvancedEdit(self)
-
-    def move_command_up(self, index):
-        print('Move up line {}'.format(index))
-        if index > 0:
-            self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
-            print(self.lines)
-            self.refresh_edit_panel()
-
-    def move_command_down(self, index):
-        print('Move down line {}'.format(index))
-        # print(len(self.lines))
-        try:
-            self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
-            print(self.lines)
-            self.refresh_edit_panel()
-        except IndexError:
-            pass
-
     def open_reorder_dialog(self):
         items = self.lines
         order = range(len(self.lines))
 
-        dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
-                                 'Reorder Commands - {}'.format(self.workflow_name), order,
-                                 items)
-        dlg.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
-        dlg.SetBackgroundColour('white')
+        reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
+                                         'Reorder Commands - {}'.format(self.workflow_name), order,
+                                         items)
+        reorder_dlg.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        reorder_dlg.SetBackgroundColour('white')
 
-        if dlg.ShowModal() == wx.ID_OK:
-            order = dlg.GetOrder()
-            print(order)
+        if reorder_dlg.ShowModal() == wx.ID_OK:
+            order = reorder_dlg.GetOrder()
+            print('len(order) {}: {}'.format(len(order), order))
+            print('len(self.lines) {}: {}'.format(len(self.lines), self.lines))
+            print('len(self.edit_rows) {}: {}'.format(len(self.edit_rows), self.edit_rows))
+            self.lines = [self.lines[index] for index in order]
+            self.edit_rows = [self.edit_rows[index] for index in order]
+            # self.refresh_edit_panel()
+
+    def create_advanced_edit_frame(self):
+        AdvancedEdit(self)
+
+    def move_command_up(self, move_btn):
+        index = move_btn.index_position
+        print('Move up line {}'.format(move_btn.index_position))
+        if index > 0:
+            move_btn.index_position -= 1
+            self.move_up_btns[index - 1].index_position += 1
+
+            self.move_down_btns[index].index_position -= 1
+            self.move_down_btns[index - 1].index_position += 1
+
+            self.vbox_edit.Detach(index - 1)
+            self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
+            self.vbox_edit.Layout()
+            self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
+            self.edit_rows[index - 1], self.edit_rows[index] = self.edit_rows[index], self.edit_rows[index - 1]
+            self.move_up_btns[index - 1], self.move_up_btns[index] = self.move_up_btns[index], self.move_up_btns[
+                index - 1]
+            self.move_down_btns[index - 1], self.move_down_btns[index] = self.move_down_btns[index], \
+                                                                         self.move_down_btns[index - 1]
+            self.Layout()
+            print('\tchanged to: {}'.format(move_btn.index_position))
+
+    def move_command_down(self, move_btn):
+        index = move_btn.index_position
+        print('Move down line {}'.format(index))
+        try:
+            move_btn.index_position += 1
+            self.move_down_btns[index + 1].index_position -= 1
+
+            self.move_up_btns[index].index_position += 1
+            self.move_up_btns[index + 1].index_position -= 1
+
+            self.vbox_edit.Detach(index)
+            self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
+            self.vbox_edit.Layout()
+            self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
+            self.edit_rows[index], self.edit_rows[index + 1] = self.edit_rows[index + 1], self.edit_rows[index]
+            self.move_down_btns[index], self.move_down_btns[index + 1] = self.move_down_btns[index + 1], \
+                                                                         self.move_down_btns[index]
+            self.move_up_btns[index], self.move_up_btns[index + 1] = self.move_up_btns[index + 1], self.move_up_btns[
+                index]
+
+            self.Layout()
+        except IndexError:
+            pass
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
@@ -1847,17 +1861,13 @@ class WorkflowFrame(wx.Frame):
         # add program name text
         self.program_name = wx.StaticText(self.container, label='{} Automation'.format(self.software_info.name))
         self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
-        self.program_name_contrast = 60
-        self.program_name.SetForegroundColour((self.program_name_contrast, self.program_name_contrast,
-                                               self.program_name_contrast))  # change font color to (r,g,b)
+        self.program_name.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
         self.program_version = wx.StaticText(self.container, label='Version {}'.format(self.software_info.version))
         self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
-        self.program_version_contrast = 150
-        self.program_version.SetForegroundColour((self.program_version_contrast, self.program_version_contrast,
-                                                  self.program_version_contrast))  # change font color to (r,g,b)
+        self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.vbox.AddSpacer(self.padding_y)
 
