@@ -14,7 +14,7 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO comments
-# TODO implement save lines on close (autosave)
+# TODO implement preference menu (autosave, default pauses, etc)
 # TODO scrolled panel scroll down or up automatically
 # TODO wx.adv.AnimationCtrl for wait animation
 # TODO investigate image buttons (edit frame - back button)
@@ -1025,6 +1025,44 @@ class DeleteCommandsDialog(wx.Dialog):
             self.check_list_box.Check(i, state)
 
 
+class SaveDialog(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, title='{}: Save'.format(parent.software_info.name),
+                           style=wx.DEFAULT_DIALOG_STYLE)
+        # self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetTitle('Aldras - Save Changes')
+        self.SetBackgroundColour('white')
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.message = wx.StaticText(self, wx.ID_ANY,
+                                     'Do you want to save changes to \'{}\'?'.format(parent.workflow_name))
+        self.message.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
+        self.message.SetForegroundColour((35, 75, 160))  # change font color to (r,g,b)
+        self.vbox.Add(self.message, 0, wx.ALL, 10)
+
+        self.vbox.AddSpacer(20)
+        self.vbox.Add(wx.StaticLine(self), 0, wx.EXPAND)
+
+        self.button_array = wx.StdDialogButtonSizer()
+        self.button_array.AddSpacer(100)
+        self.save_btn = wx.Button(self, wx.ID_OK, label='Save')
+        self.button_array.Add(self.save_btn)
+        self.button_array.AddSpacer(5)
+        self.save_btn = wx.Button(self, wx.ID_REVERT_TO_SAVED, label='Don\'t Save')
+        self.save_btn.Bind(wx.EVT_BUTTON, self.on_no_save)
+        self.button_array.Add(self.save_btn)
+        self.button_array.AddSpacer(5)
+        self.cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+        self.button_array.Add(self.cancel_btn)
+
+        self.vbox.Add(self.button_array, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizerAndFit(self.vbox)
+
+    def on_no_save(self, event):
+        self.EndModal(20)
+
+
 class AdvancedEditGuide(wx.Frame):
     def __init__(self, parent):
         self.dirname = ''
@@ -1279,6 +1317,8 @@ class EditFrame(wx.Frame):
             with open(self.workflow_path_name, 'w'):
                 self.lines = []
 
+        self.lines_as_read = self.lines.copy()
+
         self.edit_rows = []
 
         self.create_edit_panel()
@@ -1348,17 +1388,10 @@ class EditFrame(wx.Frame):
         self.Show()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
 
-    def close_window(self, event, parent, quitall=False):
-        self.Hide()
-        if quitall:
-            parent.Close()
-        else:
-            parent.Show()
-
     def add_edit_row(self, row_to_add):
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
         edit_row_vbox.Add(row_to_add, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
-        edit_row_vbox.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
+        edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
         self.edit_rows.append(edit_row_vbox)
 
     def create_edit_panel(self):
@@ -1675,11 +1708,6 @@ class EditFrame(wx.Frame):
                     del (self.lines[index])
                     del (self.edit_rows[index])
 
-                # write to workflow file
-                with open(self.workflow_path_name, 'w') as record_file:
-                    for line in self.lines:
-                        record_file.write(line)
-
                 self.refresh_edit_panel()
 
         delete_dlg.Destroy()
@@ -1750,7 +1778,7 @@ class EditFrame(wx.Frame):
                                                                              self.edit_row_tracker[index]
 
             print('\tchanged to: {}'.format(self.edit_row_tracker.index(sizer)))
-        except IndexError:
+        except (IndexError, wx._core.wxAssertionError):
             pass
 
     def on_record(self):
@@ -1783,6 +1811,27 @@ class EditFrame(wx.Frame):
             dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
             if dlg_counter.ShowModal() == wx.ID_OK:
                 print('complete')
+
+    def close_window(self, event, parent, quitall=False):
+        if self.lines_as_read != self.lines:
+            save_dialog = SaveDialog(self).ShowModal()
+            if save_dialog == wx.ID_OK:
+                print('saved')
+                # write to workflow file
+                with open(self.workflow_path_name, 'w') as record_file:
+                    for line in self.lines:
+                        record_file.write(line)
+            elif save_dialog == 20:
+                print('don\'t save')
+            else:
+                print('cancel')
+                return
+
+        self.Hide()
+        if quitall:
+            parent.Close()
+        else:
+            parent.Show()
 
 
 class WorkflowFrame(wx.Frame):
@@ -1875,6 +1924,7 @@ class WorkflowFrame(wx.Frame):
         self.ok_btn = wx.Button(self.container, label='OK')
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         self.button_array.Add(self.ok_btn)
+        self.button_array.AddSpacer(5)
         self.cancel_btn = wx.Button(self.container, label='Exit')
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_exit)
         self.button_array.Add(self.cancel_btn)

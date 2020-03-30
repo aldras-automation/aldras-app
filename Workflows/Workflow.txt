@@ -1,15 +1,14 @@
-Type: This proposal initiated by John Smith.
 Left-mouse tap at (341, 505)
 Right-mouse press at (262, 637)
 Right-mouse release at (76, 46)
+Type: This proposal initiated by John Smith.
 Hotkey ctrl+s
-#Hotkey ctrl+shift+left
+Hotkey ctrl+shift+left
 Sleep 0.5
 Mouse-move to (749, 450)
-
 Sleep 0.5
 Key Win Tap
-    # Comment
+# Comment
 Left-mouse tap at (749, 450)
 Double-click at (749, 450)
 Triple-click at (749, 450)
