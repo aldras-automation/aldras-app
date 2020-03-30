@@ -14,11 +14,11 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO comments
-# TODO implement better edit panel index tracking for all widgets
-# TODO implement save lines on close
+# TODO implement save lines on close (autosave)
+# TODO scrolled panel scroll down or up automatically
 # TODO wx.adv.AnimationCtrl for wait animation
 # TODO investigate image buttons (edit frame - back button)
-# TODO image for recording, executing, and stopping
+# TODO image for recording, executing, and stopping (animation)
 # TODO investigate compartmentalization for better organization
 # TODO alternate row shading (edit frame)
 # TODO investigate zoom
@@ -972,7 +972,7 @@ class SoftwareInfo:
         self.all_keys = self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
 
 
-class CustomError(Exception):
+class EditCommandError(Exception):
     pass
 
 
@@ -1218,18 +1218,6 @@ class AdvancedEdit(wx.Frame):
         self.Close()
 
 
-class MoveButton(wx.Button):
-    def __init__(self, parent, index, label):
-        wx.Button.__init__(self, parent, size=wx.Size(25, -1), label=label)
-        self.index_position = index
-
-
-# may not need
-class EditRow(wx.BoxSizer):
-    def __init__(self):
-        wx.BoxSizer.__init__(wx.HORIZONTAL)
-
-
 class EditFrame(wx.Frame):
     def __init__(self, parent):
         self.dirname = ''
@@ -1379,8 +1367,7 @@ class EditFrame(wx.Frame):
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        self.move_up_btns = []
-        self.move_down_btns = []
+        self.edit_row_tracker = []
 
         for index, self.line_orig in enumerate(self.lines):
             self.line_orig = self.line_orig.replace('\n', '')
@@ -1390,21 +1377,25 @@ class EditFrame(wx.Frame):
             try:
                 self.hbox_edit.AddSpacer(5)
 
-                self.move_up = MoveButton(self.edit, index, label='▲')
+                self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
                 self.move_up.Bind(wx.EVT_BUTTON,
-                                  lambda event, move_btn_trap=self.move_up: self.move_command_up(move_btn_trap))
-                self.move_up_btns.append(self.move_up)
+                                  lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
                 self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                self.move_down = MoveButton(self.edit, index, label='▼')
+                self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
                 self.move_down.Bind(wx.EVT_BUTTON,
-                                    lambda event, move_btn_trap=self.move_down: self.move_command_down(move_btn_trap))
-                self.move_down_btns.append(self.move_down)
+                                    lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
                 self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
 
                 self.hbox_edit.AddSpacer(5)
                 self.line_first_word = self.line.split(' ')[0]
-                if self.line.replace(' ', '')[0] == '#':  # workflow comment`
+
+                comment = False
+                if not self.line:  # if line is empty
+                    self.hbox_edit.Insert(0, 0, 50, 1)
+                    self.hbox_edit.Insert(0, 0, 0, 1)
+
+                elif self.line.replace(' ', '')[0] == '#':  # workflow comment`
                     self.vbox_comment = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY, size=wx.Size(200, 3)), 0, wx.ALIGN_CENTER)
                     self.vbox_comment.AddSpacer(5)
@@ -1432,6 +1423,9 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.AddStretchSpacer()
                     self.hbox_edit.AddSpacer(15)
 
+                    self.edit_row_tracker.append(self.hbox_edit)
+                    comment = True
+
                     self.vbox_comment.Add(self.hbox_edit, 1, wx.EXPAND)
 
                     self.hbox_edit = self.vbox_comment
@@ -1449,7 +1443,7 @@ class EditFrame(wx.Frame):
                         self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
                                                         style=wx.CB_READONLY)
                     else:
-                        raise CustomError('Mouse button not specified.')
+                        raise EditCommandError('Mouse button not specified.')
                     self.hbox_edit.AddSpacer(10)
                     self.mouse_button.Bind(wx.EVT_MOUSEWHEEL,
                                            do_nothing)  # prevent mouse wheel from cycling through options
@@ -1465,7 +1459,7 @@ class EditFrame(wx.Frame):
                         self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
                                                         style=wx.CB_READONLY)
                     else:
-                        raise CustomError('Mouse action not specified.')
+                        raise EditCommandError('Mouse action not specified.')
                     self.hbox_edit.AddSpacer(10)
                     self.mouse_action.Bind(wx.EVT_MOUSEWHEEL,
                                            do_nothing)  # prevent mouse wheel from cycling through options
@@ -1486,14 +1480,6 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                     self.hbox_edit.AddSpacer(10)
                     self.text_value = str(self.line_orig).replace('type: ', '').replace('Type: ', '')
-
-                    # # max text size without expansion
-                    # self.temp_text_control = wx.TextCtrl(self.edit, value='')
-                    # self.temp_text_control.Show(False)
-                    # self.max_text_ctrl_size = self.temp_text_control.GetSizeFromTextSize(
-                    #     self.temp_text_control.GetTextExtent(25 * 'W').x)
-                    # self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value, size=wx.Size(self.max_text_ctrl_size[0], -1))
-                    # self.hbox_edit.Add(self.text_to_type, 0, wx.ALIGN_CENTER_VERTICAL)
 
                     self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value)
                     self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
@@ -1551,7 +1537,7 @@ class EditFrame(wx.Frame):
                         self.create_key_combo_box('Media Key')
 
                     else:
-                        raise CustomError()
+                        raise EditCommandError()
 
                 elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
                     self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
@@ -1596,12 +1582,12 @@ class EditFrame(wx.Frame):
                     self.create_point_input(self.line)
 
                 else:
-                    raise CustomError()
+                    raise EditCommandError()
 
                 self.command.Bind(wx.EVT_MOUSEWHEEL,
                                   do_nothing)  # prevent mouse wheel from cycling through options
 
-            except (IndexError, CustomError) as e:
+            except EditCommandError as e:
                 self.hbox_edit.AddSpacer(10)
                 self.unknown_command_message = wx.StaticText(self.edit,
                                                              label='**Unknown command from line: \"{}\"'.format(
@@ -1610,7 +1596,10 @@ class EditFrame(wx.Frame):
                     wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
                 self.unknown_command_message.SetForegroundColour(3 * (70,))  # change font color to (r,g,b)
                 self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
+
             self.add_edit_row(self.hbox_edit)
+            if not comment:
+                self.edit_row_tracker.append(self.hbox_edit)
 
         for self.edit_row in self.edit_rows:
             self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
@@ -1731,49 +1720,36 @@ class EditFrame(wx.Frame):
     def create_advanced_edit_frame(self):
         AdvancedEdit(self)
 
-    def move_command_up(self, move_btn):
-        index = move_btn.index_position
-        print('Move up line {}'.format(move_btn.index_position))
+    def move_command_up(self, sizer):
+        index = self.edit_row_tracker.index(sizer)
+        print('Move up line {}'.format(self.edit_row_tracker.index(sizer)))
         if index > 0:
-            move_btn.index_position -= 1
-            self.move_up_btns[index - 1].index_position += 1
-
-            self.move_down_btns[index].index_position -= 1
-            self.move_down_btns[index - 1].index_position += 1
-
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
             self.vbox_edit.Layout()
+            self.Layout()
+
             self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
             self.edit_rows[index - 1], self.edit_rows[index] = self.edit_rows[index], self.edit_rows[index - 1]
-            self.move_up_btns[index - 1], self.move_up_btns[index] = self.move_up_btns[index], self.move_up_btns[
-                index - 1]
-            self.move_down_btns[index - 1], self.move_down_btns[index] = self.move_down_btns[index], \
-                                                                         self.move_down_btns[index - 1]
-            self.Layout()
-            print('\tchanged to: {}'.format(move_btn.index_position))
+            self.edit_row_tracker[index - 1], self.edit_row_tracker[index] = self.edit_row_tracker[index], \
+                                                                             self.edit_row_tracker[index - 1]
+            print('\tchanged to: {}'.format(self.edit_row_tracker.index(sizer)))
 
-    def move_command_down(self, move_btn):
-        index = move_btn.index_position
-        print('Move down line {}'.format(index))
+    def move_command_down(self, sizer):
+        index = self.edit_row_tracker.index(sizer)
+        print('Move down line {}'.format(self.edit_row_tracker.index(sizer)))
         try:
-            move_btn.index_position += 1
-            self.move_down_btns[index + 1].index_position -= 1
-
-            self.move_up_btns[index].index_position += 1
-            self.move_up_btns[index + 1].index_position -= 1
-
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
             self.vbox_edit.Layout()
+            self.Layout()
+
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
             self.edit_rows[index], self.edit_rows[index + 1] = self.edit_rows[index + 1], self.edit_rows[index]
-            self.move_down_btns[index], self.move_down_btns[index + 1] = self.move_down_btns[index + 1], \
-                                                                         self.move_down_btns[index]
-            self.move_up_btns[index], self.move_up_btns[index + 1] = self.move_up_btns[index + 1], self.move_up_btns[
-                index]
+            self.edit_row_tracker[index], self.edit_row_tracker[index + 1] = self.edit_row_tracker[index + 1], \
+                                                                             self.edit_row_tracker[index]
 
-            self.Layout()
+            print('\tchanged to: {}'.format(self.edit_row_tracker.index(sizer)))
         except IndexError:
             pass
 

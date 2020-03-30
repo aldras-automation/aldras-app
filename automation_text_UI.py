@@ -14,8 +14,8 @@ df = df.set_index('Code')
 capslock = False
 ctrls = 0
 drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
-type_interval = 0.01
-mouse_duration = 0.2
+type_interval = 0.02
+mouse_duration = 0.5
 
 
 def on_press_execute(key):
@@ -381,7 +381,7 @@ def main():
     global pause
     global mouse_hover_duration
     # pause = 0.02
-    pause = 0.5
+    pause = 4
     mouse_hover_duration = 0.5
 
     print('Welcome to the Automation Tool by Noah Baculi, 2020')
