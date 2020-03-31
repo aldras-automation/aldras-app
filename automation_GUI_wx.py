@@ -1063,15 +1063,15 @@ class SaveDialog(wx.Dialog):
         self.EndModal(20)
 
 
-class AdvancedEditGuide(wx.Frame):
+class AdvancedEditGuide(wx.Dialog):
     def __init__(self, parent):
         self.dirname = ''
-        self.software_info = parent.software_info
-        self.workflow_name = parent.workflow_name
+        self.software_info = parent.parent.software_info
+        self.workflow_name = parent.parent.workflow_name
 
-        wx.Frame.__init__(self, parent, title='{} Edit Guide'.format(self.software_info.name))
+        wx.Dialog.__init__(self, parent.parent, title='{} Edit Guide'.format(self.software_info.name))
 
-        setup_frame(self, status_bar=True)
+        # setup_frame(self, status_bar=True)
 
         # create sizers
         self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1093,7 +1093,7 @@ class AdvancedEditGuide(wx.Frame):
         self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_description.AddSpacer(5)
         self.description = wx.StaticText(self.container, label=self.software_info.advanced_edit_guide_description)
-        config_status_and_tooltip(self, self.description, 'Feel free to use any capitalization scheme')
+        self.description.SetToolTip('Feel free to use any capitalization scheme')
         self.hbox_description.Add(self.description)
         self.vbox_inner.Add(self.hbox_description)
 
@@ -1119,7 +1119,7 @@ class AdvancedEditGuide(wx.Frame):
             description = data[1]
             self.command = wx.StaticText(self.container, label='  {}     '.format(command))
             self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
-            config_status_and_tooltip(self, self.command, description, tooltip=False)
+            self.command.SetToolTip(description)
             self.nmSizer.Add(self.command)
             self.nmSizer.AddSpacer(5)
             if isinstance(example, list):
@@ -1127,13 +1127,13 @@ class AdvancedEditGuide(wx.Frame):
                     self.example = wx.StaticText(self.container, label='   {}'.format(each_example))
                     self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                     self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
-                    config_status_and_tooltip(self, self.example, description, tooltip=False)
+                    self.example.SetToolTip(description)
                     self.nmSizer.Add(self.example)
             else:
                 self.example = wx.StaticText(self.container, label='   {}'.format(example))
                 self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                 self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
-                config_status_and_tooltip(self, self.example, description, tooltip=False)
+                self.example.SetToolTip(description)
                 self.nmSizer.Add(self.example)
 
             self.nmSizer.AddSpacer(15)
@@ -1170,22 +1170,16 @@ class AdvancedEditGuide(wx.Frame):
         self.Show()
 
 
-class AdvancedEdit(wx.Frame):
+class AdvancedEdit(wx.Dialog):
     def __init__(self, parent):
+        wx.Dialog.__init__(self, parent,
+                           title='{}: Advanced Edit - {}'.format(parent.software_info.name, parent.workflow_name),
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
+        self.parent = parent
         self.dirname = ''
-        self.software_info = parent.software_info
-        self.workflow_name = parent.workflow_name
-
-        wx.Frame.__init__(self, parent,
-                          title='{}: Advanced Edit - {}'.format(self.software_info.name, self.workflow_name))
-
-        # modal = True  # to make modal but encountering weird behavior
-        # if modal and not hasattr(self, '_disabler'):
-        #     self._disabler = wx.WindowDisabler(self)
-        # if not modal and hasattr(self, '_disabler'):
-        #     del self._disabler
-
-        setup_frame(self)
+        self.adv_edit_guide = None
 
         # create sizers
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -1196,7 +1190,7 @@ class AdvancedEdit(wx.Frame):
         self.container = wx.Panel(self)
 
         # add workflow title
-        self.title = wx.StaticText(self.container, label='{}'.format(self.workflow_name))
+        self.title = wx.StaticText(self.container, label='{}'.format(parent.workflow_name))
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.vbox_inner.Add(self.title)
@@ -1218,11 +1212,10 @@ class AdvancedEdit(wx.Frame):
         self.hbox_bottom.AddStretchSpacer()
 
         self.button_array = wx.StdDialogButtonSizer()
-        self.ok_btn = wx.Button(self.container, label='OK')
-        self.ok_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_ok(parent))
+        self.ok_btn = wx.Button(self.container, wx.ID_OK, label='OK')
         self.button_array.Add(self.ok_btn)
-        self.cancel_btn = wx.Button(self.container, label='Cancel')
-        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_cancel)
+        self.button_array.AddSpacer(5)
+        self.cancel_btn = wx.Button(self.container, wx.ID_CANCEL, label='Cancel')
         self.button_array.Add(self.cancel_btn)
         self.hbox_bottom.Add(self.button_array, 0, wx.ALIGN_RIGHT)
 
@@ -1233,27 +1226,18 @@ class AdvancedEdit(wx.Frame):
         self.container.SetSizer(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
 
-        self.Show()
+        self.Bind(wx.EVT_CLOSE, self.close_window)
 
     def advanced_edit_guide(self, event):
-        AdvancedEditGuide(self)
+        if not self.adv_edit_guide or not self.adv_edit_guide.IsShown():  # only if window does not yet exist or is not shown
+            self.adv_edit_guide = AdvancedEditGuide(self)
+        else:
+            self.adv_edit_guide.Raise()  # bring existing edit guide to top
 
-    def on_cancel(self, event):
-        self.Close()
-
-    def on_ok(self, parent):
-        # print(self.text_edit.GetValue() != ''.join(parent.lines))
-        if self.text_edit.GetValue() != ''.join(parent.lines):
-            parent.lines = ['{}\n'.format(x) for x in self.text_edit.GetValue().split('\n')]
-
-            # write to workflow file
-            with open(parent.workflow_path_name, 'w') as record_file:
-                for line in parent.lines:
-                    record_file.write(line)
-
-            parent.refresh_edit_panel()
-
-        self.Close()
+    def close_window(self, event):
+        if self.adv_edit_guide:
+            self.adv_edit_guide.Close(True)
+        self.Destroy()
 
 
 class EditFrame(wx.Frame):
@@ -1319,6 +1303,7 @@ class EditFrame(wx.Frame):
 
         self.lines_as_read = self.lines.copy()
 
+        self.vbox_edit = None
         self.edit_rows = []
 
         self.create_edit_panel()
@@ -1395,6 +1380,11 @@ class EditFrame(wx.Frame):
         self.edit_rows.append(edit_row_vbox)
 
     def create_edit_panel(self):
+        print(bool(self.vbox_edit))  # if edit panel has been created previously
+        if self.vbox_edit:
+            for child in self.vbox_edit_container.GetChildren():
+                child.Show(False)
+                child.Destroy()
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
@@ -1707,10 +1697,11 @@ class EditFrame(wx.Frame):
                 for index in sorted(indices_to_delete, reverse=True):
                     del (self.lines[index])
                     del (self.edit_rows[index])
-
-                self.refresh_edit_panel()
-
-        delete_dlg.Destroy()
+                    del (self.edit_row_tracker[index])
+                    self.vbox_edit.Show(index, False)
+                    self.vbox_edit.Remove(index)
+                self.vbox_edit.Layout()
+                self.Layout()
 
     def on_open_add_command_dialog(self):
         # for testing new rows
@@ -1720,9 +1711,6 @@ class EditFrame(wx.Frame):
             hbox.AddSpacer(10)
             hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
             self.add_edit_row(hbox)
-
-        # # for testing deleting rows
-        # self.edit_rows = self.edit_rows[0:3]
 
         self.refresh_edit_panel()
 
@@ -1738,15 +1726,30 @@ class EditFrame(wx.Frame):
 
         if reorder_dlg.ShowModal() == wx.ID_OK:
             order = reorder_dlg.GetOrder()
-            print('len(order) {}: {}'.format(len(order), order))
-            print('len(self.lines) {}: {}'.format(len(self.lines), self.lines))
-            print('len(self.edit_rows) {}: {}'.format(len(self.edit_rows), self.edit_rows))
-            self.lines = [self.lines[index] for index in order]
-            self.edit_rows = [self.edit_rows[index] for index in order]
-            # self.refresh_edit_panel()
+            if order != list(range(len(order))):  # only perform operations if order changes
+                self.lines = [self.lines[index] for index in order]
+                self.edit_rows = [self.edit_rows[index] for index in order]
+                self.edit_row_tracker = [self.edit_row_tracker[index] for index in order]
+                for index in range(len(self.edit_rows)):
+                    if index != order[index]:  # only perform costly GUI operations if indices are different
+                        self.vbox_edit.Detach(index)
+                        self.vbox_edit.Insert(index, self.edit_rows[index], 0, wx.EXPAND)
+                self.Layout()
 
     def create_advanced_edit_frame(self):
-        AdvancedEdit(self)
+        adv_edit_dlg = AdvancedEdit(self)
+        if adv_edit_dlg.ShowModal() == wx.ID_OK:
+            if adv_edit_dlg.text_edit.GetValue() != ''.join(self.lines):
+                self.lines = ['{}\n'.format(x) for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
+                self.create_edit_panel()
+                self.Layout()
+
+                # # write to workflow file
+                # with open(self.workflow_path_name, 'w') as record_file:
+                #     for line in self.lines:
+                #         record_file.write(line)
+            #
+            #   self.refresh_edit_panel()
 
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)
@@ -1816,7 +1819,6 @@ class EditFrame(wx.Frame):
         if self.lines_as_read != self.lines:
             save_dialog = SaveDialog(self).ShowModal()
             if save_dialog == wx.ID_OK:
-                print('saved')
                 # write to workflow file
                 with open(self.workflow_path_name, 'w') as record_file:
                     for line in self.lines:
@@ -1832,6 +1834,7 @@ class EditFrame(wx.Frame):
             parent.Close()
         else:
             parent.Show()
+            self.Destroy()
 
 
 class WorkflowFrame(wx.Frame):
