@@ -1,4 +1,3 @@
-``move to (2037, 114)
-``sleep(0.5)
+``button.left```tapped at (1210, 486)
 
-``key.ctrl_l```released at (2037, 114)
+``button.left```released at (1210, 486)

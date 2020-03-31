@@ -35,7 +35,7 @@ from pynput import keyboard, mouse
 # TODO variables from excel or in range, etc.
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
-EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event recieving
+EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
 
 
 def do_nothing(event=None):
@@ -1242,6 +1242,7 @@ class AdvancedEdit(wx.Dialog):
 
 class EditFrame(wx.Frame):
     def __init__(self, parent):
+        t0 = time.time()
         self.dirname = ''
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
@@ -1303,10 +1304,7 @@ class EditFrame(wx.Frame):
 
         self.lines_as_read = self.lines.copy()
 
-        self.vbox_edit = None
         self.edit_rows = []
-
-        self.create_edit_panel()
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -1359,6 +1357,9 @@ class EditFrame(wx.Frame):
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
 
+        self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_edit_container.AddStretchSpacer()
+
         self.fg_bottom.AddMany([(self.vbox_edit_container, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
         self.fg_bottom.AddGrowableCol(0, 0)
         self.fg_bottom.AddGrowableRow(0, 0)
@@ -1368,10 +1369,16 @@ class EditFrame(wx.Frame):
         # add margins and inside sizers
         self.vbox_outer.AddSpacer(5)
         self.hbox_outer.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
+
+        self.vbox_edit = None
+        self.create_edit_panel()
+
         self.hbox_outer.SetSizeHints(self)
         self.SetSizer(self.hbox_outer)
         self.Show()
+        self.Layout()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
+        print(time.time() - t0)
 
     def add_edit_row(self, row_to_add):
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1380,13 +1387,16 @@ class EditFrame(wx.Frame):
         self.edit_rows.append(edit_row_vbox)
 
     def create_edit_panel(self):
-        print(bool(self.vbox_edit))  # if edit panel has been created previously
+        self.first_call = True
         if self.vbox_edit:
-            for child in self.vbox_edit_container.GetChildren():
+            self.first_call = False
+            for child in self.vbox_edit.GetChildren():
                 child.Show(False)
-                child.Destroy()
+                # child.Destroy()
+
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
+
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
@@ -1629,9 +1639,15 @@ class EditFrame(wx.Frame):
 
         self.edit.SetSizer(self.vbox_edit)
 
+        self.vbox_edit_container_temp = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_edit_container_temp.AddSpacer(0)
+
+        self.hbox_outer.Replace(self.vbox_edit_container, self.vbox_edit_container_temp, recursive=True)
+
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
         self.vbox_edit_container.SetMinSize(wx.Size(500, 300))
+        self.hbox_outer.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
     def refresh_edit_panel(self):
         # hide all vbox_edit children
@@ -1740,16 +1756,10 @@ class EditFrame(wx.Frame):
         adv_edit_dlg = AdvancedEdit(self)
         if adv_edit_dlg.ShowModal() == wx.ID_OK:
             if adv_edit_dlg.text_edit.GetValue() != ''.join(self.lines):
+                # TODO find way to only add changes rather than compute entire panel again
                 self.lines = ['{}\n'.format(x) for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
                 self.create_edit_panel()
                 self.Layout()
-
-                # # write to workflow file
-                # with open(self.workflow_path_name, 'w') as record_file:
-                #     for line in self.lines:
-                #         record_file.write(line)
-            #
-            #   self.refresh_edit_panel()
 
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)

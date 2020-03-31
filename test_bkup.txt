@@ -1,2 +1,2 @@
-``key.ctrl_l```pressed at (2037, 114)
-``key.ctrl_l```released at (2037, 114)
+``button.left```pressed at (1210, 486)
+``button.left```released at (1210, 486)
