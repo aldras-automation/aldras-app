@@ -14,8 +14,6 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO implement changing edit commands updating
-# TODO change 'tap' to 'click'
-# TODO change 'sleep' to 'wait'
 # TODO revise advanced edit guide styling
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
@@ -446,7 +444,7 @@ class ExecutionThread(threading.Thread):
                                                                                                             '').replace(
                                 'type:', ''), interval=type_interval)
 
-                    elif 'sleep' in line:
+                    elif 'wait' in line:
                         time.sleep(float_in(line))
 
                     elif 'left-mouse' in line or 'right-mouse' in line:
@@ -951,7 +949,7 @@ class SoftwareInfo:
             '{Left/Right}-mouse {click/press/release} at ({x}, {y})': ['Left-mouse click at (284, 531)',
                                                                        'Simulates mouse click, press, or release'],
             'Type: {text}': ['Type: This report is initiated by John Smith.', 'Simulates text keyboard output'],
-            'Sleep {time (seconds)}': ['Sleep 0.5', 'Wait for a specified number of seconds'],
+            'Wait {time (seconds)}': ['Wait 0.5', 'Wait for a specified number of seconds'],
             'Key {key} {tap/press/release} at ({x}, {y})': ['Key Enter Tap',
                                                             'Simulates keyboard key tap, press, or release'],
             'Hotkey {key 1} + {key 2} + {key 3}': [['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
@@ -960,7 +958,7 @@ class SoftwareInfo:
             'Double-click at ({x}, {y})': ['Double-click at (284, 531)', 'Simulates double left click'],
             'Triple-click at ({x}, {y})': ['Triple-click at (284, 531)', 'Simulates triple left click']
         }
-        self.commands = ['Mouse button', 'Type', 'Sleep', 'Special key', 'Function key', 'Media key', 'Hotkey',
+        self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
                          'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
         self.mouse_buttons = ['Left', 'Right']
         self.mouse_actions = ['Click', 'Press', 'Release']
@@ -1487,8 +1485,8 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
                     self.hbox_edit.AddSpacer(15)
 
-                elif 'sleep' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Sleep', choices=self.commands,
+                elif 'wait' in self.line_first_word:
+                    self.command = wx.ComboBox(self.edit, value='Wait', choices=self.commands,
                                                style=wx.CB_READONLY)
                     # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1825,8 +1823,8 @@ class EditFrame(wx.Frame):
         elif 'type:' in line_first_word:
             old_action = 'Type'
 
-        elif 'sleep' in line_first_word:
-            old_action = 'Sleep'
+        elif 'wait' in line_first_word:
+            old_action = 'Wait'
 
         elif 'hotkey' in line_first_word:
             old_action = 'Hotkey'
