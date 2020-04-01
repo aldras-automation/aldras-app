@@ -440,9 +440,8 @@ class ExecutionThread(threading.Thread):
 
                     if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
                         pyauto.typewrite(
-                            line_orig.replace('\n', '').replace('Type: ', '').replace('type: ', '').replace('Type:',
-                                                                                                            '').replace(
-                                'type:', ''), interval=type_interval)
+                            line_orig.replace('\n', '').replace('Type:', '').replace('type:', ''),
+                            interval=type_interval)
 
                     elif 'wait' in line:
                         time.sleep(float_in(line))
@@ -1471,7 +1470,7 @@ class EditFrame(wx.Frame):
                                                style=wx.CB_READONLY)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                     self.hbox_edit.AddSpacer(10)
-                    self.create_mouse_row()
+                    self.create_mouse_row(self.line)
 
                 elif 'type:' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
@@ -1479,11 +1478,8 @@ class EditFrame(wx.Frame):
                     # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                     self.hbox_edit.AddSpacer(10)
-                    self.text_value = str(self.line_orig).replace('type: ', '').replace('Type: ', '')
 
-                    self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.text_value)
-                    self.hbox_edit.Add(self.text_to_type, 1, wx.EXPAND)
-                    self.hbox_edit.AddSpacer(15)
+                    self.create_type_row(self.line_orig)
 
                 elif 'wait' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Wait', choices=self.commands,
@@ -1547,7 +1543,7 @@ class EditFrame(wx.Frame):
                     self.label = wx.StaticText(self.edit, label='to pt. (  ')
                     self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input()
+                    self.create_point_input(self.line)
 
                 elif ('double' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
@@ -1559,7 +1555,7 @@ class EditFrame(wx.Frame):
                     self.label = wx.StaticText(self.edit, label='at pt. (  ')
                     self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input()
+                    self.create_point_input(self.line)
 
                 elif ('triple' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
@@ -1571,14 +1567,15 @@ class EditFrame(wx.Frame):
                     self.label = wx.StaticText(self.edit, label='at pt. (  ')
                     self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input()
+                    self.create_point_input(self.line)
 
                 else:
                     raise EditCommandError()
 
                 self.command.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
                 self.command.Bind(wx.EVT_COMBOBOX,
-                                  lambda event, sizer_trap=self.hbox_edit: self.combobox_change(sizer_trap, event))
+                                  lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap,
+                                                                                                        event))
 
             except EditCommandError as e:
                 self.hbox_edit.AddSpacer(10)
@@ -1610,7 +1607,7 @@ class EditFrame(wx.Frame):
         self.vbox_edit_container.SetMinSize(wx.Size(600, 300))
         self.hbox_outer.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
-    def create_mouse_row(self, sizer=None, coords=None):
+    def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if sizer or 'left' in self.line_first_word:
             self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
@@ -1621,6 +1618,7 @@ class EditFrame(wx.Frame):
         else:
             raise EditCommandError('Mouse button not specified.')
         self.mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+        # self.mouse_button.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
 
         if sizer or 'click' in self.line:
             self.mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
@@ -1648,17 +1646,12 @@ class EditFrame(wx.Frame):
         else:
             add_to_sizer(sizer)
 
-        self.create_point_input(sizer, coords)
+        self.create_point_input(line, sizer)
 
-    def create_point_input(self, sizer=None, coords=None):
+    def create_point_input(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
-        if not sizer:
-            x_val = coords_of(self.line)[0]
-            y_val = coords_of(self.line)[1]
-        else:
-            x_val = coords[0]
-            y_val = coords[1]
-
+        x_val = coords_of(line)[0]
+        y_val = coords_of(line)[1]
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
                                    value=str(x_val))  # TODO validator
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
@@ -1669,6 +1662,21 @@ class EditFrame(wx.Frame):
             sizer_to_add_to.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
             sizer_to_add_to.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
             sizer_to_add_to.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
+
+        if not sizer:
+            add_to_sizer(self.hbox_edit)
+        else:
+            add_to_sizer(sizer)
+
+    def create_type_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        text_value = str(line).replace('type:', '').replace('Type:', '')
+        self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
+
+        def add_to_sizer(sizer_to_add_to):
+            sizer_to_add_to.Add(self.text_to_type, 1, wx.EXPAND)
+            sizer_to_add_to.AddSpacer(15)
 
         if not sizer:
             add_to_sizer(self.hbox_edit)
@@ -1805,8 +1813,7 @@ class EditFrame(wx.Frame):
         except (IndexError, wx._core.wxAssertionError):
             pass
 
-    def combobox_change(self, sizer, event):
-        # TODO make sure selection is the same (might wipe out parameters)
+    def command_combobox_change(self, sizer, event):
         # TODO change self.lines in order to trigger save on exit
 
         index = self.edit_row_tracker.index(sizer)
@@ -1866,8 +1873,12 @@ class EditFrame(wx.Frame):
             sizer.GetChildren()[ii].Destroy()
 
         if new_action == 'Mouse button':
-            self.create_mouse_row(sizer, old_coords)
-            self.lines[index] = 'Left-mouse click at (0, 0)'
+            self.lines[index] = 'Left-mouse click at {}'.format(old_coords)
+            self.create_mouse_row(self.lines[index], sizer)
+
+        elif new_action == 'Type':
+            self.lines[index] = 'Type:'
+            self.create_type_row(self.lines[index], sizer)
 
         self.Layout()
 
