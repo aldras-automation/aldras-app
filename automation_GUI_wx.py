@@ -1475,7 +1475,6 @@ class EditFrame(wx.Frame):
                 elif 'type:' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
                                                style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                     self.hbox_edit.AddSpacer(10)
 
@@ -1486,12 +1485,9 @@ class EditFrame(wx.Frame):
                                                style=wx.CB_READONLY)
                     # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
                     self.hbox_edit.AddSpacer(10)
 
-                    self.sleep_time = wx.TextCtrl(self.edit, value=str(self.line.split(' ')[-1]))
-                    self.hbox_edit.Add(self.sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
-                    # self.hbox_edit.Add(self.sleep_time, 1, wx.EXPAND)
+                    self.create_wait_row(self.line)
 
                 elif 'hotkey' in self.line_first_word:
                     self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
@@ -1672,16 +1668,26 @@ class EditFrame(wx.Frame):
         # sizer only passed to update, otherwise, function is called during initial panel creation
 
         text_value = str(line).replace('type:', '').replace('Type:', '')
-        self.text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
+        text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
 
         def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(self.text_to_type, 1, wx.EXPAND)
+            sizer_to_add_to.Add(text_to_type, 1, wx.EXPAND)
             sizer_to_add_to.AddSpacer(15)
 
         if not sizer:
             add_to_sizer(self.hbox_edit)
         else:
             add_to_sizer(sizer)
+
+    def create_wait_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        sleep_time = wx.TextCtrl(self.edit, value=str(line.split(' ')[-1]))
+
+        if not sizer:
+            self.hbox_edit.Add(sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
+        else:
+            sizer.Add(sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def refresh_edit_panel(self):
         # hide all vbox_edit children
@@ -1879,6 +1885,10 @@ class EditFrame(wx.Frame):
         elif new_action == 'Type':
             self.lines[index] = 'Type:'
             self.create_type_row(self.lines[index], sizer)
+
+        elif new_action == 'Wait':
+            self.lines[index] = 'Wait '
+            self.create_wait_row(self.lines[index], sizer)
 
         self.Layout()
 
