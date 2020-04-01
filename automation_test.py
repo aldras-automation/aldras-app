@@ -1,38 +1,30 @@
 import wx
-import wx.lib.agw.hyperlink as hl
+
+class MyApp(wx.Frame):
+    def __init__(self):
+        wx.Frame.__init__(self, None, title="Example")
+        panel = wx.Panel(self)
+        lbl = wx.StaticText(panel, label="I'm a label!")
+        txt = wx.TextCtrl(panel, value="blah blah")
+        btn = wx.Button(panel, label="Clear")
+        btn.Bind(wx.EVT_BUTTON, self.onClear)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(lbl, 0, wx.ALL, 5)
+        self.sizer.Add(txt, 0, wx.ALL, 5)
+        self.sizer.Add(btn, 0, wx.ALL, 5)
+        panel.SetSizer(self.sizer)
+
+    def onClear(self, event):
+        children = self.sizer.GetChildren()
+        for child in children:
+            widget = child.GetWindow()
+            print(widget)
+            if isinstance(widget, wx.TextCtrl):
+                widget.Clear()
 
 
-class MyFrame(wx.Frame):
-
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "HyperLink Demo")
-
-        panel = wx.Panel(self, -1)
-
-        # Default Web links:
-        hyper1 = hl.HyperLinkCtrl(panel, -1, "wxPython Main Page", pos=(100, 100),
-                                  URL="http://www.wxpython.org/")
-
-        # Web link with underline rollovers, opens in same window
-        hyper2 = hl.HyperLinkCtrl(panel, -1, "My Home Page", pos=(100, 150),
-                                  URL="http://xoomer.virgilio.it/infinity77/")
-
-        hyper2.AutoBrowse(False)
-        hyper2.SetColours("BLUE", "BLUE", "BLUE")
-        hyper2.EnableRollover(True)
-        hyper2.SetUnderlines(False, False, True)
-        hyper2.SetBold(True)
-        hyper2.OpenInSameWindow(True)
-        hyper2.SetToolTip(wx.ToolTip("Hello World!"))
-        hyper2.UpdateLink()
-
-
-# our normal wxApp-derived class, as usual
-
-app = wx.App(0)
-
-frame = MyFrame(None)
-app.SetTopWindow(frame)
-frame.Show()
-
-app.MainLoop()
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MyApp()
+    frame.Show()
+    app.MainLoop()
