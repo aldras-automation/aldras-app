@@ -961,6 +961,7 @@ class SoftwareInfo:
                          'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
         self.mouse_buttons = ['Left', 'Right']
         self.mouse_actions = ['Click', 'Press', 'Release']
+        self.key_actions = ['Tap', 'Press', 'Release']
         self.coord_width = 40
         self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'PageUp',
                              'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option',
@@ -1252,6 +1253,7 @@ class EditFrame(wx.Frame):
         self.commands = self.software_info.commands
         self.mouse_buttons = self.software_info.mouse_buttons
         self.mouse_actions = self.software_info.mouse_actions
+        self.key_actions = self.software_info.key_actions
         self.coord_width = self.software_info.coord_width
         self.special_keys = self.software_info.special_keys
         self.media_keys = self.software_info.media_keys
@@ -1516,18 +1518,21 @@ class EditFrame(wx.Frame):
 
                 elif 'key' in self.line_first_word:
                     self.key_in = self.line.split(' ')[1]
-                    self.key = None  # redefined in self.create_key_combo_box(command) method
+
                     if self.key_in in [x.lower() for x in self.special_keys]:
-                        self.create_key_combo_box('Special key')
-
+                        key_type = 'Special key'
                     elif self.key_in in [x.lower() for x in self.function_keys]:
-                        self.create_key_combo_box('Function key')
-
+                        key_type = 'Function key'
                     elif self.key_in in [x.lower() for x in self.media_keys]:
-                        self.create_key_combo_box('Media key')
-
+                        key_type = 'Media key'
                     else:
                         raise EditCommandError()
+
+                    self.command = wx.ComboBox(self.edit, value=key_type, choices=self.commands, style=wx.CB_READONLY)
+                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.hbox_edit.AddSpacer(10)
+
+                    self.create_key_row(self.line)
 
                 elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
                     self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
@@ -1605,10 +1610,10 @@ class EditFrame(wx.Frame):
 
     def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
-        if sizer or 'left' in self.line_first_word:
+        if 'left' in line:
             self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
                                             style=wx.CB_READONLY)
-        elif 'right' in self.line_first_word:
+        elif 'right' in line:
             self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
                                             style=wx.CB_READONLY)
         else:
@@ -1616,13 +1621,13 @@ class EditFrame(wx.Frame):
         self.mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
         # self.mouse_button.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
 
-        if sizer or 'click' in self.line:
+        if 'click' in line:
             self.mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
                                             style=wx.CB_READONLY)
-        elif 'press' in self.line:
+        elif 'press' in line:
             self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
                                             style=wx.CB_READONLY)
-        elif 'release' in self.line:
+        elif 'release' in line:
             self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
                                             style=wx.CB_READONLY)
         else:
@@ -1689,6 +1694,45 @@ class EditFrame(wx.Frame):
         else:
             sizer.Add(sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
 
+    def create_key_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        key_in = line.split(' ')[1]
+
+        if key_in in [x.lower() for x in self.special_keys]:
+            choices = self.special_keys
+        elif key_in in [x.lower() for x in self.function_keys]:
+            choices = self.function_keys
+        elif key_in in [x.lower() for x in self.media_keys]:
+            choices = self.media_keys
+        else:
+            raise EditCommandError('Key category not specified.')
+
+        key = wx.ComboBox(self.edit, value=str(key_in), choices=choices, style=wx.CB_READONLY)
+        key.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+
+        if 'tap' in line:
+            action = 'Tap'
+        elif 'press' in line:
+            action = 'Press'
+        elif 'release' in line:
+            action = 'Release'
+        else:
+            raise EditCommandError('Key action not specified.')
+
+        key_action = wx.ComboBox(self.edit, value=action, choices=self.key_actions, style=wx.CB_READONLY)
+        key_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+
+        def add_to_sizer(sizer_to_add_to):
+            sizer_to_add_to.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer_to_add_to.AddSpacer(10)
+            sizer_to_add_to.Add(key_action, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        if not sizer:
+            add_to_sizer(self.hbox_edit)
+        else:
+            add_to_sizer(sizer)
+
     def refresh_edit_panel(self):
         # hide all vbox_edit children
         for child in self.vbox_edit.GetChildren():
@@ -1704,27 +1748,6 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
 
         self.Layout()  # update frame
-
-    def create_key_combo_box(self, command):
-        self.command = wx.ComboBox(self.edit, value=command, choices=self.commands, style=wx.CB_READONLY)
-        # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        self.hbox_edit.AddSpacer(10)
-
-        if 'Special' in command:
-            self.key = wx.ComboBox(self.edit, value=str(self.key_in), choices=self.special_keys,
-                                   style=wx.CB_READONLY)
-        elif 'Function' in command:
-            self.key = wx.ComboBox(self.edit, value=str(self.key_in), choices=self.function_keys,
-                                   style=wx.CB_READONLY)
-        elif 'Media' in command:
-            self.key = wx.ComboBox(self.edit, value=str(self.key_in), choices=self.media_keys,
-                                   style=wx.CB_READONLY)
-
-        self.key.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
-
-        self.hbox_edit.Add(self.key, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def on_open_delete_command_dialog(self):
         delete_dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
@@ -1889,6 +1912,18 @@ class EditFrame(wx.Frame):
         elif new_action == 'Wait':
             self.lines[index] = 'Wait '
             self.create_wait_row(self.lines[index], sizer)
+
+        elif new_action == 'Special key':
+            self.lines[index] = 'Key Backspace Tap'
+            self.create_key_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Function key':
+            self.lines[index] = 'Key F1 Tap'
+            self.create_key_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Media key':
+            self.lines[index] = 'Key PlayPause Tap'
+            self.create_key_row(self.lines[index].lower(), sizer)
 
         self.Layout()
 
