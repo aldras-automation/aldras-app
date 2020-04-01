@@ -14,10 +14,12 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 # TODO implement changing edit commands updating
+# TODO change 'tap' to 'click'
 # TODO change 'sleep' to 'wait'
+# TODO revise advanced edit guide styling
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
-# TODO implement encrypted file storage for preferences and other data
+# TODO implement encrypted file storage for preferences and other data (resolution)
 # TODO scrolled panel scroll down or up automatically
 # TODO wx.adv.AnimationCtrl for wait animation
 # TODO investigate image buttons (edit frame - back button)
@@ -454,7 +456,7 @@ class ExecutionThread(threading.Thread):
                         else:
                             btn = 'left'
 
-                        if 'tap' in line:
+                        if 'click' in line:
                             pyauto.click(x=coords[0], y=coords[1], button=btn)
                         elif 'press' in line:
                             pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
@@ -946,8 +948,8 @@ class SoftwareInfo:
         self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
         self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
         self.advanced_edit_guide_commands = {
-            '{Left/Right}-mouse {tap/press/release} at ({x}, {y})': ['Left-mouse tap at (284, 531)',
-                                                                     'Simulates mouse click, press, or release'],
+            '{Left/Right}-mouse {click/press/release} at ({x}, {y})': ['Left-mouse click at (284, 531)',
+                                                                       'Simulates mouse click, press, or release'],
             'Type: {text}': ['Type: This report is initiated by John Smith.', 'Simulates text keyboard output'],
             'Sleep {time (seconds)}': ['Sleep 0.5', 'Wait for a specified number of seconds'],
             'Key {key} {tap/press/release} at ({x}, {y})': ['Key Enter Tap',
@@ -961,7 +963,7 @@ class SoftwareInfo:
         self.commands = ['Mouse button', 'Type', 'Sleep', 'Special key', 'Function key', 'Media key', 'Hotkey',
                          'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
         self.mouse_buttons = ['Left', 'Right']
-        self.mouse_actions = ['Tap', 'Press', 'Release']
+        self.mouse_actions = ['Click', 'Press', 'Release']
         self.coord_width = 40
         self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End', 'PageUp',
                              'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option',
@@ -1622,8 +1624,8 @@ class EditFrame(wx.Frame):
             raise EditCommandError('Mouse button not specified.')
         self.mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
-        if sizer or 'tap' in self.line:
-            self.mouse_action = wx.ComboBox(self.edit, value='Tap', choices=self.mouse_actions,
+        if sizer or 'click' in self.line:
+            self.mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
                                             style=wx.CB_READONLY)
         elif 'press' in self.line:
             self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
@@ -1632,6 +1634,7 @@ class EditFrame(wx.Frame):
             self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
                                             style=wx.CB_READONLY)
         else:
+            self.mouse_button.Show(False)
             raise EditCommandError('Mouse action not specified.')
         self.mouse_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
@@ -1866,7 +1869,7 @@ class EditFrame(wx.Frame):
 
         if new_action == 'Mouse button':
             self.create_mouse_row(sizer, old_coords)
-            self.lines[index] = 'Left-mouse tap at (0, 0)'
+            self.lines[index] = 'Left-mouse click at (0, 0)'
 
         self.Layout()
 
