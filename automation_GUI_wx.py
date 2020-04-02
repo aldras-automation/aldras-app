@@ -1692,6 +1692,7 @@ class EditFrame(wx.Frame):
             raise EditCommandError('Key category not specified.')
 
         key = wx.ComboBox(self.edit, value=str(key_in), choices=choices, style=wx.CB_READONLY)
+        key.Bind(wx.EVT_COMBOBOX, lambda event: self.key_change(sizer, event))
         key.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
         if 'tap' in line:
@@ -1704,6 +1705,7 @@ class EditFrame(wx.Frame):
             raise EditCommandError('Key action not specified.')
 
         key_action = wx.ComboBox(self.edit, value=action, choices=self.key_actions, style=wx.CB_READONLY)
+        key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.key_action_change(sizer, event))
         key_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
         sizer.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1985,6 +1987,20 @@ class EditFrame(wx.Frame):
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
         self.lines[index] = 'Wait: {}'.format(event.GetString())
+
+    def key_change(self, sizer, event):
+        index = self.edit_row_tracker.index(sizer)
+        new_key = event.GetString()
+        old_key = self.lines[index].split(' ')[1]
+        self.lines[index] = self.lines[index].replace(old_key, new_key)
+        print(self.lines[index])
+
+    def key_action_change(self, sizer, event):
+        index = self.edit_row_tracker.index(sizer)
+        new_action = event.GetString()
+        old_action = self.lines[index].split(' ')[2]
+        self.lines[index] = self.lines[index].replace(old_action, new_action)
+        print(self.lines[index])
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
