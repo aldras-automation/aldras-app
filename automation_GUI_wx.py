@@ -15,6 +15,7 @@ from pynput import keyboard, mouse
 
 # TODO implement changing edit commands updating
 # TODO revise advanced edit guide styling
+# TODO change attributes (self.var) to variables (var) where possible
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement encrypted file storage for preferences and other data (resolution)
@@ -958,7 +959,7 @@ class SoftwareInfo:
             'Triple-click at ({x}, {y})': ['Triple-click at (284, 531)', 'Simulates triple left click']
         }
         self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
-                         'Mouse-move', 'Double-click', 'Triple-click', 'Scroll']
+                         'Mouse-move', 'Double-click', 'Triple-click']
         self.mouse_buttons = ['Left', 'Right']
         self.mouse_actions = ['Click', 'Press', 'Release']
         self.key_actions = ['Tap', 'Press', 'Release']
@@ -1379,10 +1380,11 @@ class EditFrame(wx.Frame):
 
         self.hbox_outer.SetSizeHints(self)
         self.SetSizer(self.hbox_outer)
+        self.CenterOnParent()
         self.Show()
         self.Layout()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
-        print(time.time() - t0)
+        print('Time to open Edit frame: {:.2f} s'.format(time.time() - t0))
 
     def add_edit_row(self, row_to_add):
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1581,34 +1583,33 @@ class EditFrame(wx.Frame):
     def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if 'left' in line:
-            self.mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
-                                            style=wx.CB_READONLY)
+            mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
+                                       style=wx.CB_READONLY)
         elif 'right' in line:
-            self.mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
-                                            style=wx.CB_READONLY)
+            mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
+                                       style=wx.CB_READONLY)
         else:
             raise EditCommandError('Mouse button not specified.')
-        self.mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
-        # self.mouse_button.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
+        mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
         if 'click' in line:
-            self.mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
-                                            style=wx.CB_READONLY)
+            mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
+                                       style=wx.CB_READONLY)
         elif 'press' in line:
-            self.mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
-                                            style=wx.CB_READONLY)
+            mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
+                                       style=wx.CB_READONLY)
         elif 'release' in line:
-            self.mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
-                                            style=wx.CB_READONLY)
+            mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
+                                       style=wx.CB_READONLY)
         else:
-            self.mouse_button.Show(False)
+            mouse_button.Show(False)
             raise EditCommandError('Mouse action not specified.')
-        self.mouse_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+        mouse_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
         def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(self.mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer_to_add_to.Add(mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
             sizer_to_add_to.AddSpacer(10)
-            sizer_to_add_to.Add(self.mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer_to_add_to.Add(mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
             sizer_to_add_to.AddSpacer(10)
             sizer_to_add_to.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1657,12 +1658,10 @@ class EditFrame(wx.Frame):
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
 
-        sleep_time = wx.TextCtrl(self.edit, value=str(line.split(' ')[-1]))
-
         if not sizer:
-            self.hbox_edit.Add(sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
+            self.hbox_edit.Add(wx.TextCtrl(self.edit, value=str(line.split(' ')[-1])), 0, wx.ALIGN_CENTER_VERTICAL)
         else:
-            sizer.Add(sleep_time, 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer.Add(wx.TextCtrl(self.edit, value='0'), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1856,8 +1855,6 @@ class EditFrame(wx.Frame):
             pass
 
     def command_combobox_change(self, sizer, event):
-        # TODO change self.lines in order to trigger save on exit
-
         index = self.edit_row_tracker.index(sizer)
         new_action = event.GetString()
         line_orig = self.lines[index]
@@ -1912,7 +1909,7 @@ class EditFrame(wx.Frame):
 
         for ii in reversed(range(6, len(sizer.GetChildren()))):
             sizer.GetChildren()[ii].Show(False)
-            sizer.GetChildren()[ii].Destroy()
+            # sizer.GetChildren()[ii].Destroy()  # destroying the sizer children appears to cause error when changing commands later on
 
         if new_action == 'Mouse button':
             self.lines[index] = 'Left-mouse click at {}'.format(old_coords)
@@ -1995,10 +1992,9 @@ class EditFrame(wx.Frame):
                 with open(self.workflow_path_name, 'w') as record_file:
                     for line in self.lines:
                         record_file.write(line)
-            elif save_dialog == 20:
-                print('don\'t save')
-            else:
-                print('cancel')
+            elif save_dialog == 20:  # don't save button
+                pass
+            else:  # cancel button
                 return
 
         self.Hide()
@@ -2109,6 +2105,7 @@ class WorkflowFrame(wx.Frame):
         self.vbox_outer.SetSizeHints(self)
 
         self.ok_btn.SetFocus()
+        self.Center()
         self.Show()
 
     def on_exit(self, event):

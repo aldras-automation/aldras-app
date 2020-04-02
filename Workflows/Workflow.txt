@@ -8,7 +8,6 @@ Wait 0.5
 Mouse-move to (749, 450)
 Wait 0.5
 Key Win Tap
-# Comment
 Left-mouse click at (749, 450)
 Double-click at (749, 450)
 Triple-click at (749, 450)
