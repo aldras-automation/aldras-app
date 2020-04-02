@@ -2,6 +2,7 @@ Left-mouse click at (341, 505)
 Right-mouse press at (262, 637)
 RIGHT-mouse release at (76, 42)
 Type:This proposal initiated by John Smith.
+Type:This proposal initiated by John Smith.
 Hotkey ctrl+s
 Hotkey ctrl+shift+left
 Wait 0.5

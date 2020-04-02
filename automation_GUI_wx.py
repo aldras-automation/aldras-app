@@ -1659,6 +1659,7 @@ class EditFrame(wx.Frame):
 
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
+        text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event))
 
         sizer.Add(text_to_type, 1, wx.EXPAND)
         sizer.AddSpacer(15)
@@ -1821,7 +1822,6 @@ class EditFrame(wx.Frame):
 
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)
-        print('Move up line {}'.format(self.edit_row_tracker.index(sizer)))
         if index > 0:
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
@@ -1832,11 +1832,9 @@ class EditFrame(wx.Frame):
             self.edit_rows[index - 1], self.edit_rows[index] = self.edit_rows[index], self.edit_rows[index - 1]
             self.edit_row_tracker[index - 1], self.edit_row_tracker[index] = self.edit_row_tracker[index], \
                                                                              self.edit_row_tracker[index - 1]
-            print('\tchanged to: {}'.format(self.edit_row_tracker.index(sizer)))
 
     def move_command_down(self, sizer):
         index = self.edit_row_tracker.index(sizer)
-        print('Move down line {}'.format(self.edit_row_tracker.index(sizer)))
         try:
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
@@ -1847,8 +1845,6 @@ class EditFrame(wx.Frame):
             self.edit_rows[index], self.edit_rows[index + 1] = self.edit_rows[index + 1], self.edit_rows[index]
             self.edit_row_tracker[index], self.edit_row_tracker[index + 1] = self.edit_row_tracker[index + 1], \
                                                                              self.edit_row_tracker[index]
-
-            print('\tchanged to: {}'.format(self.edit_row_tracker.index(sizer)))
         except (IndexError, wx._core.wxAssertionError):
             pass
 
@@ -1895,11 +1891,6 @@ class EditFrame(wx.Frame):
         elif ('triple' in line_first_word) and ('click' in line_first_word):
             old_action = 'Triple-click'
             old_coords = coords_of(line)
-
-        print('Combobox in line {} changed from {} to {}'.format(index, old_action, new_action))
-
-        ###################################################################################
-        ###################################################################################
 
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
@@ -1950,12 +1941,9 @@ class EditFrame(wx.Frame):
 
         self.Layout()
 
-    def mouse_command_change(self, sizer, event, x=None, y=None):
+    def mouse_command_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
         new_action = event.GetString()
-
-        print('Combobox in line {} changed to {}'.format(index, new_action))
-        print(self.lines[index].replace('\n', ''))
 
         if new_action == 'Left':
             self.lines[index] = re.compile(re.escape('right'), re.IGNORECASE).sub('Left', self.lines[index])
@@ -1967,8 +1955,6 @@ class EditFrame(wx.Frame):
             for replace_word in [x for x in self.mouse_actions if x != new_action]:  # loop through remaining actions
                 self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(new_action.lower(),
                                                                                            self.lines[index])
-
-        print(self.lines[index])
 
     def coord_change(self, sizer, event, x=None, y=None):
         index = self.edit_row_tracker.index(sizer)
@@ -1990,7 +1976,9 @@ class EditFrame(wx.Frame):
 
             self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[1]), y_coord)
 
-        print(self.lines[index])
+    def text_change(self, sizer, event):
+        index = self.edit_row_tracker.index(sizer)
+        self.lines[index] = 'Type:{}'.format(event.GetString())
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
