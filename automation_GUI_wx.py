@@ -1530,19 +1530,15 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
                     self.hbox_edit.AddSpacer(10)
 
-                    self.create_double_click_row(self.line)
+                    self.create_multi_click_row(self.line)
 
                 elif ('triple' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
                                                style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
                     self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input(self.line)
+                    self.create_multi_click_row(self.line)
 
                 else:
                     raise EditCommandError()
@@ -1740,7 +1736,7 @@ class EditFrame(wx.Frame):
 
         self.create_point_input(line, sizer)
 
-    def create_double_click_row(self, line, sizer=None):
+    def create_multi_click_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
 
         if not sizer:
@@ -1952,7 +1948,11 @@ class EditFrame(wx.Frame):
 
         elif new_action == 'Double-click':
             self.lines[index] = 'Double-click at {}'.format(old_coords)
-            self.create_double_click_row(self.lines[index].lower(), sizer)
+            self.create_multi_click_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Triple-click':
+            self.lines[index] = 'Triple-click at {}'.format(old_coords)
+            self.create_multi_click_row(self.lines[index].lower(), sizer)
 
         self.Layout()
 
