@@ -6,7 +6,7 @@ Hotkey ctrl+s
 Hotkey ctrl+shift+left
 Wait 0.5
 Mouse-move to (749, 450)
-Sleep 0.5
+Wait 0.5
 Key Win Tap
 # Comment
 Left-mouse click at (749, 450)

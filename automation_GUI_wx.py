@@ -1492,29 +1492,11 @@ class EditFrame(wx.Frame):
                     self.create_wait_row(self.line)
 
                 elif 'hotkey' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+                    self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands, style=wx.CB_READONLY)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.combination = [x.capitalize() for x in
-                                        self.line.replace('hotkey', '').replace(' ', '').split('+')]
-
                     self.hbox_edit.AddSpacer(10)
 
-                    self.counter = 0
-                    for self.key in self.combination:
-                        self.counter += 1
-
-                        self.hotkey_cb = wx.ComboBox(self.edit, value=str(self.key), choices=self.all_keys,
-                                                     style=wx.CB_READONLY)
-                        self.hotkey_cb.Bind(wx.EVT_MOUSEWHEEL,
-                                            do_nothing)  # disable mouse wheel
-                        self.hbox_edit.Add(self.hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                        if self.counter < len(self.combination):
-                            self.label = wx.StaticText(self.edit, label='  +  ')
-                            self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
+                    self.create_hotkey_row(self.line)
 
                 elif 'key' in self.line_first_word:
                     self.key_in = self.line.split(' ')[1]
@@ -1733,6 +1715,29 @@ class EditFrame(wx.Frame):
         else:
             add_to_sizer(sizer)
 
+    def create_hotkey_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        combination = [x.capitalize() for x in
+                       line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
+        combination += [''] * (3 - len(combination))  # extend list with empty strings to reach standard number
+
+        for index, key in enumerate(combination):
+            hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
+            hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+
+            if not sizer:
+                self.hbox_edit.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+            else:
+                sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+
+            if index < len(combination) - 1:
+                # only add '+' in between keys (not after)
+                if not sizer:
+                    self.hbox_edit.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
+                else:
+                    sizer.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
+
     def refresh_edit_panel(self):
         # hide all vbox_edit children
         for child in self.vbox_edit.GetChildren():
@@ -1910,7 +1915,7 @@ class EditFrame(wx.Frame):
             self.create_type_row(self.lines[index], sizer)
 
         elif new_action == 'Wait':
-            self.lines[index] = 'Wait '
+            self.lines[index] = 'Wait'
             self.create_wait_row(self.lines[index], sizer)
 
         elif new_action == 'Special key':
@@ -1924,6 +1929,10 @@ class EditFrame(wx.Frame):
         elif new_action == 'Media key':
             self.lines[index] = 'Key PlayPause Tap'
             self.create_key_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Hotkey':
+            self.lines[index] = 'Hotkey'
+            self.create_hotkey_row(self.lines[index].lower(), sizer)
 
         self.Layout()
 
