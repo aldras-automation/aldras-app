@@ -1527,14 +1527,10 @@ class EditFrame(wx.Frame):
                 elif ('double' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
                                                style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
                     self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='at pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input(self.line)
+                    self.create_double_click_row(self.line)
 
                 elif ('triple' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
@@ -1744,6 +1740,16 @@ class EditFrame(wx.Frame):
 
         self.create_point_input(line, sizer)
 
+    def create_double_click_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        if not sizer:
+            self.hbox_edit.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+        else:
+            sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.create_point_input(line, sizer)
+
     def refresh_edit_panel(self):
         # hide all vbox_edit children
         for child in self.vbox_edit.GetChildren():
@@ -1943,6 +1949,10 @@ class EditFrame(wx.Frame):
         elif new_action == 'Mouse-move':
             self.lines[index] = 'Mouse-move to {}'.format(old_coords)
             self.create_mousemove_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Double-click':
+            self.lines[index] = 'Double-click at {}'.format(old_coords)
+            self.create_double_click_row(self.lines[index].lower(), sizer)
 
         self.Layout()
 
