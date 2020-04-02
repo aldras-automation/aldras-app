@@ -1519,14 +1519,10 @@ class EditFrame(wx.Frame):
                 elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
                     self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
                                                style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
                     self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-
                     self.hbox_edit.AddSpacer(10)
-                    self.label = wx.StaticText(self.edit, label='to pt. (  ')
-                    self.hbox_edit.Add(self.label, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                    self.create_point_input(self.line)
+                    self.create_mousemove_row(self.line)
 
                 elif ('double' in self.line) and ('click' in self.line):
                     self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
@@ -1738,6 +1734,16 @@ class EditFrame(wx.Frame):
                 else:
                     sizer.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
+    def create_mousemove_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+
+        if not sizer:
+            self.hbox_edit.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+        else:
+            sizer.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+
+        self.create_point_input(line, sizer)
+
     def refresh_edit_panel(self):
         # hide all vbox_edit children
         for child in self.vbox_edit.GetChildren():
@@ -1908,7 +1914,7 @@ class EditFrame(wx.Frame):
 
         if new_action == 'Mouse button':
             self.lines[index] = 'Left-mouse click at {}'.format(old_coords)
-            self.create_mouse_row(self.lines[index], sizer)
+            self.create_mouse_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Type':
             self.lines[index] = 'Type:'
@@ -1916,7 +1922,7 @@ class EditFrame(wx.Frame):
 
         elif new_action == 'Wait':
             self.lines[index] = 'Wait'
-            self.create_wait_row(self.lines[index], sizer)
+            self.create_wait_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Special key':
             self.lines[index] = 'Key Backspace Tap'
@@ -1933,6 +1939,10 @@ class EditFrame(wx.Frame):
         elif new_action == 'Hotkey':
             self.lines[index] = 'Hotkey'
             self.create_hotkey_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Mouse-move':
+            self.lines[index] = 'Mouse-move to {}'.format(old_coords)
+            self.create_mousemove_row(self.lines[index].lower(), sizer)
 
         self.Layout()
 
