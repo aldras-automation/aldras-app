@@ -1671,7 +1671,9 @@ class EditFrame(wx.Frame):
             sizer = self.hbox_edit
             value = line.replace('wait', '').replace(' ', '')
 
-        sizer.Add(wx.TextCtrl(self.edit, value=value), 0, wx.ALIGN_CENTER_VERTICAL)
+        wait_entry = wx.TextCtrl(self.edit, value=value)
+        wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
+        sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1979,6 +1981,10 @@ class EditFrame(wx.Frame):
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
         self.lines[index] = 'Type:{}'.format(event.GetString())
+
+    def wait_change(self, sizer, event):
+        index = self.edit_row_tracker.index(sizer)
+        self.lines[index] = 'Wait: {}'.format(event.GetString())
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
