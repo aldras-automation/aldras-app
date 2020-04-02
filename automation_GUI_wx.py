@@ -21,6 +21,7 @@ from pynput import keyboard, mouse
 # TODO implement encrypted file storage for preferences and other data (resolution)
 # TODO scrolled panel scroll down or up automatically
 # TODO wx.adv.AnimationCtrl for wait animation
+# TODO error codes with random generation for beta testing bug fixes
 # TODO investigate image buttons (edit frame - back button)
 # TODO image for recording, executing, and stopping (animation)
 # TODO investigate compartmentalization for better organization
@@ -96,7 +97,17 @@ def setup_frame(self, status_bar=False):
 def coords_of(line):
     """Returns tuple of parsed coordinates from string."""
     coords = line.split('(')[1].replace(' ', '').replace(')', '').split(',')
-    coords = (int(coords[0]), int(coords[1]))
+    try:
+        x_coord = int(coords[0])
+    except ValueError:
+        x_coord = 0
+
+    try:
+        y_coord = int(coords[1])
+    except ValueError:
+        y_coord = 0
+
+    coords = (x_coord, y_coord)
     return coords
 
 
@@ -1582,6 +1593,9 @@ class EditFrame(wx.Frame):
 
     def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
+
         if 'left' in line:
             mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
                                        style=wx.CB_READONLY)
@@ -1591,6 +1605,8 @@ class EditFrame(wx.Frame):
         else:
             raise EditCommandError('Mouse button not specified.')
         mouse_button.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+        # mouse_button.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=sizer: self.mouse_command_change(sizer_trap, event))
+        mouse_button.Bind(wx.EVT_COMBOBOX, lambda event: self.mouse_command_change(sizer, event))
 
         if 'click' in line:
             mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
@@ -1605,66 +1621,59 @@ class EditFrame(wx.Frame):
             mouse_button.Show(False)
             raise EditCommandError('Mouse action not specified.')
         mouse_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
+        mouse_action.Bind(wx.EVT_COMBOBOX, lambda event: self.mouse_command_change(sizer, event))
 
-        def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.AddSpacer(10)
-            sizer_to_add_to.Add(mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.AddSpacer(10)
-            sizer_to_add_to.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
-
-        if not sizer:
-            add_to_sizer(self.hbox_edit)
-        else:
-            add_to_sizer(sizer)
+        sizer.Add(mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(10)
+        sizer.Add(mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(10)
+        sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
     def create_point_input(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
+
         x_val = coords_of(line)[0]
         y_val = coords_of(line)[1]
+
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
                                    value=str(x_val))  # TODO validator
+        self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
+
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
                                    value=str(y_val))  # TODO validator
+        self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
 
-        def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
-
-        if not sizer:
-            add_to_sizer(self.hbox_edit)
-        else:
-            add_to_sizer(sizer)
+        sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_type_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
 
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
 
-        def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(text_to_type, 1, wx.EXPAND)
-            sizer_to_add_to.AddSpacer(15)
-
-        if not sizer:
-            add_to_sizer(self.hbox_edit)
-        else:
-            add_to_sizer(sizer)
+        sizer.Add(text_to_type, 1, wx.EXPAND)
+        sizer.AddSpacer(15)
 
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
-
         if not sizer:
-            self.hbox_edit.Add(wx.TextCtrl(self.edit, value=str(line.split(' ')[-1])), 0, wx.ALIGN_CENTER_VERTICAL)
-        else:
-            sizer.Add(wx.TextCtrl(self.edit, value='0'), 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer = self.hbox_edit
+
+        sizer.Add(wx.TextCtrl(self.edit, value='0'), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
 
         key_in = line.split(' ')[1]
 
@@ -1692,18 +1701,14 @@ class EditFrame(wx.Frame):
         key_action = wx.ComboBox(self.edit, value=action, choices=self.key_actions, style=wx.CB_READONLY)
         key_action.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
 
-        def add_to_sizer(sizer_to_add_to):
-            sizer_to_add_to.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
-            sizer_to_add_to.AddSpacer(10)
-            sizer_to_add_to.Add(key_action, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        if not sizer:
-            add_to_sizer(self.hbox_edit)
-        else:
-            add_to_sizer(sizer)
+        sizer.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(10)
+        sizer.Add(key_action, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_hotkey_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
 
         combination = [x.capitalize() for x in
                        line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
@@ -1712,36 +1717,27 @@ class EditFrame(wx.Frame):
         for index, key in enumerate(combination):
             hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
             hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
-
-            if not sizer:
-                self.hbox_edit.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
-            else:
-                sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
             if index < len(combination) - 1:
                 # only add '+' in between keys (not after)
-                if not sizer:
-                    self.hbox_edit.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
-                else:
-                    sizer.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
+                sizer.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_mousemove_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
-
         if not sizer:
-            self.hbox_edit.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
-        else:
-            sizer.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer = self.hbox_edit
+
+        sizer.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
     def create_multi_click_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
-
         if not sizer:
-            self.hbox_edit.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
-        else:
-            sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+            sizer = self.hbox_edit
+
+        sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
@@ -1899,7 +1895,6 @@ class EditFrame(wx.Frame):
             old_coords = coords_of(line)
 
         print('Combobox in line {} changed from {} to {}'.format(index, old_action, new_action))
-        print(old_action == new_action)
 
         ###################################################################################
         ###################################################################################
@@ -1952,6 +1947,48 @@ class EditFrame(wx.Frame):
             self.create_multi_click_row(self.lines[index].lower(), sizer)
 
         self.Layout()
+
+    def mouse_command_change(self, sizer, event, x=None, y=None):
+        index = self.edit_row_tracker.index(sizer)
+        new_action = event.GetString()
+
+        print('Combobox in line {} changed to {}'.format(index, new_action))
+        print(self.lines[index].replace('\n', ''))
+
+        if new_action == 'Left':
+            self.lines[index] = re.compile(re.escape('right'), re.IGNORECASE).sub('Left', self.lines[index])
+
+        elif new_action == 'Right':
+            self.lines[index] = re.compile(re.escape('left'), re.IGNORECASE).sub('Right', self.lines[index])
+
+        elif new_action in self.mouse_actions:  # click, press, or release
+            for replace_word in [x for x in self.mouse_actions if x != new_action]:  # loop through remaining actions
+                self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(new_action.lower(),
+                                                                                           self.lines[index])
+
+        print(self.lines[index])
+
+    def coord_change(self, sizer, event, x=None, y=None):
+        index = self.edit_row_tracker.index(sizer)
+        new_action = event.GetString()
+
+        if x:
+            if new_action:
+                x_coord = new_action
+            else:
+                x_coord = '0'
+
+            self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord)
+
+        elif y:
+            if new_action:
+                y_coord = new_action
+            else:
+                y_coord = '0'
+
+            self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[1]), y_coord)
+
+        print(self.lines[index])
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
