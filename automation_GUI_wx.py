@@ -1665,10 +1665,12 @@ class EditFrame(wx.Frame):
 
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
+        value = '0'
         if not sizer:
             sizer = self.hbox_edit
+            value = line.replace('wait', '').replace(' ', '')
 
-        sizer.Add(wx.TextCtrl(self.edit, value='0'), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.TextCtrl(self.edit, value=value), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
