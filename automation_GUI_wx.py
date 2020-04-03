@@ -13,7 +13,7 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
-# TODO implement changing edit commands updating
+# TODO implement recording functionality
 # TODO revise advanced edit guide styling
 # TODO change attributes (self.var) to variables (var) where possible
 # TODO comments
@@ -1387,6 +1387,7 @@ class EditFrame(wx.Frame):
         self.hbox_outer.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
 
         self.vbox_edit = None
+        self.num_hotkeys = 3
         self.create_edit_panel()
 
         self.hbox_outer.SetSizeHints(self)
@@ -1719,7 +1720,8 @@ class EditFrame(wx.Frame):
 
         combination = [x.capitalize() for x in
                        line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
-        combination += [''] * (3 - len(combination))  # extend list with empty strings to reach standard number
+        combination += [''] * (
+                    self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
 
         for index, key in enumerate(combination):
             hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
@@ -2004,14 +2006,9 @@ class EditFrame(wx.Frame):
     def hotkey_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
 
-        # # only cycle through last 5 widgets because should be most recently added hotkey comboboxes even if sizer has hidden widgets from previous commands
-        # for child in list(sizer.GetChildren())[-5::]:
-        #     if isinstance(child.GetWindow(), wx._core.ComboBox):
-        #         print([child.GetWindow().GetStringSelection()])
-
         # only cycle through last 5 widgets because should be most recently added hotkey comboboxes even if sizer has hidden widgets from previous commands
-        combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren())[-5::] if
-                       isinstance(child.GetWindow(), wx._core.ComboBox)]
+        combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
+                       isinstance(child.GetWindow(), wx._core.ComboBox)][-self.num_hotkeys::]
 
         combination = eliminate_duplicates(combination)
 
