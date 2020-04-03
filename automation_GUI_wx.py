@@ -983,8 +983,8 @@ class SoftwareInfo:
         self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
                               'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                               '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<',
-                              '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' ']
-        self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys + self.alphanum_keys
+                              '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~']
+        self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
 
 class EditCommandError(Exception):
@@ -1723,6 +1723,7 @@ class EditFrame(wx.Frame):
 
         for index, key in enumerate(combination):
             hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
+            hotkey_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.hotkey_change(sizer, event))
             hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, do_nothing)  # disable mouse wheel
             sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1993,14 +1994,33 @@ class EditFrame(wx.Frame):
         new_key = event.GetString()
         old_key = self.lines[index].split(' ')[1]
         self.lines[index] = self.lines[index].replace(old_key, new_key)
-        print(self.lines[index])
 
     def key_action_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
         new_action = event.GetString()
         old_action = self.lines[index].split(' ')[2]
         self.lines[index] = self.lines[index].replace(old_action, new_action)
-        print(self.lines[index])
+
+    def hotkey_change(self, sizer, event):
+        index = self.edit_row_tracker.index(sizer)
+
+        # # only cycle through last 5 widgets because should be most recently added hotkey comboboxes even if sizer has hidden widgets from previous commands
+        # for child in list(sizer.GetChildren())[-5::]:
+        #     if isinstance(child.GetWindow(), wx._core.ComboBox):
+        #         print([child.GetWindow().GetStringSelection()])
+
+        # only cycle through last 5 widgets because should be most recently added hotkey comboboxes even if sizer has hidden widgets from previous commands
+        combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren())[-5::] if
+                       isinstance(child.GetWindow(), wx._core.ComboBox)]
+
+        combination = eliminate_duplicates(combination)
+
+        try:
+            combination.remove('')  # remove blank hotkey placeholders
+        except ValueError:
+            pass
+
+        self.lines[index] = 'Hotkey {}'.format(' + '.join(combination))
 
     def on_record(self):
         record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
