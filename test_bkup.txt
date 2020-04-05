@@ -1,2 +1,7 @@
-``button.left```pressed at (1210, 486)
-``button.left```released at (1210, 486)
+f```pressed
+f```released
+a```pressed
+a```released
+``scrolled.up```1 at (427, 515)
+``key.ctrl_l```pressed at (424, 686)
+``key.f2```pressed

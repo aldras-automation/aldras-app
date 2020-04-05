@@ -192,7 +192,7 @@ def on_press_recording(key):
             if capslock:
                 output = output.swapcase()
         if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):
-            output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
+            output = 'ctrl+{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
             output_to_file_bkup('\\' + '```pressed')
             output = ''

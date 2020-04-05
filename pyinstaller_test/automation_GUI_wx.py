@@ -123,6 +123,7 @@ def consecutive_ranges_of(list_in):
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return list(zip(edges, edges))
 
+
 def update_status_bar(parent, status):
     """Update status bar."""
     parent.StatusBar.SetStatusText(status)
@@ -2005,7 +2006,7 @@ class EditFrame(wx.Frame):
         combination = [x.capitalize() for x in
                        line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
         combination += [''] * (
-                    self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
+                self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
 
         for index, key in enumerate(combination):
             hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
