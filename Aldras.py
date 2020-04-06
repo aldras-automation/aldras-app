@@ -85,7 +85,7 @@ def setup_frame(self, status_bar=False):
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
 
-    self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))  # assign icon
+    self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))  # assign icon
 
     self.SetBackgroundColour('white')  # set background color
 
@@ -293,7 +293,7 @@ class AboutDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
         self.SetTitle(caption)
         self.SetBackgroundColour('white')
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.FlexGridSizer(2, 1, 10, 10)
 
@@ -302,7 +302,7 @@ class AboutDialog(wx.Dialog):
         self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
 
         # add rescaled logo image
-        png = wx.Image('logo.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
+        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
         self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
         self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
@@ -782,7 +782,7 @@ class RecordCtrlCounterDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
         self.SetTitle(caption)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         self.parent = parent
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -923,7 +923,7 @@ class ExecuteCtrlCounterDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
         self.SetTitle(caption)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         self.parent = parent
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -1075,7 +1075,7 @@ class RecordDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
         self.SetTitle(caption)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1140,7 +1140,7 @@ class ExecuteDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
         self.SetTitle(caption)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
         self.options_box = wx.StaticBox(self, wx.ID_ANY, 'Options')
@@ -1285,7 +1285,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
 class DeleteCommandsDialog(wx.Dialog):
     def __init__(self, parent, message, caption, choices=None):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetTitle(caption)
         self.SetBackgroundColour('white')
         if choices is None:
@@ -1316,7 +1316,7 @@ class SaveDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, title='{}: Save'.format(parent.software_info.name),
                            style=wx.DEFAULT_DIALOG_STYLE)
-        # self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        # self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetTitle('Aldras - Save Changes')
         self.SetBackgroundColour('white')
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1462,7 +1462,7 @@ class AdvancedEdit(wx.Dialog):
         wx.Dialog.__init__(self, parent,
                            title='{}: Advanced Edit - {}'.format(parent.software_info.name, parent.workflow_name),
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-        self.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         self.parent = parent
         self.dirname = ''
@@ -2075,7 +2075,7 @@ class EditFrame(wx.Frame):
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
                                          'Reorder Commands - {}'.format(self.workflow_name), order,
                                          items)
-        reorder_dlg.SetIcon(wx.Icon('logo.ico', wx.BITMAP_TYPE_ICO))
+        reorder_dlg.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         reorder_dlg.SetBackgroundColour('white')
 
         if reorder_dlg.ShowModal() == wx.ID_OK:
@@ -2394,7 +2394,7 @@ class WorkflowFrame(wx.Frame):
         self.hbox_outer.AddSpacer(self.margin_x)
 
         # add rescaled logo image
-        png = wx.Image('logo.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
+        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self.container, wx.ID_ANY, wx.Bitmap(png))
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
