@@ -118,10 +118,12 @@ def float_in(input_string):
 
 
 def consecutive_ranges_of(list_in):
+    """Returns consecutive ranges of integers in list."""
     nums = sorted(set(list_in))
-    gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s + 1 < e]
+    gaps = [[start, end] for start, end in zip(nums, nums[1:]) if start + 1 < end]
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return list(zip(edges, edges))
+
 
 def update_status_bar(parent, status):
     """Update status bar."""
@@ -173,11 +175,6 @@ def output_to_file_bkup(output='', end='\n'):
     return
 
 
-df = pd.read_csv('ctrl_keys_ref.csv',
-                 names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
-df = df.set_index('Code')
-
-
 def on_press_recording(key):
     """Process keystroke press for keyboard listener for ListenerThread instances."""
     global capslock
@@ -193,9 +190,9 @@ def on_press_recording(key):
         if not output.startswith('key'):  # i.e., if output is alphanumeric
             if capslock:
                 output = output.swapcase()
-        if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):
+        if (output.startswith('\\') and output != '\\\\') or (
+                output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
             output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
-            # output = 'ctrl+{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
             output_to_file_bkup('Key \\ press')
             output = ''
@@ -258,9 +255,9 @@ def on_release_recording(key):
         if not output.startswith('key'):  # i.e., if output is alphanumeric
             if capslock:
                 output = output.swapcase()
-        if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):
+        if (output.startswith('\\') and output != '\\\\') or (
+                output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
             output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
-            # output = 'ctrl+{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
             output_to_file_bkup('Key \\ release')
             output = ''
@@ -282,20 +279,6 @@ def on_click_recording(x, y, button, pressed):
     if in_action:
         output_to_file_bkup('{}-mouse {} at {}'.format(str(button).replace('Button.', '').capitalize(),
                                                        'press' if pressed else 'release', (x, y)))
-    return
-
-
-def on_scroll_recording(x, y, dx, dy):
-    """Process scroll for mouse listener for ListenerThread instances."""
-    if in_action:
-        output_to_file_bkup('``scrolled.{}```1 at {}'.format('down' if dy < 0 else 'up', (x, y)))
-    return
-
-
-def on_move_recording(x, y):
-    """Process move for mouse listener for ListenerThread instances."""
-    # if recording:
-    #     output_to_file_bkup('``moved```{}'.format((x, y)))
     return
 
 
@@ -410,7 +393,7 @@ class ListenerThread(threading.Thread):
             recording_lines = []
 
     def run(self):
-        """Run Worker Thread."""
+        """Run worker thread."""
         global in_action
         global ctrls
         in_action = False
@@ -425,7 +408,7 @@ class ListenerThread(threading.Thread):
             self.mouse_listener.start()
 
     def abort(self):
-        """abort worker thread."""
+        """Abort worker thread."""
         # Method for use by main thread to signal an abort
         if self.listen_to_key:
             self.key_listener.stop()
@@ -607,8 +590,6 @@ class RecordingThread(threading.Thread):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         self.parent = parent
-        # recording_thread = self
-        # global recording_thread
 
     def run(self):
         """Run Worker Thread."""
@@ -618,10 +599,6 @@ class RecordingThread(threading.Thread):
         pause = self.parent.parent.execution_pause
         type_interval = self.parent.parent.execution_type_intrv
         mouse_duration = self.parent.parent.execution_mouse_dur
-
-        # print('pause - run: {}'.format(type(self.parent.parent.execution_pause)))
-        # print('execution_mouse_dur - run: {}'.format(type(self.parent.parent.execution_mouse_dur)))
-        # print('execution_type_intrv - run: {}'.format(type(self.parent.parent.execution_type_intrv)))
 
         mouse_down_coords = [0, 0]
         pyauto.PAUSE = pause
@@ -2551,6 +2528,15 @@ def main():
     WorkflowFrame(None)
     app.MainLoop()
 
+
+try:
+    df = pd.read_csv('ctrl_keys_ref.csv',
+                     names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
+    df = df.set_index('Code')
+except FileNotFoundError as e:
+    print('FileNotFoundError: [Errno 2] File ctrl_keys_ref.csv does not exist: \'ctrl_keys_ref.csv\'')
+    time.sleep(3)
+    raise FileNotFoundError
 
 if __name__ == '__main__':
     main()

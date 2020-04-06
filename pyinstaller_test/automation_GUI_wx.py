@@ -2,6 +2,7 @@ import ctypes
 import math
 import os
 import re
+import sys
 import threading
 import time
 import webbrowser
@@ -42,6 +43,14 @@ from pynput import keyboard, mouse
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
 EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
+
+try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    # base_path = sys._MEIPASS
+    os.chdir(sys._MEIPASS)
+except Exception:
+    # base_path = os.path.abspath(".")
+    pass
 
 
 def do_nothing(event=None):
@@ -122,7 +131,6 @@ def consecutive_ranges_of(list_in):
     gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s + 1 < e]
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return list(zip(edges, edges))
-
 
 def update_status_bar(parent, status):
     """Update status bar."""
