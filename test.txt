@@ -1,3 +1,0 @@
-``button.left```tapped at (1210, 486)
-
-``button.left```released at (1210, 486)
