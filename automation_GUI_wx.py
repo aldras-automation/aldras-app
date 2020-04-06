@@ -14,6 +14,7 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
+
 # TODO implement recording functionality
 # TODO revise advanced edit guide styling
 # TODO change attributes (self.var) to variables (var) where possible
@@ -41,7 +42,7 @@ from pynput import keyboard, mouse
 # TODO variables from excel or in range, etc.
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
-EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
+# EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
 
 
 def do_nothing(event=None):
@@ -192,7 +193,7 @@ def on_press_recording(key):
                 output = output.swapcase()
         if (output.startswith('\\') and output != '\\\\') or (
                 output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-            output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
+            output = '{}'.format(ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
             output_to_file_bkup('Key \\ press')
             output = ''
@@ -257,7 +258,7 @@ def on_release_recording(key):
                 output = output.swapcase()
         if (output.startswith('\\') and output != '\\\\') or (
                 output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-            output = '{}'.format(df['Translation'][output.replace('<', '').replace('>', '')])
+            output = '{}'.format(ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')])
         if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
             output_to_file_bkup('Key \\ release')
             output = ''
@@ -391,6 +392,16 @@ class ListenerThread(threading.Thread):
         if self.record:
             global recording_lines
             recording_lines = []
+        try:
+            global ctrl_keys_df
+            ctrl_keys_df = pd.read_csv('ctrl_keys_ref.csv',
+                                       names=['Translation',
+                                              'Code'])  # reference for all ctrl hotkeys (registered as separate key)
+            ctrl_keys_df = ctrl_keys_df.set_index('Code')
+        except FileNotFoundError as e:
+            print('FileNotFoundError: [Errno 2] File ctrl_keys_ref.csv does not exist: \'ctrl_keys_ref.csv\'')
+            time.sleep(3)
+            raise FileNotFoundError
 
     def run(self):
         """Run worker thread."""
@@ -2338,6 +2349,10 @@ class WorkflowFrame(wx.Frame):
         self.software_info = SoftwareInfo()
         global capslock
         capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))
+
+        global EVT_RESULT_ID
+        EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
+
         wx.Frame.__init__(self, parent, title='{} Automation'.format(self.software_info.name))
 
         setup_frame(self)
@@ -2528,15 +2543,6 @@ def main():
     WorkflowFrame(None)
     app.MainLoop()
 
-
-try:
-    df = pd.read_csv('ctrl_keys_ref.csv',
-                     names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
-    df = df.set_index('Code')
-except FileNotFoundError as e:
-    print('FileNotFoundError: [Errno 2] File ctrl_keys_ref.csv does not exist: \'ctrl_keys_ref.csv\'')
-    time.sleep(3)
-    raise FileNotFoundError
 
 if __name__ == '__main__':
     main()
