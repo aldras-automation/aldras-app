@@ -15,9 +15,8 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 
-# TODO implement recording functionality
-# TODO revise advanced edit guide styling
 # TODO change attributes (self.var) to variables (var) where possible
+# TODO investigate warnings (Code > Inspect Code...)
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement encrypted file storage for preferences and other data (resolution)
@@ -406,7 +405,6 @@ class ListenerThread(threading.Thread):
         processed_lines = []
         skip = False
         break_code = '```8729164788```'
-        break_value = ''
         register_hotkey = False
         pressed_keys = []
         symbol_chars = ['[', '@', '_', '!', '#', '$', '%', '^', '&', '*', '(', ')', '<', '>', '?', '/', '\\', '|', '}',
@@ -590,22 +588,21 @@ class PlaceholderTextCtrl(wx.TextCtrl):
 class EditFrame(wx.Frame):
     def __init__(self, parent):
         t0 = time.time()
-        self.dirname = ''
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
-        self.workflow_path_name = parent.workflow_path_name
-        self.commands = self.software_info.commands
-        self.mouse_buttons = self.software_info.mouse_buttons
-        self.mouse_actions = self.software_info.mouse_actions
-        self.key_actions = self.software_info.key_actions
-        self.coord_width = self.software_info.coord_width
-        self.special_keys = self.software_info.special_keys
-        self.media_keys = self.software_info.media_keys
-        self.function_keys = self.software_info.function_keys
-        self.alphanum_keys = self.software_info.alphanum_keys
-        self.all_keys = self.software_info.all_keys
+        # self.workflow_path_name = parent.workflow_path_name
+        # self.commands = self.software_info.commands
+        # self.mouse_buttons = self.software_info.mouse_buttons
+        # self.mouse_actions = self.software_info.mouse_actions
+        # self.key_actions = self.software_info.key_actions
+        # self.coord_width = self.software_info.coord_width
+        # self.special_keys = self.software_info.special_keys
+        # self.media_keys = self.software_info.media_keys
+        # self.function_keys = self.software_info.function_keys
+        # self.alphanum_keys = self.software_info.alphanum_keys
+        # self.all_keys = self.software_info.all_keys
 
-        wx.Frame.__init__(self, parent, title='{}: Edit - {}'.format(self.software_info.name, self.workflow_name))
+        wx.Frame.__init__(self, parent, title='{}: Edit - {}'.format(self.software_info.name, parent.workflow_name))
 
         setup_frame(self, status_bar=True)
 
@@ -628,7 +625,7 @@ class EditFrame(wx.Frame):
         self.hbox_top.AddSpacer(10)
 
         # add workflow title
-        self.title = wx.StaticText(self, label='{}'.format(self.workflow_name))
+        self.title = wx.StaticText(self, label='{}'.format(parent.workflow_name))
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -644,10 +641,10 @@ class EditFrame(wx.Frame):
 
         # read or create workflow file
         try:
-            with open(self.workflow_path_name, 'r') as record_file:
+            with open(parent.workflow_path_name, 'r') as record_file:
                 self.lines = record_file.readlines()
         except FileNotFoundError:  # create file if not found
-            with open(self.workflow_path_name, 'w'):
+            with open(parent.workflow_path_name, 'w'):
                 self.lines = []
 
         self.lines_as_read = self.lines.copy()
@@ -760,11 +757,23 @@ class EditFrame(wx.Frame):
 
         self.edit_row_tracker = []
 
+        def add_command_combobox(command_value):
+            self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
+                                       style=wx.CB_READONLY)
+            self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+            self.command.Bind(wx.EVT_COMBOBOX,
+                              lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
+            self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+            self.hbox_edit.AddSpacer(10)
+
         for index, self.line_orig in enumerate(self.lines):
             self.line_orig = self.line_orig.replace('\n', '')
             self.line = self.line_orig.lower()
 
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+
+            comment = False
+
             try:
                 self.hbox_edit.AddSpacer(5)
 
@@ -781,7 +790,6 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.AddSpacer(5)
                 self.line_first_word = self.line.split(' ')[0]
 
-                comment = False
                 if not self.line:  # if line is empty
                     self.hbox_edit.Insert(0, 0, 50, 1)
                     self.hbox_edit.Insert(0, 0, 0, 1)
@@ -822,85 +830,50 @@ class EditFrame(wx.Frame):
                     self.hbox_edit = self.vbox_comment
 
                 elif '-mouse' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Mouse button', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
+                    add_command_combobox('Mouse button')
                     self.create_mouse_row(self.line)
 
                 elif 'type:' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Type', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Type')
                     self.create_type_row(self.line_orig)
 
                 elif 'wait' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Wait', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    # self.cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Wait')
                     self.create_wait_row(self.line)
 
                 elif 'hotkey' in self.line_first_word:
-                    self.command = wx.ComboBox(self.edit, value='Hotkey', choices=self.commands, style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Hotkey')
                     self.create_hotkey_row(self.line)
 
                 elif 'key' in self.line_first_word:
                     self.key_in = self.line.split(' ')[1]
 
-                    if self.key_in in [x.lower() for x in self.special_keys]:
+                    if self.key_in in [x.lower() for x in self.software_info.special_keys]:
                         key_type = 'Special key'
-                    elif self.key_in in [x.lower() for x in self.function_keys]:
+                    elif self.key_in in [x.lower() for x in self.software_info.function_keys]:
                         key_type = 'Function key'
-                    elif self.key_in in [x.lower() for x in self.media_keys]:
+                    elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
                         key_type = 'Media key'
                     else:
                         raise self.EditCommandError()
 
-                    self.command = wx.ComboBox(self.edit, value=key_type, choices=self.commands, style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox(key_type)
                     self.create_key_row(self.line)
 
                 elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                    self.command = wx.ComboBox(self.edit, value='Mouse-move', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Mouse-move')
                     self.create_mousemove_row(self.line)
 
                 elif ('double' in self.line) and ('click' in self.line):
-                    self.command = wx.ComboBox(self.edit, value='Double-click', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Double-click')
                     self.create_multi_click_row(self.line)
 
                 elif ('triple' in self.line) and ('click' in self.line):
-                    self.command = wx.ComboBox(self.edit, value='Triple-click', choices=self.commands,
-                                               style=wx.CB_READONLY)
-                    self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-                    self.hbox_edit.AddSpacer(10)
-
+                    add_command_combobox('Triple-click')
                     self.create_multi_click_row(self.line)
 
                 else:
                     raise self.EditCommandError()
-
-                self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
-                self.command.Bind(wx.EVT_COMBOBOX,
-                                  lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap,
-                                                                                                        event))
 
             except self.EditCommandError as e:
                 self.hbox_edit.AddSpacer(10)
@@ -938,10 +911,10 @@ class EditFrame(wx.Frame):
             sizer = self.hbox_edit
 
         if 'left' in line:
-            mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.mouse_buttons,
+            mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.software_info.mouse_buttons,
                                        style=wx.CB_READONLY)
         elif 'right' in line:
-            mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.mouse_buttons,
+            mouse_button = wx.ComboBox(self.edit, value='Right', choices=self.software_info.mouse_buttons,
                                        style=wx.CB_READONLY)
         else:
             raise self.EditCommandError('Mouse button not specified.')
@@ -949,13 +922,13 @@ class EditFrame(wx.Frame):
         mouse_button.Bind(wx.EVT_COMBOBOX, lambda event: self.mouse_command_change(sizer, event))
 
         if 'click' in line:
-            mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.mouse_actions,
+            mouse_action = wx.ComboBox(self.edit, value='Click', choices=self.software_info.mouse_actions,
                                        style=wx.CB_READONLY)
         elif 'press' in line:
-            mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.mouse_actions,
+            mouse_action = wx.ComboBox(self.edit, value='Press', choices=self.software_info.mouse_actions,
                                        style=wx.CB_READONLY)
         elif 'release' in line:
-            mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.mouse_actions,
+            mouse_action = wx.ComboBox(self.edit, value='Release', choices=self.software_info.mouse_actions,
                                        style=wx.CB_READONLY)
         else:
             mouse_button.Show(False)
@@ -979,11 +952,11 @@ class EditFrame(wx.Frame):
         x_val = coords_of(line)[0]
         y_val = coords_of(line)[1]
 
-        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
+        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(x_val))  # TODO validator
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
 
-        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.coord_width, -1),
+        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(y_val))  # TODO validator
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
 
@@ -1022,12 +995,12 @@ class EditFrame(wx.Frame):
 
         key_in = line.split(' ')[1]
 
-        if key_in in [x.lower() for x in self.special_keys]:
-            choices = self.special_keys
-        elif key_in in [x.lower() for x in self.function_keys]:
-            choices = self.function_keys
-        elif key_in in [x.lower() for x in self.media_keys]:
-            choices = self.media_keys
+        if key_in in [x.lower() for x in self.software_info.special_keys]:
+            choices = self.software_info.special_keys
+        elif key_in in [x.lower() for x in self.software_info.function_keys]:
+            choices = self.software_info.function_keys
+        elif key_in in [x.lower() for x in self.software_info.media_keys]:
+            choices = self.software_info.media_keys
         else:
             raise self.EditCommandError('Key category not specified.')
 
@@ -1044,7 +1017,7 @@ class EditFrame(wx.Frame):
         else:
             raise self.EditCommandError('Key action not specified.')
 
-        key_action = wx.ComboBox(self.edit, value=action, choices=self.key_actions, style=wx.CB_READONLY)
+        key_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.key_actions, style=wx.CB_READONLY)
         key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.key_action_change(sizer, event))
         key_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
 
@@ -1060,10 +1033,11 @@ class EditFrame(wx.Frame):
         combination = [x.capitalize() for x in
                        line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
         combination += [''] * (
-                    self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
+                self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
 
         for index, key in enumerate(combination):
-            hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.all_keys, style=wx.CB_READONLY)
+            hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.software_info.all_keys,
+                                    style=wx.CB_READONLY)
             hotkey_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.hotkey_change(sizer, event))
             hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
             sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1138,7 +1112,7 @@ class EditFrame(wx.Frame):
                     self.check_list_box.Check(i, state)
 
         delete_dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
-                                          'Delete Commands - {}'.format(self.workflow_name),
+                                          'Delete Commands - {}'.format(self.software_info.workflow_name),
                                           self.lines)
 
         if delete_dlg.ShowModal() == wx.ID_OK:
@@ -1170,7 +1144,7 @@ class EditFrame(wx.Frame):
         order = range(len(self.lines))
 
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
-                                         'Reorder Commands - {}'.format(self.workflow_name), order,
+                                         'Reorder Commands - {}'.format(self.software_info.workflow_name), order,
                                          items)
         reorder_dlg.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
         reorder_dlg.SetBackgroundColour('white')
@@ -1198,7 +1172,6 @@ class EditFrame(wx.Frame):
                 self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.parent = parent
-                self.dirname = ''
                 self.adv_edit_guide = None
 
                 # create sizers
@@ -1253,7 +1226,6 @@ class EditFrame(wx.Frame):
 
                 class AdvancedEditGuide(wx.Dialog):
                     def __init__(self, parent):
-                        self.dirname = ''
                         self.software_info = parent.parent.software_info
                         self.workflow_name = parent.parent.workflow_name
 
@@ -1395,6 +1367,7 @@ class EditFrame(wx.Frame):
 
     def move_command_down(self, sizer):
         index = self.edit_row_tracker.index(sizer)
+        # noinspection PyProtectedMember
         try:
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
@@ -1431,13 +1404,13 @@ class EditFrame(wx.Frame):
 
         elif 'key' in line_first_word:
             key = line.split(' ')[1]
-            if key in [x.lower() for x in self.special_keys]:
+            if key in [x.lower() for x in self.software_info.special_keys]:
                 old_action = 'Special key'
 
-            elif key in [x.lower() for x in self.function_keys]:
+            elif key in [x.lower() for x in self.software_info.function_keys]:
                 old_action = 'Function key'
 
-            elif key in [x.lower() for x in self.media_keys]:
+            elif key in [x.lower() for x in self.software_info.media_keys]:
                 old_action = 'Media key'
 
         elif ('mouse' in line_first_word) and ('move' in line_first_word):
@@ -1511,8 +1484,9 @@ class EditFrame(wx.Frame):
         elif new_action == 'Right':
             self.lines[index] = re.compile(re.escape('left'), re.IGNORECASE).sub('Right', self.lines[index])
 
-        elif new_action in self.mouse_actions:  # click, press, or release
-            for replace_word in [x for x in self.mouse_actions if x != new_action]:  # loop through remaining actions
+        elif new_action in self.software_info.mouse_actions:  # click, press, or release
+            for replace_word in [x for x in self.software_info.mouse_actions if
+                                 x != new_action]:  # loop through remaining actions
                 self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(new_action.lower(),
                                                                                            self.lines[index])
 
@@ -1561,7 +1535,7 @@ class EditFrame(wx.Frame):
 
         # only cycle through last 5 widgets because should be most recently added hotkey comboboxes even if sizer has hidden widgets from previous commands
         combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
-                       isinstance(child.GetWindow(), wx._core.ComboBox)][-self.num_hotkeys::]
+                       isinstance(child.GetWindow(), wx.ComboBox)][-self.num_hotkeys::]
 
         combination = eliminate_duplicates(combination)
 
@@ -2134,13 +2108,16 @@ class EditFrame(wx.Frame):
                         self.Fit()
 
                 def close_window(self, event):
-                    self.listener_thread.abort()
                     try:
-                        self.execution_thread.abort()
+                        self.listener_thread.abort()
+                        print(self.listener_thread)
                     except AttributeError:
                         pass
-                    print(self.listener_thread)
-                    print(self.execution_thread)
+                    try:
+                        self.execution_thread.abort()
+                        print(self.execution_thread)
+                    except AttributeError:
+                        pass
                     self.Destroy()
 
             dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
@@ -2190,7 +2167,7 @@ class EditFrame(wx.Frame):
             save_dialog = SaveDialog(self).ShowModal()
             if save_dialog == wx.ID_OK:
                 # write to workflow file
-                with open(self.workflow_path_name, 'w') as record_file:
+                with open(self.software_info.workflow_path_name, 'w') as record_file:
                     for line in self.lines:
                         record_file.write(line)
             elif save_dialog == 20:  # don't save button
@@ -2207,10 +2184,13 @@ class EditFrame(wx.Frame):
 
 
 class WorkflowFrame(wx.Frame):
+    """Main frame to select workflow."""
+
     def __init__(self, parent):
-        self.dirname = ''
 
         class SoftwareInfo:
+            """Object to contain all information about Aldras."""
+
             def __init__(self):
                 self.name = 'Aldras'
                 self.version = '2020.0.0 Alpha'
@@ -2345,6 +2325,7 @@ class WorkflowFrame(wx.Frame):
         self.vbox_outer.Add(self.hbox_outer, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.vbox_outer.AddStretchSpacer()
 
+        # add buttons
         self.button_array = wx.StdDialogButtonSizer()
         self.ok_btn = wx.Button(self.container, label='OK')
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
@@ -2368,30 +2349,24 @@ class WorkflowFrame(wx.Frame):
     def on_ok(self, event):
         if self.workflow_name_input.GetValue() == '':
             # create a message dialog box
-            dlg = wx.MessageDialog(self,
-                                   'Invalid file name.\nPlease try again.',
-                                   'Invalid File Name', wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()  # show modal
-            dlg.Destroy()  # destroy dialog when finished
+            confirm_workflow_dlg = wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
+                                                    wx.OK | wx.ICON_EXCLAMATION)
+            confirm_workflow_dlg.ShowModal()  # show modal
+            confirm_workflow_dlg.Destroy()  # destroy dialog when finished
 
         else:
-            dlg = wx.MessageDialog(None, 'Please confirm that "{}" is your desired workflow.'.format(
+            confirm_workflow_dlg = wx.MessageDialog(None, 'Please confirm that "{}" is your desired workflow.'.format(
                 self.workflow_name_input.GetValue().capitalize()),
-                                   '{} Workflow Confirmation'.format(self.software_info.name),
-                                   wx.YES_NO | wx.ICON_QUESTION)
-            result = dlg.ShowModal()
+                                                    '{} Workflow Confirmation'.format(self.software_info.name),
+                                                    wx.YES_NO | wx.ICON_QUESTION)
 
-            if result == wx.ID_YES:
+            if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
                 workflow_name = self.workflow_name_input.GetValue().capitalize()
 
                 self.launch_workflow(workflow_path_name='{}{}.txt'.format(self.workflow_directory, workflow_name))
-            else:
-                pass  # returns user back to workflow window
 
     def launch_workflow(self, workflow_path_name):
         workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
-        print(workflow_path_name)
-        print()
         self.workflow_name = workflow_name
         self.workflow_path_name = workflow_path_name
 
@@ -2448,11 +2423,9 @@ class WorkflowFrame(wx.Frame):
     # dlg.Destroy()
 
 
-def main():
+if __name__ == '__main__':
+    global capslock
+    global EVT_RESULT_ID
     app = wx.App(False)
     WorkflowFrame(None)
     app.MainLoop()
-
-
-if __name__ == '__main__':
-    main()
