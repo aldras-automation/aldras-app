@@ -2137,26 +2137,36 @@ class EditFrame(wx.Frame):
 
                     self.message = wx.StaticText(self, wx.ID_ANY,
                                                  'Do you want to save changes to \'{}\'?'.format(parent.workflow_name))
-                    self.message.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
+                    self.message.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
                     self.message.SetForegroundColour((35, 75, 160))  # change font color to (r,g,b)
                     self.vbox.Add(self.message, 0, wx.ALL, 10)
 
                     self.vbox.AddSpacer(20)
                     self.vbox.Add(wx.StaticLine(self), 0, wx.EXPAND)
 
+                    # create save buttons
+                    self.save_button_panel = wx.Panel(self)
+                    self.save_button_panel.BackgroundColour = (240, 240, 240)
+
                     self.button_array = wx.StdDialogButtonSizer()
                     self.button_array.AddSpacer(100)
-                    self.save_btn = wx.Button(self, wx.ID_OK, label='Save')
+                    self.save_btn = wx.Button(self.save_button_panel, wx.ID_OK, label='Save')
                     self.button_array.Add(self.save_btn)
                     self.button_array.AddSpacer(5)
-                    self.save_btn = wx.Button(self, wx.ID_REVERT_TO_SAVED, label='Don\'t Save')
+                    self.save_btn = wx.Button(self.save_button_panel, wx.ID_REVERT_TO_SAVED, label='Don\'t Save')
                     self.save_btn.Bind(wx.EVT_BUTTON, self.on_no_save)
                     self.button_array.Add(self.save_btn)
                     self.button_array.AddSpacer(5)
-                    self.cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+                    self.cancel_btn = wx.Button(self.save_button_panel, wx.ID_CANCEL, label='Cancel')
                     self.button_array.Add(self.cancel_btn)
 
-                    self.vbox.Add(self.button_array, 0, wx.ALL | wx.EXPAND, 5)
+                    # create button container for color around buttons
+                    self.button_container = wx.BoxSizer(wx.HORIZONTAL)
+                    self.button_container.Add(self.button_array, 1, wx.EXPAND | wx.ALL, 5)
+
+                    self.save_button_panel.SetSizer(self.button_container)
+
+                    self.vbox.Add(self.save_button_panel, 1, wx.EXPAND)
 
                     self.SetSizerAndFit(self.vbox)
                     self.Center()
