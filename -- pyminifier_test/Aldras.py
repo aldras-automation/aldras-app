@@ -15,6 +15,8 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 
+# TODO change attributes (self.var) to variables (var) where possible
+# TODO investigate warnings (Code > Inspect Code...)
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement encrypted file storage for preferences and other data (resolution)
@@ -191,6 +193,8 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
         status (str): The string that should be displayed for the status.
         tooltip (bool or str): 'True' should be passed if the tooltip should be configured with the status string. Another string should be passed if the tooltip should be configured with another string.
     """
+
+    # TODO allow for just status bar or tooltip (for windows without status bars) -- TEST first (error with AdvancedEditGuide)
 
     def update_status_bar(parent_win, status_to_update):
         """Update status bar."""
@@ -734,15 +738,6 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
         self.edit_rows.append(edit_row_vbox)
 
-    def add_command_combobox(self, command_value):
-        self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
-                                   style=wx.CB_READONLY)
-        self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
-        self.command.Bind(wx.EVT_COMBOBOX,
-                          lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
-        self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
-        self.hbox_edit.AddSpacer(10)
-
     def create_edit_panel(self):
         self.first_call = True
         if self.vbox_edit:  # if edit panel has been created previously
@@ -758,6 +753,15 @@ class EditFrame(wx.Frame):
         self.edit.SetSizer(self.vbox_edit)
 
         self.edit_row_tracker = []
+
+        def add_command_combobox(command_value):
+            self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
+                                       style=wx.CB_READONLY)
+            self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+            self.command.Bind(wx.EVT_COMBOBOX,
+                              lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
+            self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
+            self.hbox_edit.AddSpacer(10)
 
         for index, self.line_orig in enumerate(self.lines):
             self.line_orig = self.line_orig.replace('\n', '')
@@ -823,19 +827,19 @@ class EditFrame(wx.Frame):
                     self.hbox_edit = self.vbox_comment
 
                 elif '-mouse' in self.line_first_word:
-                    self.add_command_combobox('Mouse button')
+                    add_command_combobox('Mouse button')
                     self.create_mouse_row(self.line)
 
                 elif 'type:' in self.line_first_word:
-                    self.add_command_combobox('Type')
+                    add_command_combobox('Type')
                     self.create_type_row(self.line_orig)
 
                 elif 'wait' in self.line_first_word:
-                    self.add_command_combobox('Wait')
+                    add_command_combobox('Wait')
                     self.create_wait_row(self.line)
 
                 elif 'hotkey' in self.line_first_word:
-                    self.add_command_combobox('Hotkey')
+                    add_command_combobox('Hotkey')
                     self.create_hotkey_row(self.line)
 
                 elif 'key' in self.line_first_word:
@@ -850,19 +854,19 @@ class EditFrame(wx.Frame):
                     else:
                         raise self.EditCommandError()
 
-                    self.add_command_combobox(key_type)
+                    add_command_combobox(key_type)
                     self.create_key_row(self.line)
 
                 elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                    self.add_command_combobox('Mouse-move')
+                    add_command_combobox('Mouse-move')
                     self.create_mousemove_row(self.line)
 
                 elif ('double' in self.line) and ('click' in self.line):
-                    self.add_command_combobox('Double-click')
+                    add_command_combobox('Double-click')
                     self.create_multi_click_row(self.line)
 
                 elif ('triple' in self.line) and ('click' in self.line):
-                    self.add_command_combobox('Triple-click')
+                    add_command_combobox('Triple-click')
                     self.create_multi_click_row(self.line)
 
                 else:
@@ -902,8 +906,6 @@ class EditFrame(wx.Frame):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if not sizer:
             sizer = self.hbox_edit
-
-        print('line: {}'.format(line))
 
         if 'left' in line:
             mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.software_info.mouse_buttons,
@@ -1064,7 +1066,7 @@ class EditFrame(wx.Frame):
         for child in self.vbox_edit.GetChildren():
             child.Show(False)
 
-        # print('self.edit_rows: {}'.format(self.edit_rows))
+        print('self.edit_rows: {}'.format(self.edit_rows))
 
         for self.edit_row in self.edit_rows:
             for child in self.edit_row.GetChildren():  # recursively show all row elements
@@ -1125,38 +1127,14 @@ class EditFrame(wx.Frame):
 
     def on_open_add_command_dialog(self):
         # for testing new rows
-        # for ii in range(2):
-        #     hbox = wx.BoxSizer(wx.HORIZONTAL)
-        #     hbox.Add(wx.StaticText(self.edit, wx.ID_ANY, label='Blah blah blah'), 0, wx.ALIGN_CENTER)
-        #     hbox.AddSpacer(10)
-        #     hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
-        #     self.add_edit_row(hbox)
-
-        self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.hbox_edit.AddSpacer(5)
-
-        self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
-        self.move_up.Bind(wx.EVT_BUTTON,
-                          lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-        self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
-        self.move_down.Bind(wx.EVT_BUTTON,
-                            lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-        self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        self.hbox_edit.AddSpacer(5)
-
-        self.add_command_combobox('Mouse button')
-        self.create_mouse_row('Left-mouse click at (0, 0)'.lower(), self.hbox_edit)
-
-        self.add_edit_row(self.hbox_edit)
+        for ii in range(2):
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox.Add(wx.StaticText(self.edit, wx.ID_ANY, label='Blah blah blah'), 0, wx.ALIGN_CENTER)
+            hbox.AddSpacer(10)
+            hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
+            self.add_edit_row(hbox)
 
         self.refresh_edit_panel()
-
-        self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
-                                       isinstance(child.GetWindow(), wx.ComboBox)][-1])
 
     def open_reorder_dialog(self):
         items = self.lines
