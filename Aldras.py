@@ -903,8 +903,6 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        print('line: {}'.format(line))
-
         if 'left' in line:
             mouse_button = wx.ComboBox(self.edit, value='Left', choices=self.software_info.mouse_buttons,
                                        style=wx.CB_READONLY)
@@ -1124,16 +1122,7 @@ class EditFrame(wx.Frame):
                 self.Layout()
 
     def on_open_add_command_dialog(self):
-        # for testing new rows
-        # for ii in range(2):
-        #     hbox = wx.BoxSizer(wx.HORIZONTAL)
-        #     hbox.Add(wx.StaticText(self.edit, wx.ID_ANY, label='Blah blah blah'), 0, wx.ALIGN_CENTER)
-        #     hbox.AddSpacer(10)
-        #     hbox.Add(wx.ComboBox(self.edit, wx.ID_ANY, choices=['c1', 'c2', 'c3']), 0, wx.ALIGN_CENTER)
-        #     self.add_edit_row(hbox)
-
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-
         self.hbox_edit.AddSpacer(5)
 
         self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
@@ -1150,8 +1139,10 @@ class EditFrame(wx.Frame):
 
         self.add_command_combobox('Mouse button')
         self.create_mouse_row('Left-mouse click at (0, 0)'.lower(), self.hbox_edit)
+        self.lines.append('Left-mouse click at (0, 0)')
 
         self.add_edit_row(self.hbox_edit)
+        self.edit_row_tracker.append(self.hbox_edit)
 
         self.refresh_edit_panel()
 
