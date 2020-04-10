@@ -15,8 +15,12 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 
+# TODO shade save dialog and change to more wide-spaced font
+# TODO center new windows and dialogs
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
+# TODO implement mouse locator utility
+# TODO implement fading shade color of recently modified command
 # TODO implement encrypted file storage for preferences and other data (resolution)
 # TODO scrolled panel scroll down or up automatically
 # TODO wx.adv.AnimationCtrl for wait animation
@@ -124,6 +128,7 @@ def setup_frame(self, status_bar=False):
 
                 self.vbox_outer.Add(self.vbox, 0, wx.ALL, 5)
                 self.SetSizerAndFit(self.vbox_outer)
+                self.Center()
 
             @staticmethod
             def licence(_):
@@ -258,8 +263,8 @@ class ListenerThread(threading.Thread):
             except NameError:
                 pass
 
-            output = (output + end)
-            print(output)
+            # output = (output + end)
+            # print(output)
 
             # Will add back when recording is enabled
             # with open('{}_bkup.txt'.format(workflow_name), 'a') as record_file:
@@ -324,12 +329,6 @@ class ListenerThread(threading.Thread):
                     if ctrls >= 3:
                         ctrls = 0
                         in_action = not in_action
-                        print()
-                        print('RECORDING = {}'.format(in_action))
-                        if not in_action:
-                            print('Complete!')
-                            # compile_recording()
-                            raise SystemExit()
 
             def on_release_recording(key):
                 """Process keystroke release for keyboard listener for ListenerThread instances."""
@@ -583,17 +582,7 @@ class EditFrame(wx.Frame):
         t0 = time.time()
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
-        # self.workflow_path_name = parent.workflow_path_name
-        # self.commands = self.software_info.commands
-        # self.mouse_buttons = self.software_info.mouse_buttons
-        # self.mouse_actions = self.software_info.mouse_actions
-        # self.key_actions = self.software_info.key_actions
-        # self.coord_width = self.software_info.coord_width
-        # self.special_keys = self.software_info.special_keys
-        # self.media_keys = self.software_info.media_keys
-        # self.function_keys = self.software_info.function_keys
-        # self.alphanum_keys = self.software_info.alphanum_keys
-        # self.all_keys = self.software_info.all_keys
+        self.parent = parent
 
         wx.Frame.__init__(self, parent, title='{}: Edit - {}'.format(self.software_info.name, parent.workflow_name))
 
@@ -714,7 +703,8 @@ class EditFrame(wx.Frame):
 
         self.hbox_outer.SetSizeHints(self)
         self.SetSizer(self.hbox_outer)
-        self.CenterOnParent()
+        # self.CenterOnParent()
+        self.Center()
         self.Show()
         self.Layout()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
@@ -1062,8 +1052,6 @@ class EditFrame(wx.Frame):
         for child in self.vbox_edit.GetChildren():
             child.Show(False)
 
-        # print('self.edit_rows: {}'.format(self.edit_rows))
-
         for self.edit_row in self.edit_rows:
             for child in self.edit_row.GetChildren():  # recursively show all row elements
                 child.Show(True)
@@ -1095,6 +1083,7 @@ class EditFrame(wx.Frame):
                 sizer.Add(self.checkbox, 0, wx.ALL | wx.EXPAND, 5)
                 sizer.Add(self.btns, 0, wx.ALL | wx.EXPAND, 5)
                 self.SetSizerAndFit(sizer)
+                self.Center()
 
             def get_selections(self):
                 return self.check_list_box.GetCheckedItems()
@@ -1105,12 +1094,10 @@ class EditFrame(wx.Frame):
                     self.check_list_box.Check(i, state)
 
         delete_dlg = DeleteCommandsDialog(self, 'Please choose the commands to delete:',
-                                          'Delete Commands - {}'.format(self.software_info.workflow_name),
-                                          self.lines)
+                                          'Delete Commands - {}'.format(self.parent.workflow_name), self.lines)
 
         if delete_dlg.ShowModal() == wx.ID_OK:
             indices_to_delete = delete_dlg.get_selections()
-            # print('You chose to delete indices' + str(indices_to_delete))
             if indices_to_delete:  # if indices_to_delete is not empty
                 for index in sorted(indices_to_delete, reverse=True):
                     del (self.lines[index])
@@ -1229,6 +1216,7 @@ class EditFrame(wx.Frame):
 
                 self.container.SetSizer(self.vbox_outer)
                 self.vbox_outer.SetSizeHints(self)
+                self.Center()
 
                 self.Bind(wx.EVT_CLOSE, self.close_window)
 
@@ -1617,6 +1605,7 @@ class EditFrame(wx.Frame):
                 self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
                 self.vbox_outer.Add(self.vbox, 0, wx.ALL, 10)
                 self.SetSizerAndFit(self.vbox_outer)
+                self.Center()
 
             def record_some_sleep_pressed(self):
                 self.some_sleep_thresh.Enable(True)
@@ -1694,6 +1683,7 @@ class EditFrame(wx.Frame):
 
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
+                    self.Center()
 
                     # Process message events from threads
                     self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)
@@ -1714,7 +1704,6 @@ class EditFrame(wx.Frame):
                         self.countdown_light.SetLabel('Some error occurred')
                         self.countdown_light.Show(True)
                     else:  # Process results
-                        print(event.data)
                         self.countdown_dark.Show(True)
                         self.countdown_light.Show(True)
 
@@ -1762,13 +1751,12 @@ class EditFrame(wx.Frame):
 
                 def close_window(self, _):
                     self.listener_thread.abort()
-                    print(self.listener_thread)
                     self.parent.Layout()
                     self.Destroy()
 
             dlg_counter = RecordCtrlCounterDialog(self, 'Record - {}'.format(self.workflow_name))
             if dlg_counter.ShowModal() == wx.ID_OK:
-                print('complete')
+                pass
 
     def on_execute(self):
 
@@ -1844,6 +1832,7 @@ class EditFrame(wx.Frame):
                 self.vbox_outer.Add(self.vbox, 0, wx.EAST | wx.WEST | wx.SOUTH, 20)
                 self.vbox_outer.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 15)
                 self.SetSizerAndFit(self.vbox_outer)
+                self.Center()
 
             def checkbox_pause_pressed(self, _):
                 self.execute_pause_input.Enable(self.checkbox_pause.GetValue())
@@ -1937,6 +1926,7 @@ class EditFrame(wx.Frame):
 
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
+                    self.Center()
 
                     # Process message events from threads
                     self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)
@@ -1984,7 +1974,6 @@ class EditFrame(wx.Frame):
                                 for line_orig in lines:
                                     if self.keep_running:
                                         line = line_orig.replace('\n', '').lower()
-                                        print(line)
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
                                             pyauto.typewrite(
@@ -2098,7 +2087,6 @@ class EditFrame(wx.Frame):
                             self.finish_btn.Show(True)
 
                         elif event.data == 'Failsafe triggered':
-                            print('Failsafe triggered')
                             self.listener_thread.abort()
                             self.execution_thread.abort()
 
@@ -2113,6 +2101,7 @@ class EditFrame(wx.Frame):
                             self.executing_message_a.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
+                            self.Raise()
 
                         self.vbox.Layout()
                         self.vbox_outer.Layout()
@@ -2122,19 +2111,17 @@ class EditFrame(wx.Frame):
                 def close_window(self, _):
                     try:
                         self.listener_thread.abort()
-                        print(self.listener_thread)
                     except AttributeError:
                         pass
                     try:
                         self.execution_thread.abort()
-                        print(self.execution_thread)
                     except AttributeError:
                         pass
                     self.Destroy()
 
             dlg_counter = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
             if dlg_counter.ShowModal() == wx.ID_OK:
-                print('complete')
+                pass
 
     def close_window(self, _, parent, quitall=False):
         if self.lines_as_read != self.lines:
@@ -2172,6 +2159,7 @@ class EditFrame(wx.Frame):
                     self.vbox.Add(self.button_array, 0, wx.ALL | wx.EXPAND, 5)
 
                     self.SetSizerAndFit(self.vbox)
+                    self.Center()
 
                 def on_no_save(self, _):
                     self.EndModal(20)
@@ -2179,7 +2167,7 @@ class EditFrame(wx.Frame):
             save_dialog = SaveDialog(self).ShowModal()
             if save_dialog == wx.ID_OK:
                 # write to workflow file
-                with open(self.software_info.workflow_path_name, 'w') as record_file:
+                with open(self.parent.workflow_path_name, 'w') as record_file:
                     for line in self.lines:
                         record_file.write(line)
             elif save_dialog == 20:  # don't save button
@@ -2270,7 +2258,6 @@ class WorkflowFrame(wx.Frame):
         try:
             with open(self.data_directory_recent_workflows, 'r') as record_file:
                 self.recent_workflows = eliminate_duplicates([line.rstrip('\n') for line in record_file])
-                print(self.recent_workflows)
         except FileNotFoundError:  # create file if not found
             with open(self.data_directory_recent_workflows, 'w'):
                 self.recent_workflows = []
@@ -2399,11 +2386,9 @@ class WorkflowFrame(wx.Frame):
     def update_recent_workflows(self):
         self.hbox_recent.ShowItems(show=False)
         self.hbox_recent.Clear(delete_windows=True)
-        # print(self.hbox_recent.GetChildren())
 
         self.recent_workflow_btns = [None] * len(self.recent_workflows[0:3])
         for workflow_path_name in self.recent_workflows[0:3]:
-            # print(workflow_path_name)
             workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
             self.recent_workflow_btn = wx.Button(self.container, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
