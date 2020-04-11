@@ -4,8 +4,8 @@ t0 = time.time()
 
 var = 'hahah'
 
-for ii in range(5000000):
-    test = 'hello-' + var + ' nice to meet you'
+for ii in range(1000000):
+    test = 'hello-' + str(var) + ' nice to meet you'
     # test = 'hello-{}'.format(var)
 
 t0a = time.time() - t0
@@ -15,7 +15,7 @@ t1 = time.time()
 
 var = 'hahah'
 
-for ii in range(5000000):
+for ii in range(1000000):
     # test = 'hello-' + var
     test = 'hello-{} nice to meet you'.format(var)
 

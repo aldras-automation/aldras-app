@@ -16,7 +16,6 @@ from pynput import keyboard, mouse
 
 
 # TODO comments
-# TODO replace '{}'.format with string addition where adding strings
 # TODO replace 'data/' with variable
 # TODO replace 'aldras' with variable
 # TODO replace '.replace('Str', '').replace('str', '')' with re.compile(re.escape('str_to_replace'), re.IGNORECASE).sub('new_str', self.lines[index])
@@ -79,13 +78,13 @@ def setup_frame(self, status_bar=False):
                 self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
 
                 # add program name text
-                self.program_name = wx.StaticText(self, label='{} Automation'.format(parent.software_info.name))
+                self.program_name = wx.StaticText(self, label=parent.software_info.name + ' Automation')
                 self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
                 self.program_name.SetForegroundColour(3 * (20,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program version text
-                self.program_version = wx.StaticText(self, label='Version {}'.format(parent.software_info.version))
+                self.program_version = wx.StaticText(self, label='Version ' + parent.software_info.version)
                 self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
                 self.program_version.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -105,7 +104,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox_top.Add(self.program_link, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 15)
 
                 # add copyright
-                self.program_copyright = wx.StaticText(self, label='© {}'.format(parent.software_info.copyright))
+                self.program_copyright = wx.StaticText(self, label='© ' + parent.software_info.copyright)
                 self.vbox_top.Add(self.program_copyright, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -140,7 +139,7 @@ def setup_frame(self, status_bar=False):
             def privacy(_):
                 webbrowser.open_new_tab('https://aldras.com/')
 
-        about_dlg = AboutDialog(self, 'About {}'.format(self.software_info.name))
+        about_dlg = AboutDialog(self, 'About ' + self.software_info.name)
         about_dlg.ShowModal()
 
     def on_exit(_):
@@ -151,9 +150,9 @@ def setup_frame(self, status_bar=False):
 
     # setting up the file menu
     file_menu = wx.Menu()
-    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about {}'.format(self.software_info.name))
+    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about ' + self.software_info.name)
     self.Bind(wx.EVT_MENU, on_about, menu_about)
-    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit {}'.format(self.software_info.name))
+    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit ' + self.software_info.name)
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
 
     # Menu for open option (future)
@@ -265,7 +264,7 @@ class ListenerThread(threading.Thread):
             # print(output)
 
             # Will add back when recording is enabled
-            # with open('{}_bkup.txt'.format(workflow_name), 'a') as record_file:
+            # with open(workflow_name+'_bkup.txt', 'a') as record_file:
             #     record_file.write(''.join(output))
             # print(output, end='')
 
@@ -288,7 +287,7 @@ class ListenerThread(threading.Thread):
                             output = output.swapcase()
                     if (output.startswith('\\') and output != '\\\\') or (
                             output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-                        output = '{}'.format(self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')])
+                        output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
                     if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
                         output_to_file_bkup('Key \\ press')
                         output = ''
@@ -321,7 +320,7 @@ class ListenerThread(threading.Thread):
                         elif ctrls == 3:
                             event_message = 'Completed!'
 
-                    wx.PostEvent(self.parent, ResultEvent('{}'.format(event_message)))
+                    wx.PostEvent(self.parent, ResultEvent(event_message))
 
                     # TODO revisit and optimize
                     if ctrls >= 3:
@@ -344,7 +343,7 @@ class ListenerThread(threading.Thread):
                             output = output.swapcase()
                     if (output.startswith('\\') and output != '\\\\') or (
                             output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-                        output = '{}'.format(self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')])
+                        output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
                     if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
                         output_to_file_bkup('Key \\ release')
                         output = ''
@@ -366,7 +365,7 @@ class ListenerThread(threading.Thread):
             def on_click_recording(x, y, button, pressed):
                 """Process click for mouse listener for ListenerThread instances."""
                 if in_action:
-                    output_to_file_bkup('{}-mouse {} at {}'.format(str(button).replace('Button.', '').capitalize(),
+                    output_to_file_bkup('{}-mouse {} at {}'.format(button.replace('Button.', '').capitalize(),
                                                                    'press' if pressed else 'release', (x, y)))
 
             self.mouse_listener = mouse.Listener(
@@ -408,9 +407,9 @@ class ListenerThread(threading.Thread):
         for index, line in enumerate(lines[:-1]):  # loop through all lines except last one (should be release)
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
-                print('line: {}'.format(line))
+                print('line: ' + line)
                 key = line.split(' ')[1]
-                print('key: {}'.format(key))
+                print('key: ' + key)
 
                 if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release',
                                                                                                       ''):  # if line press is same as next line release
@@ -437,10 +436,10 @@ class ListenerThread(threading.Thread):
                         processed_line = break_code + line + break_code
 
                     else:  # alphanumeric keys (try to compile into type command)
-                        processed_line = break_code + 'Type:{}'.format(key) + break_code
+                        processed_line = break_code + 'Type:' + key + break_code
 
                 else:  # line press not equal to next line release
-                    print('NOT TAP: {}'.format(line))
+                    print('NOT TAP: ' + line)
                     if 'Key' in line:
                         if 'press' in line:
                             if index != len(lines) - 1:
@@ -484,7 +483,7 @@ class ListenerThread(threading.Thread):
                         processed_line = processed_line.replace(replacement_key, master_key)
 
                 processed_lines.append(processed_line)
-                print('processed_line: {}'.format(processed_line))
+                print('processed_line: ' + processed_line)
             else:
                 skip = False
 
@@ -550,7 +549,7 @@ class ListenerThread(threading.Thread):
                     consolidated_type = line.replace('Type:', '') + consolidated_type
                     if index != typing_range[0]:
                         del processed_lines[index]
-                processed_lines[typing_range[0]] = 'Type:{}'.format(consolidated_type)
+                processed_lines[typing_range[0]] = 'Type:' + consolidated_type
 
         print(processed_lines)
         return processed_lines
@@ -583,7 +582,7 @@ class EditFrame(wx.Frame):
         self.workflow_name = parent.workflow_name
         self.parent = parent
 
-        wx.Frame.__init__(self, parent, title='{}: Edit - {}'.format(self.software_info.name, parent.workflow_name))
+        wx.Frame.__init__(self, parent, title=self.software_info.name + ': Edit - ' + parent.workflow_name)
 
         setup_frame(self, status_bar=True)
 
@@ -608,7 +607,7 @@ class EditFrame(wx.Frame):
         self.hbox_top.AddSpacer(10)
 
         # add workflow title
-        self.title = wx.StaticText(self, label='{}'.format(parent.workflow_name))
+        self.title = wx.StaticText(self, label=parent.workflow_name)
         self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -858,8 +857,7 @@ class EditFrame(wx.Frame):
                 # display indecipherable line
                 self.hbox_edit.AddSpacer(10)
                 self.unknown_command_message = wx.StaticText(self.edit,
-                                                             label='**Unknown command from line: \"{}\"'.format(
-                                                                 self.line))
+                                                             label='**Unknown command from line: \"' + self.line + '\"')
                 self.unknown_command_message.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
                 self.unknown_command_message.SetForegroundColour(3 * (70,))
                 self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1140,7 +1138,7 @@ class EditFrame(wx.Frame):
         order = range(len(self.lines))
 
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
-                                         'Reorder Commands - {}'.format(self.parent.workflow_name), order,
+                                         'Reorder Commands - ' + self.parent.workflow_name, order,
                                          items)
         reorder_dlg.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
 
@@ -1166,8 +1164,7 @@ class EditFrame(wx.Frame):
         class AdvancedEdit(wx.Dialog):
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent,
-                                   title='{}: Advanced Edit - {}'.format(parent.software_info.name,
-                                                                         parent.workflow_name),
+                                   title=parent.software_info.name + ': Advanced Edit - ' + parent.workflow_name,
                                    style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
@@ -1183,7 +1180,7 @@ class EditFrame(wx.Frame):
                 self.adv_edit_panel = wx.Panel(self)
 
                 # add workflow title
-                self.title = wx.StaticText(self.adv_edit_panel, label='{}'.format(parent.workflow_name))
+                self.title = wx.StaticText(self.adv_edit_panel, label=parent.workflow_name)
                 self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
                 self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
                 self.vbox_inner.Add(self.title)
@@ -1228,7 +1225,7 @@ class EditFrame(wx.Frame):
                     def __init__(self, parent):
                         self.software_info = parent.parent.software_info
                         self.workflow_name = parent.parent.workflow_name
-                        wx.Dialog.__init__(self, parent.parent, title='{} Edit Guide'.format(self.software_info.name),
+                        wx.Dialog.__init__(self, parent.parent, title=self.software_info.name + ' Edit Guide',
                                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                         self.SetBackgroundColour('white')
 
@@ -1275,21 +1272,21 @@ class EditFrame(wx.Frame):
                         for command, data in self.software_info.advanced_edit_guide_commands.items():
                             example = data[0]
                             description = data[1]
-                            self.command = wx.StaticText(self, label='  {}     '.format(command))
+                            self.command = wx.StaticText(self, label='  ' + command + '     ')
                             self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
                             self.command.SetToolTip(description)
                             self.sbox_guide.Add(self.command)
                             self.sbox_guide.AddSpacer(5)
                             if isinstance(example, list):
                                 for each_example in example:
-                                    self.example = wx.StaticText(self, label='   {}'.format(each_example))
+                                    self.example = wx.StaticText(self, label='   ' + each_example)
                                     self.example.SetFont(
                                         wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                                     self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                                     self.example.SetToolTip(description)
                                     self.sbox_guide.Add(self.example)
                             else:
-                                self.example = wx.StaticText(self, label='   {}'.format(example))
+                                self.example = wx.StaticText(self, label='   ' + example)
                                 self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                                 self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                                 self.example.SetToolTip(description)
@@ -1308,12 +1305,11 @@ class EditFrame(wx.Frame):
                         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
                         self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
-                                                              label='{}.com/docs'.format(
-                                                                  self.software_info.name.lower()),
-                                                              url='{}/docs'.format(self.software_info.website),
+                                                              label=self.software_info.name.lower() + '.com/docs',
+                                                              url=self.software_info.website + '/docs',
                                                               style=wx.adv.HL_DEFAULT_STYLE)
                         config_status_and_tooltip(self, self.docs_link,
-                                                  tooltip='{}/docs'.format(self.software_info.website))
+                                                  tooltip=self.software_info.website + '/docs')
                         self.docs_link.SetFont(wx.Font(11, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
                         self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
 
@@ -1343,7 +1339,7 @@ class EditFrame(wx.Frame):
         if adv_edit_dlg.ShowModal() == wx.ID_OK:
             if adv_edit_dlg.text_edit.GetValue() != ''.join(self.lines):
                 # TODO find way to only add changes rather than compute entire panel again
-                self.lines = ['{}\n'.format(x) for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
+                self.lines = [x + '\n' for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
                 self.create_edit_panel()
                 self.Layout()
 
@@ -1506,11 +1502,11 @@ class EditFrame(wx.Frame):
 
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = 'Type:{}'.format(event.GetString())
+        self.lines[index] = 'Type:' + event.GetString()
 
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = 'Wait: {}'.format(event.GetString())
+        self.lines[index] = 'Wait: ' + event.GetString()
 
     def key_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -1609,7 +1605,7 @@ class EditFrame(wx.Frame):
             def not_some_sleep_pressed(self):
                 self.some_sleep_thresh.Enable(False)
 
-        record_dlg = RecordDialog(self, 'Record - {}'.format(self.workflow_name))
+        record_dlg = RecordDialog(self, 'Record - ' + self.workflow_name)
 
         if record_dlg.ShowModal() == wx.ID_OK:
 
@@ -1633,12 +1629,12 @@ class EditFrame(wx.Frame):
 
                     self.hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-                    self.countdown_dark = wx.StaticText(self, label=''.format(parent.workflow_name))
+                    self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)
                     self.countdown_dark.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                     self.hbox.Add(self.countdown_dark)
                     self.countdown_dark.Show(False)
 
-                    self.countdown_light = wx.StaticText(self, label=''.format(parent.workflow_name))
+                    self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
                     self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                     self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
                     self.hbox.Add(self.countdown_light)
@@ -1750,7 +1746,7 @@ class EditFrame(wx.Frame):
                     self.parent.Layout()
                     self.Destroy()
 
-            record_counter_dlg = RecordCtrlCounterDialog(self, 'Record - {}'.format(self.workflow_name))
+            record_counter_dlg = RecordCtrlCounterDialog(self, 'Record - ' + self.workflow_name)
             record_counter_dlg.ShowModal()
 
     def on_execute(self):
@@ -1837,7 +1833,7 @@ class EditFrame(wx.Frame):
             def checkbox_type_interval_pressed(self, _):
                 self.execute_type_interval_input.Enable(self.checkbox_type_interval.GetValue())
 
-        execute_dlg = ExecuteDialog(self, 'Execute - {}'.format(self.workflow_name))
+        execute_dlg = ExecuteDialog(self, 'Execute - ' + self.workflow_name)
 
         if execute_dlg.ShowModal() == wx.ID_OK:
 
@@ -1882,12 +1878,12 @@ class EditFrame(wx.Frame):
 
                     self.hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-                    self.countdown_dark = wx.StaticText(self, label=''.format(parent.workflow_name))
+                    self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)
                     self.countdown_dark.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                     self.hbox.Add(self.countdown_dark)
                     self.countdown_dark.Show(False)
 
-                    self.countdown_light = wx.StaticText(self, label=''.format(parent.workflow_name))
+                    self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
                     self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                     self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
                     self.hbox.Add(self.countdown_light)
@@ -2026,9 +2022,9 @@ class EditFrame(wx.Frame):
                                             coords = coords_of(line)
                                             pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
 
-                                wx.PostEvent(self.parent, ResultEvent('{}'.format('Completed!')))
+                                wx.PostEvent(self.parent, ResultEvent('Completed!'))
                             except pyauto.FailSafeException:
-                                wx.PostEvent(self.parent, ResultEvent('{}'.format('Failsafe triggered')))
+                                wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
 
                         def abort(self):
                             self.keep_running = False
@@ -2113,7 +2109,7 @@ class EditFrame(wx.Frame):
                         pass
                     self.Destroy()
 
-            execute_counter_dlg = ExecuteCtrlCounterDialog(self, 'Execute - {}'.format(self.workflow_name))
+            execute_counter_dlg = ExecuteCtrlCounterDialog(self, 'Execute - ' + self.workflow_name)
             execute_counter_dlg.ShowModal()
 
     def close_window(self, _, parent, quitall=False):
@@ -2121,7 +2117,7 @@ class EditFrame(wx.Frame):
 
             class SaveDialog(wx.Dialog):
                 def __init__(self, parent_win):
-                    wx.Dialog.__init__(self, parent_win, title='{}: Save'.format(parent_win.software_info.name),
+                    wx.Dialog.__init__(self, parent_win, title=parent_win.software_info.name + ': Save',
                                        style=wx.DEFAULT_DIALOG_STYLE)
                     # self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
                     self.SetTitle('Aldras - Save Changes')
@@ -2129,7 +2125,7 @@ class EditFrame(wx.Frame):
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
                     self.message = wx.StaticText(self, wx.ID_ANY,
-                                                 'Do you want to save changes to \'{}\'?'.format(parent.workflow_name))
+                                                 'Do you want to save changes to \'' + parent.workflow_name + '\'?')
                     self.message.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
                     self.message.SetForegroundColour((35, 75, 160))  # change font color to (r,g,b)
                     self.vbox.Add(self.message, 0, wx.ALL, 10)
@@ -2200,11 +2196,10 @@ class WorkflowFrame(wx.Frame):
             def __init__(self):
                 self.name = 'Aldras'
                 self.version = '2020.1.2 Alpha'
-                self.copyright = '2020 Aldras'
-                self.website = 'http://www.{}.com'.format(self.name.lower())
-                self.description = '{} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'.format(
-                    self.name)
-                self.advanced_edit_guide_website = '{}/edit-guide'.format(self.website)
+                self.copyright = '2020 ' + self.name
+                self.website = 'http://www.' + self.name.lower() + '.com'
+                self.description = self.name + ' is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
+                self.advanced_edit_guide_website = self.website + '{}/edit-guide'
                 self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
                 self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
                 self.advanced_edit_guide_commands = {
@@ -2251,7 +2246,7 @@ class WorkflowFrame(wx.Frame):
         global EVT_RESULT_ID
         EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
 
-        wx.Frame.__init__(self, parent, title='{} Automation'.format(self.software_info.name))
+        wx.Frame.__init__(self, parent, title=self.software_info.name + ' Automation'.format()
         setup_frame(self)
 
         self.workflow_directory = 'Workflows/'
@@ -2294,13 +2289,13 @@ class WorkflowFrame(wx.Frame):
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program name text
-        self.program_name = wx.StaticText(self.workflow_panel, label='{} Automation'.format(self.software_info.name))
+        self.program_name = wx.StaticText(self.workflow_panel, label=self.software_info.name + ' Automation')
         self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.program_name.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
-        self.program_version = wx.StaticText(self.workflow_panel, label='Version {}'.format(self.software_info.version))
+        self.program_version = wx.StaticText(self.workflow_panel, label='Version ' + self.software_info.version)
         self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())
         self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -2371,7 +2366,7 @@ class WorkflowFrame(wx.Frame):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
         with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
             for line in self.recent_workflows[0:10]:
-                record_file.write('{}\n'.format(line))
+                record_file.write(line + '\n')
 
         self.update_recent_workflows()
         self.hbox_recent.Layout()
