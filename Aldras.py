@@ -17,7 +17,6 @@ from pynput import keyboard, mouse
 
 # TODO comments
 # TODO replace 'data/' with variable
-# TODO replace 'aldras' with variable
 # TODO replace '.replace('Str', '').replace('str', '')' with re.compile(re.escape('str_to_replace'), re.IGNORECASE).sub('new_str', self.lines[index])
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement mouse locator utility
@@ -63,7 +62,8 @@ def setup_frame(self, status_bar=False):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
                 self.SetTitle(caption)
                 self.SetBackgroundColour('white')
-                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.parent = parent
+                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                 self.vbox = wx.FlexGridSizer(2, 1, 10, 10)
 
@@ -72,19 +72,19 @@ def setup_frame(self, status_bar=False):
                 self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
 
                 # add rescaled logo image
-                png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
+                png = wx.Image(self.parent.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
                 self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
                 self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
                 self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
 
                 # add program name text
-                self.program_name = wx.StaticText(self, label=parent.software_info.name + ' Automation')
+                self.program_name = wx.StaticText(self, label=self.parent.software_info.name + ' Automation')
                 self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
                 self.program_name.SetForegroundColour(3 * (20,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program version text
-                self.program_version = wx.StaticText(self, label='Version ' + parent.software_info.version)
+                self.program_version = wx.StaticText(self, label='Version ' + self.parent.software_info.version)
                 self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
                 self.program_version.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -93,18 +93,18 @@ def setup_frame(self, status_bar=False):
                 self.vbox_top.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program description text
-                self.program_description = wx.StaticText(self, label=parent.software_info.description)
+                self.program_description = wx.StaticText(self, label=self.parent.software_info.description)
                 self.program_description.SetFont(wx.Font(wx.FontInfo(10)))  # change font
                 self.program_description.SetForegroundColour(3 * (40,))  # change font color to (r,g,b)
                 self.vbox_top.Add(self.program_description, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program link
-                self.program_link = wx.adv.HyperlinkCtrl(self, label=parent.software_info.website,
-                                                         url=parent.software_info.website)
+                self.program_link = wx.adv.HyperlinkCtrl(self, label=self.parent.software_info.website,
+                                                         url=self.parent.software_info.website)
                 self.vbox_top.Add(self.program_link, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 15)
 
                 # add copyright
-                self.program_copyright = wx.StaticText(self, label='© ' + parent.software_info.copyright)
+                self.program_copyright = wx.StaticText(self, label='© ' + self.parent.software_info.copyright)
                 self.vbox_top.Add(self.program_copyright, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -133,11 +133,11 @@ def setup_frame(self, status_bar=False):
 
             @staticmethod
             def licence(_):
-                webbrowser.open_new_tab('https://aldras.com/')
+                webbrowser.open_new_tab(self.parent.software_info.website)
 
             @staticmethod
             def privacy(_):
-                webbrowser.open_new_tab('https://aldras.com/')
+                webbrowser.open_new_tab(self.parent.software_info.website)
 
         about_dlg = AboutDialog(self, 'About ' + self.software_info.name)
         about_dlg.ShowModal()
@@ -164,7 +164,7 @@ def setup_frame(self, status_bar=False):
     menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
 
-    self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))  # assign icon
+    self.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
 
     self.SetBackgroundColour('white')  # set background color
 
@@ -575,6 +575,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
             self.SetForegroundColour(3 * (120,))  # change font color to (r,g,b)
 
 
+# noinspection PyProtectedMember
 class EditFrame(wx.Frame):
     def __init__(self, parent):
         t0 = time.time()
@@ -1057,7 +1058,7 @@ class EditFrame(wx.Frame):
         class DeleteCommandsDialog(wx.Dialog):
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetTitle('Delete Commands - ' + parent.parent.workflow_name)
                 self.SetBackgroundColour('white')
 
@@ -1088,8 +1089,8 @@ class EditFrame(wx.Frame):
 
             def check_all(self, _):
                 state = self.checkbox.IsChecked()
-                for index in range(self.check_list_box.GetCount()):
-                    self.check_list_box.Check(index, state)
+                for item_index in range(self.check_list_box.GetCount()):
+                    self.check_list_box.Check(item_index, state)
 
         delete_dlg = DeleteCommandsDialog(self)
 
@@ -1140,7 +1141,7 @@ class EditFrame(wx.Frame):
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
                                          'Reorder Commands - ' + self.parent.workflow_name, order,
                                          items)
-        reorder_dlg.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+        reorder_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
 
         # center dialog
         reorder_dlg.Position = (self.Position[0] + ((self.Size[0] - reorder_dlg.Size[0]) / 2),
@@ -1166,7 +1167,7 @@ class EditFrame(wx.Frame):
                 wx.Dialog.__init__(self, parent,
                                    title=parent.software_info.name + ': Advanced Edit - ' + parent.workflow_name,
                                    style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.parent = parent
                 self.adv_edit_guide = None
@@ -1356,6 +1357,7 @@ class EditFrame(wx.Frame):
             self.edit_row_tracker[index - 1], self.edit_row_tracker[index] = self.edit_row_tracker[index], \
                                                                              self.edit_row_tracker[index - 1]
 
+    # noinspection PyProtectedMember
     def move_command_down(self, sizer):
         index = self.edit_row_tracker.index(sizer)
         # noinspection PyProtectedMember
@@ -1366,6 +1368,7 @@ class EditFrame(wx.Frame):
 
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
             self.edit_rows[index], self.edit_rows[index + 1] = self.edit_rows[index + 1], self.edit_rows[index]
+            # noinspection PyPep8
             self.edit_row_tracker[index], self.edit_row_tracker[index + 1] = self.edit_row_tracker[index + 1], \
                                                                              self.edit_row_tracker[index]
         except (IndexError, wx._core.wxAssertionError):
@@ -1541,8 +1544,9 @@ class EditFrame(wx.Frame):
         class RecordDialog(wx.Dialog):
             def __init__(self, parent, caption):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
+                self.parent = parent
                 self.SetTitle(caption)
-                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                 self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1612,10 +1616,10 @@ class EditFrame(wx.Frame):
             class RecordCtrlCounterDialog(wx.Dialog):
                 def __init__(self, parent, caption):
                     wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-                    self.SetTitle(caption)
-                    self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
-                    self.SetBackgroundColour('white')
                     self.parent = parent
+                    self.SetTitle(caption)
+                    self.SetIcon(wx.Icon(self.parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+                    self.SetBackgroundColour('white')
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -1754,8 +1758,9 @@ class EditFrame(wx.Frame):
         class ExecuteDialog(wx.Dialog):
             def __init__(self, parent, caption):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
+                self.parent = parent
                 self.SetTitle(caption)
-                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                 self.options_box = wx.StaticBox(self, wx.ID_ANY, 'Options')
@@ -1856,7 +1861,7 @@ class EditFrame(wx.Frame):
                 def __init__(self, parent, caption):
                     wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
                     self.SetTitle(caption)
-                    self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                    self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                     self.SetBackgroundColour('white')
                     self.parent = parent
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -2119,8 +2124,7 @@ class EditFrame(wx.Frame):
                 def __init__(self, parent_win):
                     wx.Dialog.__init__(self, parent_win, title=parent_win.software_info.name + ': Save',
                                        style=wx.DEFAULT_DIALOG_STYLE)
-                    # self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
-                    self.SetTitle('Aldras - Save Changes')
+                    self.SetTitle(parent_win.software_info.name + ' - Save Changes')
                     self.SetBackgroundColour('white')
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -2196,8 +2200,11 @@ class WorkflowFrame(wx.Frame):
             def __init__(self):
                 self.name = 'Aldras'
                 self.version = '2020.1.2 Alpha'
+                self.data_directory = 'data/'
+                self.icon = self.data_directory + self.name.lower() + '.ico'  # should be data/aldras.ico
+                self.png = self.data_directory + self.name.lower() + '.png'  # should be data/aldras.png
                 self.copyright = '2020 ' + self.name
-                self.website = 'http://www.' + self.name.lower() + '.com'
+                self.website = 'http://www.' + self.name.lower() + '.com/'
                 self.description = self.name + ' is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.advanced_edit_guide_website = self.website + '{}/edit-guide'
                 self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
@@ -2246,18 +2253,17 @@ class WorkflowFrame(wx.Frame):
         global EVT_RESULT_ID
         EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
 
-        wx.Frame.__init__(self, parent, title=self.software_info.name + ' Automation'.format()
+        wx.Frame.__init__(self, parent, title=self.software_info.name + ' Automation'.format())
         setup_frame(self)
 
         self.workflow_directory = 'Workflows/'
         if not os.path.exists(self.workflow_directory):
             os.makedirs(self.workflow_directory)
 
-        self.data_directory = 'data/'
-        if not os.path.exists(self.data_directory):
-            os.makedirs(self.data_directory)  # create directory if it does not exist
+        if not os.path.exists(self.software_info.data_directory):
+            os.makedirs(self.software_info.data_directory)  # create directory if it does not exist
 
-        self.data_directory_recent_workflows = self.data_directory + 'recent_workflows.txt'
+        self.data_directory_recent_workflows = self.software_info.data_directory + 'recent_workflows.txt'
         try:
             with open(self.data_directory_recent_workflows, 'r') as record_file:
                 self.recent_workflows = eliminate_duplicates([line.rstrip('\n') for line in record_file])
@@ -2283,7 +2289,7 @@ class WorkflowFrame(wx.Frame):
         self.vbox_outer.AddSpacer(self.margin_y)
 
         # add rescaled logo image
-        png = wx.Image(self.data_directory + 'aldras.png', wx.BITMAP_TYPE_PNG).Scale(150, 150,
+        png = wx.Image(self.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150,
                                                                                      quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self.workflow_panel, wx.ID_ANY, wx.Bitmap(png))
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
