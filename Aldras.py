@@ -16,7 +16,6 @@ from pynput import keyboard, mouse
 
 
 # TODO comments
-# TODO replace 'data/' with variable
 # TODO replace '.replace('Str', '').replace('str', '')' with re.compile(re.escape('str_to_replace'), re.IGNORECASE).sub('new_str', self.lines[index])
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement mouse locator utility
@@ -72,7 +71,8 @@ def setup_frame(self, status_bar=False):
                 self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
 
                 # add rescaled logo image
-                png = wx.Image(self.parent.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150, quality=wx.IMAGE_QUALITY_HIGH)
+                png = wx.Image(self.parent.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150,
+                                                                                        quality=wx.IMAGE_QUALITY_HIGH)
                 self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
                 self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
                 self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
@@ -234,8 +234,9 @@ class ListenerThread(threading.Thread):
             global recording_lines
             recording_lines = []
         try:
-            self.ctrl_keys_df = pd.read_csv('data/ctrl_keys_ref.csv', names=['Translation',
-                                                                             'Code'])  # reference for all ctrl hotkeys (registered as separate key)
+            self.ctrl_keys_df = pd.read_csv(
+                self.parent.parent.parent.software_info.data_directory + 'ctrl_keys_ref.csv',
+                names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
             self.ctrl_keys_df = self.ctrl_keys_df.set_index('Code')
         except FileNotFoundError as _:
             print('FileNotFoundError: [Errno 2] File ctrl_keys_ref.csv does not exist: \'ctrl_keys_ref.csv\'')
@@ -557,6 +558,7 @@ class ListenerThread(threading.Thread):
 
 class PlaceholderTextCtrl(wx.TextCtrl):
     """Placeholder text ctrl."""
+
     def __init__(self, *args, **kwargs):
         self.default_text = kwargs.pop('placeholder', '')
         wx.TextCtrl.__init__(self, *args, **kwargs)
@@ -2290,7 +2292,7 @@ class WorkflowFrame(wx.Frame):
 
         # add rescaled logo image
         png = wx.Image(self.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150,
-                                                                                     quality=wx.IMAGE_QUALITY_HIGH)
+                                                                         quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self.workflow_panel, wx.ID_ANY, wx.Bitmap(png))
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
