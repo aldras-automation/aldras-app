@@ -16,6 +16,7 @@ from pynput import keyboard, mouse
 
 
 # TODO comments
+# TODO investigate numpy arrays instead of lists
 # TODO replace '.replace('Str', '').replace('str', '')' with re.compile(re.escape('str_to_replace'), re.IGNORECASE).sub('new_str', self.lines[index])
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement mouse locator utility
@@ -78,13 +79,13 @@ def setup_frame(self, status_bar=False):
                 self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
 
                 # add program name text
-                self.program_name = wx.StaticText(self, label=self.parent.software_info.name + ' Automation')
+                self.program_name = wx.StaticText(self, label=f'{self.parent.software_info.name} Automation')
                 self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
                 self.program_name.SetForegroundColour(3 * (20,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program version text
-                self.program_version = wx.StaticText(self, label='Version ' + self.parent.software_info.version)
+                self.program_version = wx.StaticText(self, label=f'Version {self.parent.software_info.version}')
                 self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
                 self.program_version.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -104,7 +105,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox_top.Add(self.program_link, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 15)
 
                 # add copyright
-                self.program_copyright = wx.StaticText(self, label='© ' + self.parent.software_info.copyright)
+                self.program_copyright = wx.StaticText(self, label=f'© {self.parent.software_info.copyright}')
                 self.vbox_top.Add(self.program_copyright, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -139,7 +140,7 @@ def setup_frame(self, status_bar=False):
             def privacy(_):
                 webbrowser.open_new_tab(self.parent.software_info.website)
 
-        about_dlg = AboutDialog(self, 'About ' + self.software_info.name)
+        about_dlg = AboutDialog(self, f'About {self.software_info.name}')
         about_dlg.ShowModal()
 
     def on_exit(_):
@@ -150,9 +151,9 @@ def setup_frame(self, status_bar=False):
 
     # setting up the file menu
     file_menu = wx.Menu()
-    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', ' Information about ' + self.software_info.name)
+    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f' Information about {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_about, menu_about)
-    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', 'Exit ' + self.software_info.name)
+    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f' Exit {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
 
     # Menu for open option (future)
@@ -207,7 +208,7 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
     if tooltip:
         obj_to_config.SetToolTip(tooltip)
     if status:
-        obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, '   ' + status))
+        obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}'))
         obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent))
 
 
@@ -235,7 +236,7 @@ class ListenerThread(threading.Thread):
             recording_lines = []
         try:
             self.ctrl_keys_df = pd.read_csv(
-                self.parent.parent.parent.software_info.data_directory + 'ctrl_keys_ref.csv',
+                f'{self.parent.parent.parent.software_info.data_directory}ctrl_keys_ref.csv',
                 names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
             self.ctrl_keys_df = self.ctrl_keys_df.set_index('Code')
         except FileNotFoundError as _:
@@ -282,7 +283,7 @@ class ListenerThread(threading.Thread):
                     if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
                         capslock = not capslock
                     if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
-                        coords = pyauto.position()
+                        coords = tuple(pyauto.position())
                     if not output.startswith('key'):  # i.e., if output is alphanumeric
                         if capslock:
                             output = output.swapcase()
@@ -298,13 +299,13 @@ class ListenerThread(threading.Thread):
                             not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
                         if 'key.' in output:
                             output = output.replace('key.', '')
-                        output = 'Key ' + output + ' press'
+                        output = f'Key {output} press'
                         if coords:
-                            output = output + ' at {}'.format((coords[0], coords[1]))
+                            output = f'{output} at {coords}'
                         output_to_file_bkup(output)
                 if 'key.ctrl_r' in output:
                     ctrls += 1
-                    print('{}  '.format(ctrls), end='')
+                    print(f'{ctrls}  ', end='')
                     event_message = 'Error!'
                     if not in_action:
                         if ctrls == 1:
@@ -338,7 +339,7 @@ class ListenerThread(threading.Thread):
                 coords = ''
                 if in_action:
                     if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
-                        coords = pyauto.position()
+                        coords = tuple(pyauto.position())
                     if not output.startswith('key'):  # i.e., if output is alphanumeric
                         if capslock:
                             output = output.swapcase()
@@ -354,9 +355,9 @@ class ListenerThread(threading.Thread):
                             not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
                         if 'key.' in output:
                             output = output.replace('key.', '')
-                        output = 'Key ' + output + ' release'
+                        output = f'Key {output} release'
                         if coords:
-                            output = output + ' at {}'.format((coords[0], coords[1]))
+                            output = f'{output} at {coords}'
                         output_to_file_bkup(output)
 
             self.key_listener = keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording)
@@ -366,11 +367,10 @@ class ListenerThread(threading.Thread):
             def on_click_recording(x, y, button, pressed):
                 """Process click for mouse listener for ListenerThread instances."""
                 if in_action:
-                    output_to_file_bkup('{}-mouse {} at {}'.format(button.replace('Button.', '').capitalize(),
-                                                                   'press' if pressed else 'release', (x, y)))
+                    button = str(button).replace('Button.', '').capitalize()
+                    output_to_file_bkup(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
 
-            self.mouse_listener = mouse.Listener(
-                on_click=on_click_recording)  # , on_scroll=on_scroll_recording, on_move=on_move_recording)
+            self.mouse_listener = mouse.Listener(on_click=on_click_recording)
             self.mouse_listener.start()
 
     def abort(self):
@@ -389,7 +389,7 @@ class ListenerThread(threading.Thread):
     def compile_recording():
         global recording_lines
         lines = recording_lines
-        print('lines: {}'.format(lines))
+        print(f'lines: {lines}')
 
         mouse_hover_duration = 0.5
         processed_lines = []
@@ -408,9 +408,9 @@ class ListenerThread(threading.Thread):
         for index, line in enumerate(lines[:-1]):  # loop through all lines except last one (should be release)
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
-                print('line: ' + line)
+                print(f'line: {line}')
                 key = line.split(' ')[1]
-                print('key: ' + key)
+                print(f'key: {key}')
 
                 if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release',
                                                                                                       ''):  # if line press is same as next line release
@@ -421,9 +421,7 @@ class ListenerThread(threading.Thread):
 
                         if 'ctrl_l' in line:  # if left ctrl is in line signalling mouse-move
                             coords = coords_of(line)
-                            line = 'Mouse-move to {}{}Wait {}{}'.format((coords[0], coords[1]), break_code,
-                                                                        mouse_hover_duration, break_code)
-
+                            line = f'Mouse-move to {coords}{break_code}Wait {mouse_hover_duration}{break_code}'
                         elif key == 'space':
                             line = 'Type: '
 
@@ -434,13 +432,13 @@ class ListenerThread(threading.Thread):
                                 tap_replacement = 'tap'
                             line = lines[index].replace('press', tap_replacement)
 
-                        processed_line = break_code + line + break_code
+                        processed_line = f'{break_code}{line}{break_code}'
 
                     else:  # alphanumeric keys (try to compile into type command)
-                        processed_line = break_code + 'Type:' + key + break_code
+                        processed_line = f'{break_code}Type:{key}{break_code}'
 
                 else:  # line press not equal to next line release
-                    print('NOT TAP: ' + line)
+                    print(f'NOT TAP: {line}')
                     if 'Key' in line:
                         if 'press' in line:
                             if index != len(lines) - 1:
@@ -460,22 +458,21 @@ class ListenerThread(threading.Thread):
                                                       x in symbol_chars}  # any hotkeys are symbols
                                 if 'shift' in pressed_keys and check_single_chars and (
                                         check_alphabet_letters or check_symbol_chars):
-                                    line = 'Type:{}'.format(
-                                        ''.join([x.capitalize() for x in pressed_keys if x != 'shift']))
+                                    line = f"Type:{''.join([x.capitalize() for x in pressed_keys if x != 'shift'])}"
                                     # pressed_keys = []
                                 else:
-                                    line = 'Hotkey {}'.format(' + '.join(pressed_keys))
+                                    line = f"Hotkey {' + '.join(pressed_keys)}"
                             else:
                                 line = ''
                             register_hotkey = False
                             if key in pressed_keys:
                                 pressed_keys.remove(key)
 
-                        print('pressed_keys: {}'.format(pressed_keys))
+                        print(f'pressed_keys: {pressed_keys}')
 
                     # else:
                     if line:
-                        processed_line = break_code + line + break_code
+                        processed_line = f'{break_code}{line}{break_code}'
                     else:
                         processed_line = ''
 
@@ -484,7 +481,7 @@ class ListenerThread(threading.Thread):
                         processed_line = processed_line.replace(replacement_key, master_key)
 
                 processed_lines.append(processed_line)
-                print('processed_line: ' + processed_line)
+                print(f'processed_line: {processed_line}')
             else:
                 skip = False
 
@@ -506,7 +503,7 @@ class ListenerThread(threading.Thread):
             else:
                 if 'Left-mouse click' in tripleA and tripleA == tripleB == tripleC:
                     skip = 3 - 1  # number of clicks minus one
-                    processed_lines[index] = 'Triple-click at {}\n'.format(coords_of(tripleA))
+                    processed_lines[index] = f'Triple-click at {coords_of(tripleA)}\n'
                     processed_lines_to_remove.append(index + 1)
                     processed_lines_to_remove.append(index + 2)
                     processed_lines[index + 1] = ''
@@ -523,7 +520,7 @@ class ListenerThread(threading.Thread):
             else:
                 if 'Left-mouse click' in pairA and pairA == pairB:
                     skip = 2 - 1  # number of clicks minus one
-                    processed_lines[index] = 'Double-click at {}\n'.format(coords_of(pairA))
+                    processed_lines[index] = f'Double-click at {coords_of(pairA)}\n'
                     processed_lines_to_remove.append(index + 1)
                     processed_lines[index + 1] = ''
         for index in processed_lines_to_remove[::-1]:
@@ -547,10 +544,10 @@ class ListenerThread(threading.Thread):
                 consolidated_type = ''
                 for index in reversed(range(typing_range[0], typing_range[1] + 1)):
                     line = processed_lines[index]
-                    consolidated_type = line.replace('Type:', '') + consolidated_type
+                    consolidated_type = f"{line.replace('Type:', '')}{consolidated_type}"
                     if index != typing_range[0]:
                         del processed_lines[index]
-                processed_lines[typing_range[0]] = 'Type:' + consolidated_type
+                processed_lines[typing_range[0]] = f'Type:{consolidated_type}'
 
         print(processed_lines)
         return processed_lines
@@ -585,7 +582,7 @@ class EditFrame(wx.Frame):
         self.workflow_name = parent.workflow_name
         self.parent = parent
 
-        wx.Frame.__init__(self, parent, title=self.software_info.name + ': Edit - ' + parent.workflow_name)
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {parent.workflow_name}')
 
         setup_frame(self, status_bar=True)
 
@@ -710,8 +707,8 @@ class EditFrame(wx.Frame):
         self.Center()
         self.Show()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
-        print('Time to open Edit frame: {:.2f} s'.format(time.time() - t0))
-        print('Time to open last part of Edit frame: {:.2f} s'.format(time.time() - t1))
+        print(f'Time to open Edit frame: {time.time() - t0:.2f} s')
+        print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
 
     @staticmethod
     def do_nothing(_):
@@ -859,11 +856,10 @@ class EditFrame(wx.Frame):
             except self.EditCommandError as _:
                 # display indecipherable line
                 self.hbox_edit.AddSpacer(10)
-                self.unknown_command_message = wx.StaticText(self.edit,
-                                                             label='**Unknown command from line: \"' + self.line + '\"')
-                self.unknown_command_message.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
-                self.unknown_command_message.SetForegroundColour(3 * (70,))
-                self.hbox_edit.Add(self.unknown_command_message, 0, wx.ALIGN_CENTER_VERTICAL)
+                self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
+                self.unknown_cmd_msg.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
+                self.unknown_cmd_msg.SetForegroundColour(3 * (70,))
+                self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
             self.add_edit_row(self.hbox_edit)
             if not comment:
@@ -1061,7 +1057,7 @@ class EditFrame(wx.Frame):
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-                self.SetTitle('Delete Commands - ' + parent.parent.workflow_name)
+                self.SetTitle(f'Delete Commands - {parent.parent.workflow_name}')
                 self.SetBackgroundColour('white')
 
                 sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1141,8 +1137,7 @@ class EditFrame(wx.Frame):
         order = range(len(self.lines))
 
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
-                                         'Reorder Commands - ' + self.parent.workflow_name, order,
-                                         items)
+                                         f'Reorder Commands - {self.parent.workflow_name}', order, items)
         reorder_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
 
         # center dialog
@@ -1166,9 +1161,7 @@ class EditFrame(wx.Frame):
 
         class AdvancedEdit(wx.Dialog):
             def __init__(self, parent):
-                wx.Dialog.__init__(self, parent,
-                                   title=parent.software_info.name + ': Advanced Edit - ' + parent.workflow_name,
-                                   style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+                wx.Dialog.__init__(self, parent, title=f'{parent.software_info.name}: Advanced Edit - {parent.workflow_name}', style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.parent = parent
@@ -1228,7 +1221,7 @@ class EditFrame(wx.Frame):
                     def __init__(self, parent):
                         self.software_info = parent.parent.software_info
                         self.workflow_name = parent.parent.workflow_name
-                        wx.Dialog.__init__(self, parent.parent, title=self.software_info.name + ' Edit Guide',
+                        wx.Dialog.__init__(self, parent.parent, title=f'{self.software_info.name} Edit Guide',
                                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                         self.SetBackgroundColour('white')
 
@@ -1275,21 +1268,21 @@ class EditFrame(wx.Frame):
                         for command, data in self.software_info.advanced_edit_guide_commands.items():
                             example = data[0]
                             description = data[1]
-                            self.command = wx.StaticText(self, label='  ' + command + '     ')
+                            self.command = wx.StaticText(self, label=f'  {command}     ')
                             self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
                             self.command.SetToolTip(description)
                             self.sbox_guide.Add(self.command)
                             self.sbox_guide.AddSpacer(5)
                             if isinstance(example, list):
                                 for each_example in example:
-                                    self.example = wx.StaticText(self, label='   ' + each_example)
+                                    self.example = wx.StaticText(self, label=f'   {each_example}')
                                     self.example.SetFont(
                                         wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                                     self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                                     self.example.SetToolTip(description)
                                     self.sbox_guide.Add(self.example)
                             else:
-                                self.example = wx.StaticText(self, label='   ' + example)
+                                self.example = wx.StaticText(self, label=f'   {example}')
                                 self.example.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
                                 self.example.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
                                 self.example.SetToolTip(description)
@@ -1307,12 +1300,8 @@ class EditFrame(wx.Frame):
                         config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
                         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
-                        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
-                                                              label=self.software_info.name.lower() + '.com/docs',
-                                                              url=self.software_info.website + '/docs',
-                                                              style=wx.adv.HL_DEFAULT_STYLE)
-                        config_status_and_tooltip(self, self.docs_link,
-                                                  tooltip=self.software_info.website + '/docs')
+                        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY, label=f'{self.software_info.name.lower()}.com/docs', url=f'{self.software_info.website}/docs', style=wx.adv.HL_DEFAULT_STYLE)
+                        config_status_and_tooltip(self, self.docs_link, tooltip=f'{self.software_info.website}/docs')
                         self.docs_link.SetFont(wx.Font(11, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
                         self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
 
@@ -1342,7 +1331,7 @@ class EditFrame(wx.Frame):
         if adv_edit_dlg.ShowModal() == wx.ID_OK:
             if adv_edit_dlg.text_edit.GetValue() != ''.join(self.lines):
                 # TODO find way to only add changes rather than compute entire panel again
-                self.lines = [x + '\n' for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
+                self.lines = [f'{x}\n' for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
                 self.create_edit_panel()
                 self.Layout()
 
@@ -1428,7 +1417,7 @@ class EditFrame(wx.Frame):
             sizer.GetChildren()[ii].Show(False)
 
         if new_action == 'Mouse button':
-            self.lines[index] = 'Left-mouse click at {}'.format(old_coords)
+            self.lines[index] = f'Left-mouse click at {old_coords}'
             self.create_mouse_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Type':
@@ -1456,15 +1445,15 @@ class EditFrame(wx.Frame):
             self.create_hotkey_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Mouse-move':
-            self.lines[index] = 'Mouse-move to {}'.format(old_coords)
+            self.lines[index] = f'Mouse-move to {old_coords}'
             self.create_mousemove_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Double-click':
-            self.lines[index] = 'Double-click at {}'.format(old_coords)
+            self.lines[index] = f'Double-click at {old_coords}'
             self.create_multi_click_row(self.lines[index].lower(), sizer)
 
         elif new_action == 'Triple-click':
-            self.lines[index] = 'Triple-click at {}'.format(old_coords)
+            self.lines[index] = f'Triple-click at {old_coords}'
             self.create_multi_click_row(self.lines[index].lower(), sizer)
 
         self.Layout()
@@ -1507,11 +1496,11 @@ class EditFrame(wx.Frame):
 
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = 'Type:' + event.GetString()
+        self.lines[index] = f'Type:{event.GetString()}'
 
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = 'Wait: ' + event.GetString()
+        self.lines[index] = f'Wait: {event.GetString()}'
 
     def key_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -1539,7 +1528,7 @@ class EditFrame(wx.Frame):
         except ValueError:
             pass
 
-        self.lines[index] = 'Hotkey {}'.format(' + '.join(combination))
+        self.lines[index] = f"Hotkey {' + '.join(combination)}"
 
     def on_record(self):
 
@@ -1611,7 +1600,7 @@ class EditFrame(wx.Frame):
             def not_some_sleep_pressed(self):
                 self.some_sleep_thresh.Enable(False)
 
-        record_dlg = RecordDialog(self, 'Record - ' + self.workflow_name)
+        record_dlg = RecordDialog(self, f'Record - {self.workflow_name}')
 
         if record_dlg.ShowModal() == wx.ID_OK:
 
@@ -1627,7 +1616,7 @@ class EditFrame(wx.Frame):
 
                     self.directions_a_rest = ': Press the right control key 3 times'
 
-                    self.directions_a = wx.StaticText(self, label='Start' + self.directions_a_rest)
+                    self.directions_a = wx.StaticText(self, label=f'Start{self.directions_a_rest}')
                     self.directions_a.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -1717,7 +1706,7 @@ class EditFrame(wx.Frame):
 
                         elif event.data == 'Action':
                             self.countdown_dark.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
-                            self.directions_a.SetLabel('Stop' + self.directions_a_rest)
+                            self.directions_a.SetLabel(f'Stop{self.directions_a_rest}')
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
                             self.recording_message_a.Show(True)
@@ -1752,7 +1741,7 @@ class EditFrame(wx.Frame):
                     self.parent.Layout()
                     self.Destroy()
 
-            record_counter_dlg = RecordCtrlCounterDialog(self, 'Record - ' + self.workflow_name)
+            record_counter_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
             record_counter_dlg.ShowModal()
 
     def on_execute(self):
@@ -1840,7 +1829,7 @@ class EditFrame(wx.Frame):
             def checkbox_type_interval_pressed(self, _):
                 self.execute_type_interval_input.Enable(self.checkbox_type_interval.GetValue())
 
-        execute_dlg = ExecuteDialog(self, 'Execute - ' + self.workflow_name)
+        execute_dlg = ExecuteDialog(self, f'Execute - {self.workflow_name}')
 
         if execute_dlg.ShowModal() == wx.ID_OK:
 
@@ -2116,7 +2105,7 @@ class EditFrame(wx.Frame):
                         pass
                     self.Destroy()
 
-            execute_counter_dlg = ExecuteCtrlCounterDialog(self, 'Execute - ' + self.workflow_name)
+            execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
             execute_counter_dlg.ShowModal()
 
     def close_window(self, _, parent, quitall=False):
@@ -2124,14 +2113,13 @@ class EditFrame(wx.Frame):
 
             class SaveDialog(wx.Dialog):
                 def __init__(self, parent_win):
-                    wx.Dialog.__init__(self, parent_win, title=parent_win.software_info.name + ': Save',
+                    wx.Dialog.__init__(self, parent_win, title=f'{parent_win.software_info.name} - Save Changes',
                                        style=wx.DEFAULT_DIALOG_STYLE)
-                    self.SetTitle(parent_win.software_info.name + ' - Save Changes')
                     self.SetBackgroundColour('white')
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
                     self.message = wx.StaticText(self, wx.ID_ANY,
-                                                 'Do you want to save changes to \'' + parent.workflow_name + '\'?')
+                                                 f'Do you want to save changes to \'{parent.workflow_name}\'?')
                     self.message.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
                     self.message.SetForegroundColour((35, 75, 160))  # change font color to (r,g,b)
                     self.vbox.Add(self.message, 0, wx.ALL, 10)
@@ -2203,13 +2191,13 @@ class WorkflowFrame(wx.Frame):
                 self.name = 'Aldras'
                 self.version = '2020.1.2 Alpha'
                 self.data_directory = 'data/'
-                self.icon = self.data_directory + self.name.lower() + '.ico'  # should be data/aldras.ico
-                self.png = self.data_directory + self.name.lower() + '.png'  # should be data/aldras.png
-                self.copyright = '2020 ' + self.name
-                self.website = 'http://www.' + self.name.lower() + '.com/'
-                self.description = self.name + ' is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
-                self.advanced_edit_guide_website = self.website + '{}/edit-guide'
-                self.advanced_edit_guide_description = self.name + ' is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
+                self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
+                self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
+                self.copyright = f'2020 {self.name}'
+                self.website = f'http://www.{self.name.lower()}.com/'
+                self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
+                self.advanced_edit_guide_website = f'{self.website}/edit-guide'
+                self.advanced_edit_guide_description = f'{self.name} is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
                 self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
                 self.advanced_edit_guide_commands = {
                     '{Left/Right}-mouse {click/press/release} at ({x}, {y})': ['Left-mouse click at (284, 531)',
@@ -2255,7 +2243,7 @@ class WorkflowFrame(wx.Frame):
         global EVT_RESULT_ID
         EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
 
-        wx.Frame.__init__(self, parent, title=self.software_info.name + ' Automation'.format())
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation')
         setup_frame(self)
 
         self.workflow_directory = 'Workflows/'
@@ -2265,7 +2253,7 @@ class WorkflowFrame(wx.Frame):
         if not os.path.exists(self.software_info.data_directory):
             os.makedirs(self.software_info.data_directory)  # create directory if it does not exist
 
-        self.data_directory_recent_workflows = self.software_info.data_directory + 'recent_workflows.txt'
+        self.data_directory_recent_workflows = f'{self.software_info.data_directory}recent_workflows.txt'
         try:
             with open(self.data_directory_recent_workflows, 'r') as record_file:
                 self.recent_workflows = eliminate_duplicates([line.rstrip('\n') for line in record_file])
@@ -2297,13 +2285,13 @@ class WorkflowFrame(wx.Frame):
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program name text
-        self.program_name = wx.StaticText(self.workflow_panel, label=self.software_info.name + ' Automation')
+        self.program_name = wx.StaticText(self.workflow_panel, label=f'{self.software_info.name} Automation')
         self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
         self.program_name.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
-        self.program_version = wx.StaticText(self.workflow_panel, label='Version ' + self.software_info.version)
+        self.program_version = wx.StaticText(self.workflow_panel, label=f'Version {self.software_info.version}')
         self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())
         self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
         self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -2354,14 +2342,11 @@ class WorkflowFrame(wx.Frame):
             confirm_workflow_dlg.Destroy()
 
         else:
-            confirm_workflow_dlg = wx.MessageDialog(None,
-                                                    'Please confirm that "' + self.workflow_name_input.GetValue().capitalize() + '" is your desired workflow.',
-                                                    self.software_info.name + ' Workflow Confirmation',
-                                                    wx.YES_NO | wx.ICON_QUESTION)
+            confirm_workflow_dlg = wx.MessageDialog(None, f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.', f'{self.software_info.name} Workflow Confirmation', wx.YES_NO | wx.ICON_QUESTION)
 
             if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
                 self.launch_workflow(
-                    workflow_path_name=self.workflow_directory + self.workflow_name_input.GetValue().capitalize() + '.txt')
+                    workflow_path_name=f'{self.workflow_directory}{self.workflow_name_input.GetValue().capitalize()}.txt')
 
     def launch_workflow(self, workflow_path_name):
         self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
@@ -2374,7 +2359,7 @@ class WorkflowFrame(wx.Frame):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
         with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
             for line in self.recent_workflows[0:10]:
-                record_file.write(line + '\n')
+                record_file.write(f'{line}\n')
 
         self.update_recent_workflows()
         self.hbox_recent.Layout()
