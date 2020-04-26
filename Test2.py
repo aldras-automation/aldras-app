@@ -1,24 +1,13 @@
+from screeninfo import get_monitors
 import time
-import numpy as np
+import pyautogui
 
-size_of_vec = 1000000
-
-def pure_python_version():
-    t1 = time.time()
-    X = range(size_of_vec)
-    Y = range(size_of_vec)
-    Z = [X[i] + Y[i] for i in range(len(X)) ]
-    return time.time() - t1
-
-def numpy_version():
-    t1 = time.time()
-    X = np.arange(size_of_vec)
-    Y = np.arange(size_of_vec)
-    Z = X + Y
-    return time.time() - t1
-
-
-t1 = pure_python_version()
-t2 = numpy_version()
-print(t1, t2)
-print("Numpy is in this example " + str(t1/t2) + " faster!")
+for m in get_monitors():
+    print(str(m))
+print(get_monitors())
+display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+tot_height = sum([monitor.height for monitor in get_monitors()])
+print(f'total display_size: {display_size}')
+print(f'total height: {tot_height}')
+print()
+time.sleep(1)

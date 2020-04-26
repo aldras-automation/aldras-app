@@ -5,7 +5,8 @@ import re
 import threading
 import time
 import webbrowser
-
+import string
+from screeninfo import get_monitors
 import pandas as pd
 import pyautogui as pyauto
 import wx
@@ -16,8 +17,6 @@ from pynput import keyboard, mouse
 
 
 # TODO comments
-# TODO investigate numpy arrays instead of lists
-# TODO replace '.replace('Str', '').replace('str', '')' with re.compile(re.escape('str_to_replace'), re.IGNORECASE).sub('new_str', self.lines[index])
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement mouse locator utility
 # TODO implement fading shade color of recently modified command
@@ -544,7 +543,7 @@ class ListenerThread(threading.Thread):
                 consolidated_type = ''
                 for index in reversed(range(typing_range[0], typing_range[1] + 1)):
                     line = processed_lines[index]
-                    consolidated_type = f"{line.replace('Type:', '')}{consolidated_type}"
+                    consolidated_type = f"{re.compile(re.escape('type:'), re.IGNORECASE).sub('', line)}{consolidated_type}"
                     if index != typing_range[0]:
                         del processed_lines[index]
                 processed_lines[typing_range[0]] = f'Type:{consolidated_type}'
@@ -918,6 +917,30 @@ class EditFrame(wx.Frame):
 
         self.create_point_input(line, sizer)
 
+    class CharValidator(wx.Validator):
+        """ Validates data as it is entered into the text controls. """
+        def __init__(self, flag, parent):
+            wx.Validator.__init__(self)
+            self.flag = flag
+            self.parent = parent
+            self.Bind(wx.EVT_CHAR, self.on_char)
+
+        def Clone(self):
+            """Required Validator method"""
+            return self.parent.CharValidator(self.flag, self.parent)
+
+        def on_char(self, event):
+            keycode = int(event.GetKeyCode())
+            if keycode < 256:
+                key = chr(keycode)
+                if self.flag == 'no-alpha' and key in string.ascii_letters:
+                    return
+                if self.flag == 'no-digit' and key in string.digits:
+                    return
+                if self.flag == 'only_decimal' and not key.isdecimal():
+                    return
+            event.Skip()
+
     def create_point_input(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if not sizer:
@@ -926,18 +949,24 @@ class EditFrame(wx.Frame):
         x_val = coords_of(line)[0]
         y_val = coords_of(line)[1]
 
-        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.software_info.coord_width, -1),
-                                   value=str(x_val))  # TODO validator
+        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH, size=wx.Size(self.software_info.coord_width, -1),
+                                   value=str(x_val), validator=self.CharValidator('only_decimal', self))  # TODO validator
+        self.x_coord.SetMaxLength(len(str(display_size[0])))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
 
-        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE, size=wx.Size(self.software_info.coord_width, -1),
-                                   value=str(y_val))  # TODO validator
+        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH, size=wx.Size(self.software_info.coord_width, -1),
+                                   value=str(y_val), validator=self.CharValidator('only_decimal', self))  # TODO validator
+        self.y_coord.SetMaxLength(len(str(display_size[1])))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(30)
+        self.error_display = wx.StaticText(self.edit, label='')
+        self.error_display.SetForegroundColour(wx.RED)
+        sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_type_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -958,7 +987,7 @@ class EditFrame(wx.Frame):
             sizer = self.hbox_edit
             value = line.replace('wait', '').replace(' ', '')
 
-        wait_entry = wx.TextCtrl(self.edit, value=value)
+        wait_entry = wx.TextCtrl(self.edit, value=value, validator=self.CharValidator('no-alpha', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1477,22 +1506,46 @@ class EditFrame(wx.Frame):
     def coord_change(self, sizer, event, x=None, y=None):
         index = self.edit_row_tracker.index(sizer)
         command_change = event.GetString()
+        text_ctrl = event.GetEventObject()
+        text_ctrl.SetForegroundColour(wx.BLACK)
+        sizer.GetChildren()[-1].GetWindow().SetLabel('')
 
-        if x:
-            if command_change:
-                x_coord = command_change
+        class CustomInvalidCoordError(Exception):
+            pass
+
+        try:
+            if not command_change.isdecimal() and command_change:
+                raise CustomInvalidCoordError()
+            print([command_change])
+            if x:
+                if command_change:
+                    x_coord = command_change
+                else:
+                    x_coord = '0'
+                if int(x_coord) > display_size[0]:
+                    raise CustomInvalidCoordError()
+                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord)
+
+            elif y:
+                if command_change:
+                    y_coord = command_change
+                else:
+                    y_coord = '0'
+                if int(y_coord) > display_size[1]:
+                    raise CustomInvalidCoordError()
+                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[1]), y_coord)
+
+        except CustomInvalidCoordError:
+            text_ctrl.SetForegroundColour(wx.RED)
+            event.Skip()
+            print('OUT OF RANGE')
+            if x:
+                error_msg = f'The max X value is {display_size[0]} px.'
+            elif y:
+                error_msg = f'The max Y value is {display_size[1]} px.'
             else:
-                x_coord = '0'
-
-            self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord)
-
-        elif y:
-            if command_change:
-                y_coord = command_change
-            else:
-                y_coord = '0'
-
-            self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[1]), y_coord)
+                error_msg = f'The maximum coordinates are {display_size} px.'
+            sizer.GetChildren()[-1].GetWindow().SetLabel(error_msg)
 
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -1962,9 +2015,7 @@ class EditFrame(wx.Frame):
                                         line = line_orig.replace('\n', '').lower()
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                                            pyauto.typewrite(
-                                                line_orig.replace('\n', '').replace('Type:', '').replace('type:', ''),
-                                                interval=type_interval)
+                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig.replace('\n', '')), interval=type_interval)
 
                                         elif 'wait' in line:
                                             time.sleep(self.float_in(line))
@@ -2409,6 +2460,9 @@ class WorkflowFrame(wx.Frame):
 if __name__ == '__main__':
     global capslock
     global EVT_RESULT_ID
+    global display_size
+    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    print(f'display_size: {display_size}')
     app = wx.App(False)
     WorkflowFrame(None)
     app.MainLoop()
