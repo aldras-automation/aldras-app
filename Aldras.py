@@ -142,6 +142,145 @@ def setup_frame(self, status_bar=False):
         about_dlg = AboutDialog(self, f'About {self.software_info.name}')
         about_dlg.ShowModal()
 
+    def on_mouse_monitor(_):
+        class MouseMonitorFrame(wx.Frame):
+            """Main frame to select workflow."""
+
+            def __init__(self, parent):
+                wx.Frame.__init__(self, parent, title=f'{parent.software_info.name} Mouse Monitor')
+                self.SetBackgroundColour('white')
+                self.parent = parent
+                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
+
+                self.menubar = wx.MenuBar()
+                self.viewMenu = wx.Menu()
+                self.cb_click_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze mouse click positions',
+                                                            kind=wx.ITEM_CHECK)
+                self.cb_ctrl_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze positions when left CTRL tapped',
+                                                           kind=wx.ITEM_CHECK)
+
+                self.viewMenu.Check(self.cb_click_freeze.GetId(), True)
+                self.viewMenu.Check(self.cb_ctrl_freeze.GetId(), True)
+
+                self.menubar.Append(self.viewMenu, '&Freeze')
+                self.SetMenuBar(self.menubar)
+
+                # create sizers
+                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+                self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+                # add rescaled mouse logo image
+                png = wx.Image('data/aldras_mouse.png', wx.BITMAP_TYPE_PNG).Scale(80, 80, quality=wx.IMAGE_QUALITY_HIGH)
+                self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+                self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 50)
+
+                # add coordinate text
+                self.current_coords = wx.StaticText(self, label=f'{display_size}')
+                self.current_coords.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
+                self.current_coords.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
+                self.vbox.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
+
+                # add coordinate label
+                self.coords_label = wx.StaticText(self, label=f"x{' '*len(str(display_size))}y")
+                self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
+                self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
+                self.vbox.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+
+                self.num_freezes = 3
+
+                self.hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
+                for ii in range(self.num_freezes):
+                    vbox_freeze = wx.BoxSizer(wx.VERTICAL)
+                    freeze_coord = wx.StaticText(self, label='_'*len(str(display_size)))
+                    vbox_freeze.Add(freeze_coord, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                    freeze_type = wx.StaticText(self, label='')
+                    vbox_freeze.Add(freeze_type, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                    spacer_val = 0
+                    if ii != self.num_freezes:
+                        spacer_val = 10
+                    self.hbox_freeze.Add(vbox_freeze, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 10)
+
+                self.vbox.Add(self.hbox_freeze, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+
+                self.vbox.AddSpacer(50)
+
+                self.vbox_outer.AddStretchSpacer()
+                self.vbox_outer.Add(self.vbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
+                self.vbox_outer.AddStretchSpacer()
+
+                self.SetSizerAndFit(self.vbox_outer)
+
+                self.Center()
+                self.Show()
+
+                # print(self.hbox_freeze.GetChildren())
+                # print(self.hbox_freeze.GetChildren()[0].GetSizer())
+                # print(self.hbox_freeze.GetChildren()[0].GetSizer().GetChildren()[0].GetWindow())
+                print()
+                print()
+
+                # noinspection PyGlobalUndefined
+                class MonitorThread(threading.Thread):
+                    def __init__(self, thread_parent):
+                        """Init Worker Thread Class."""
+                        threading.Thread.__init__(self, daemon=True)
+                        self.parent = thread_parent
+
+                    def run(self):
+                        """Run worker thread."""
+
+                        self.prev_output_len = 0
+                        self.freezes = []
+
+                        def update_monitor(x, y, freeze=False):
+                            if x < 0:
+                                x = 0
+                            if y < 0:
+                                y = 0
+
+                            if freeze:
+                                self.freezes = self.freezes[-self.parent.num_freezes:]  # keep only latest freeze history
+
+                                # update freeze history
+                                for index, freeze in enumerate(reversed(self.freezes)):
+                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[0].GetWindow().SetLabel(freeze[0])  # set freeze coordinate
+                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[1].GetWindow().SetLabel(freeze[1])  # set freeze type
+
+                                self.parent.Layout()
+
+                            output = f'({x}, {y})'
+                            self.parent.current_coords.SetLabel(output)
+                            if len(output) != self.prev_output_len:
+                                self.prev_output_len = len(output)
+                                self.parent.coords_label.SetLabel(f"x{' '*len(output)}y")
+                                self.parent.Layout()
+
+                        def on_move(x, y):
+                            """Process click for mouse listener for ListenerThread instances."""
+                            update_monitor(x, y)
+
+                        def on_click(x, y, button, pressed):
+                            """Process click for mouse listener for ListenerThread instances."""
+                            # button = str(button).replace('Button.', '').capitalize()
+                            # print(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
+                            if pressed:
+                                self.freezes.append([str((x, y)), 'CLICK'])
+                                update_monitor(x, y, freeze=True)
+
+                        self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click)
+                        self.mouse_listener.start()
+
+                    def abort(self):
+                        """Abort worker thread."""
+                        # Method for use by main thread to signal an abort
+                        self.mouse_listener.stop()
+
+                self.monitor_thread = MonitorThread(self)
+                self.monitor_thread.start()
+
+        mouse_monitor_frame = MouseMonitorFrame(self)
+        mouse_monitor_frame.Show()
+
     def on_exit(_):
         self.Close(True)
 
@@ -152,6 +291,9 @@ def setup_frame(self, status_bar=False):
     file_menu = wx.Menu()
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f' Information about {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_about, menu_about)
+    menu_mouse_monitor = file_menu.Append(wx.ID_ANY, 'Mouse monitor',
+                                          f' {self.software_info.name} mouse monitoring tool')
+    self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f' Exit {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
 
@@ -245,15 +387,14 @@ class ListenerThread(threading.Thread):
 
     def run(self):
         """Run worker thread."""
-        global in_action
         global ctrls
-        in_action = False
         ctrls = 0
 
         def output_to_file_bkup(output='', end='\n'):
             """Print string and write to file."""
 
             # TODO function still needed?
+
             try:
                 global recording_lines
                 recording_lines.append(output)
@@ -919,6 +1060,7 @@ class EditFrame(wx.Frame):
 
     class CharValidator(wx.Validator):
         """ Validates data as it is entered into the text controls. """
+
         def __init__(self, flag, parent):
             wx.Validator.__init__(self)
             self.flag = flag
@@ -949,13 +1091,17 @@ class EditFrame(wx.Frame):
         x_val = coords_of(line)[0]
         y_val = coords_of(line)[1]
 
-        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH, size=wx.Size(self.software_info.coord_width, -1),
-                                   value=str(x_val), validator=self.CharValidator('only_decimal', self))  # TODO validator
+        self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
+                                   size=wx.Size(self.software_info.coord_width, -1),
+                                   value=str(x_val),
+                                   validator=self.CharValidator('only_decimal', self))  # TODO validator
         self.x_coord.SetMaxLength(len(str(display_size[0])))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
 
-        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH, size=wx.Size(self.software_info.coord_width, -1),
-                                   value=str(y_val), validator=self.CharValidator('only_decimal', self))  # TODO validator
+        self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
+                                   size=wx.Size(self.software_info.coord_width, -1),
+                                   value=str(y_val),
+                                   validator=self.CharValidator('only_decimal', self))  # TODO validator
         self.y_coord.SetMaxLength(len(str(display_size[1])))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
 
@@ -1190,7 +1336,9 @@ class EditFrame(wx.Frame):
 
         class AdvancedEdit(wx.Dialog):
             def __init__(self, parent):
-                wx.Dialog.__init__(self, parent, title=f'{parent.software_info.name}: Advanced Edit - {parent.workflow_name}', style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+                wx.Dialog.__init__(self, parent,
+                                   title=f'{parent.software_info.name}: Advanced Edit - {parent.workflow_name}',
+                                   style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
                 self.parent = parent
@@ -1329,7 +1477,10 @@ class EditFrame(wx.Frame):
                         config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
                         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
-                        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY, label=f'{self.software_info.name.lower()}.com/docs', url=f'{self.software_info.website}/docs', style=wx.adv.HL_DEFAULT_STYLE)
+                        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
+                                                              label=f'{self.software_info.name.lower()}.com/docs',
+                                                              url=f'{self.software_info.website}/docs',
+                                                              style=wx.adv.HL_DEFAULT_STYLE)
                         config_status_and_tooltip(self, self.docs_link, tooltip=f'{self.software_info.website}/docs')
                         self.docs_link.SetFont(wx.Font(11, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
                         self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
@@ -2015,7 +2166,11 @@ class EditFrame(wx.Frame):
                                         line = line_orig.replace('\n', '').lower()
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig.replace('\n', '')), interval=type_interval)
+                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('',
+                                                                                                               line_orig.replace(
+                                                                                                                   '\n',
+                                                                                                                   '')),
+                                                             interval=type_interval)
 
                                         elif 'wait' in line:
                                             time.sleep(self.float_in(line))
@@ -2393,7 +2548,10 @@ class WorkflowFrame(wx.Frame):
             confirm_workflow_dlg.Destroy()
 
         else:
-            confirm_workflow_dlg = wx.MessageDialog(None, f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.', f'{self.software_info.name} Workflow Confirmation', wx.YES_NO | wx.ICON_QUESTION)
+            confirm_workflow_dlg = wx.MessageDialog(None,
+                                                    f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.',
+                                                    f'{self.software_info.name} Workflow Confirmation',
+                                                    wx.YES_NO | wx.ICON_QUESTION)
 
             if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
                 self.launch_workflow(
@@ -2421,7 +2579,6 @@ class WorkflowFrame(wx.Frame):
         self.hbox_recent.Clear(delete_windows=True)
 
         # create buttons for 3 most recently accessed workflows
-        self.recent_workflow_btns = [None] * len(self.recent_workflows[0:3])
         for workflow_path_name in self.recent_workflows[0:3]:
             workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
@@ -2461,7 +2618,8 @@ if __name__ == '__main__':
     global capslock
     global EVT_RESULT_ID
     global display_size
-    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    display_size = (
+    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
     app = wx.App(False)
     WorkflowFrame(None)
