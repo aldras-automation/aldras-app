@@ -1,5 +1,8 @@
-Mouse-move to (700, 800)
-Wait: 2
-Mouse-move to (1800, 800)
-Mouse-move to (1800, 200)
-Mouse-move to (700, 200)
+Mouse-move to (780, 140)
+Wait 0.5
+Mouse-move to (1459, 209)
+Wait 0.5
+Mouse-move to (514, 823)
+Wait 0.5
+Mouse-move to (1538, 861)
+Wait 0.5

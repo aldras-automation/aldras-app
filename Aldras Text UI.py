@@ -9,7 +9,7 @@ from pynput import keyboard, mouse
 # failsafe - mouse cursor to top left corner
 
 
-df = pd.read_csv('ctrl_keys_ref.csv', names=['Translation', 'Code'])
+df = pd.read_csv('data/ctrl_keys_ref.csv', names=['Translation', 'Code'])
 df = df.set_index('Code')
 capslock = False
 ctrls = 0
@@ -37,8 +37,8 @@ def float_in(input_string):
 
 
 def execute():
-    time.sleep(1)
-    with open('Workflows/{}.txt'.format(workflow_name), 'r') as record_file:
+    # time.sleep(1)
+    with open('{}.txt'.format(workflow_name), 'r') as record_file:
         lines = record_file.readlines()
     pyauto.PAUSE = pause
     for line_orig in lines:

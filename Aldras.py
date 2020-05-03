@@ -157,7 +157,7 @@ def setup_frame(self, status_bar=False):
                 self.viewMenu = wx.Menu()
                 self.cb_click_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze mouse click positions',
                                                             kind=wx.ITEM_CHECK)
-                self.cb_ctrl_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze positions when left CTRL tapped',
+                self.cb_ctrl_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze positions when CTRL tapped',
                                                            kind=wx.ITEM_CHECK)
 
                 self.viewMenu.Check(self.cb_click_freeze.GetId(), True)
@@ -226,7 +226,6 @@ def setup_frame(self, status_bar=False):
 
                     def run(self):
                         """Run worker thread."""
-
                         self.prev_output_len = 0
                         self.freezes = []
 
@@ -235,10 +234,8 @@ def setup_frame(self, status_bar=False):
                                 x = 0
                             if y < 0:
                                 y = 0
-
                             if freeze:
                                 self.freezes = self.freezes[-self.parent.num_freezes:]  # keep only latest freeze history
-
                                 # update freeze history
                                 for index, freeze in enumerate(reversed(self.freezes)):
                                     self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[0].GetWindow().SetLabel(freeze[0])  # set freeze coordinate
@@ -254,24 +251,33 @@ def setup_frame(self, status_bar=False):
                                 self.parent.Layout()
 
                         def on_move(x, y):
-                            """Process click for mouse listener for ListenerThread instances."""
+                            """Process click for mouse listener for MonitorThread instances."""
                             update_monitor(x, y)
 
                         def on_click(x, y, button, pressed):
-                            """Process click for mouse listener for ListenerThread instances."""
-                            # button = str(button).replace('Button.', '').capitalize()
-                            # print(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
-                            if pressed:
+                            """Process click for mouse listener for MonitorThread instances."""
+                            if pressed and self.parent.cb_click_freeze.IsChecked():
                                 self.freezes.append([str((x, y)), 'CLICK'])
                                 update_monitor(x, y, freeze=True)
 
                         self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click)
                         self.mouse_listener.start()
 
+                        def on_key_press(key):
+                            """Process keystroke press for keyboard listener for MonitorThread instances."""
+                            if 'ctrl' in str(key) and self.parent.cb_ctrl_freeze.IsChecked():
+                                x, y = pyauto.position().x, pyauto.position().y
+                                self.freezes.append([str((x, y)), 'R-CTRL'])
+                                update_monitor(x, y, freeze=True)
+
+                        self.key_listener = keyboard.Listener(on_release=on_key_press)
+                        self.key_listener.start()
+
                     def abort(self):
                         """Abort worker thread."""
                         # Method for use by main thread to signal an abort
                         self.mouse_listener.stop()
+                        self.key_listener.stop()
 
                 self.monitor_thread = MonitorThread(self)
                 self.monitor_thread.start()
@@ -375,6 +381,7 @@ class ListenerThread(threading.Thread):
         self.listen_to_key = listen_to_key
         self.listen_to_mouse = listen_to_mouse
         self.record = record
+        self.in_action = False
         if self.record:
             global recording_lines
             recording_lines = []
@@ -419,10 +426,10 @@ class ListenerThread(threading.Thread):
                 """Process keystroke press for keyboard listener for ListenerThread instances."""
                 global capslock
                 global ctrls
-                global in_action
+                # global self.in_action
                 output = str(key).strip('\'').lower()
                 coords = ''
-                if in_action:
+                if self.in_action:
                     if output == 'key.caps_lock':  # if capslock pressed, swap capslock state
                         capslock = not capslock
                     if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
@@ -450,14 +457,14 @@ class ListenerThread(threading.Thread):
                     ctrls += 1
                     print(f'{ctrls}  ', end='')
                     event_message = 'Error!'
-                    if not in_action:
+                    if not self.in_action:
                         if ctrls == 1:
                             event_message = 'Action in 3'
                         elif ctrls == 2:
                             event_message = 'Action in 3 2'
                         elif ctrls == 3:
                             event_message = 'Action'
-                    elif in_action:
+                    elif self.in_action:
                         if ctrls == 1:
                             event_message = 'Stopping in 3'
                         elif ctrls == 2:
@@ -470,17 +477,17 @@ class ListenerThread(threading.Thread):
                     # TODO revisit and optimize
                     if ctrls >= 3:
                         ctrls = 0
-                        in_action = not in_action
+                        self.in_action = not self.in_action
 
             def on_release_recording(key):
                 """Process keystroke release for keyboard listener for ListenerThread instances."""
                 # TODO revisit and optimize
                 global capslock
                 global ctrls
-                global in_action
+                # global self.in_action
                 output = str(key).strip('\'').lower()
                 coords = ''
-                if in_action:
+                if self.in_action:
                     if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
                         coords = tuple(pyauto.position())
                     if not output.startswith('key'):  # i.e., if output is alphanumeric
@@ -505,11 +512,11 @@ class ListenerThread(threading.Thread):
 
             self.key_listener = keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording)
             self.key_listener.start()
-        if self.listen_to_mouse:
 
+        if self.listen_to_mouse:
             def on_click_recording(x, y, button, pressed):
                 """Process click for mouse listener for ListenerThread instances."""
-                if in_action:
+                if self.in_action:
                     button = str(button).replace('Button.', '').capitalize()
                     output_to_file_bkup(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
 
@@ -2621,8 +2628,7 @@ if __name__ == '__main__':
     global capslock
     global EVT_RESULT_ID
     global display_size
-    display_size = (
-    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
     app = wx.App(False)
     WorkflowFrame(None)
