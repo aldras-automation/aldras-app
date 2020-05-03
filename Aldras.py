@@ -109,10 +109,16 @@ def setup_frame(self, status_bar=False):
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
 
+                def launch_license(_):
+                    webbrowser.open_new_tab(self.parent.software_info.website)
+
+                def launch_privacy(_):
+                    webbrowser.open_new_tab(self.parent.software_info.website)
+
                 # add license button
                 self.license_btn = wx.Button(self, label='License')
                 self.license_btn.SetFocus()
-                self.license_btn.Bind(wx.EVT_BUTTON, self.licence)
+                self.license_btn.Bind(wx.EVT_BUTTON, launch_license)
                 self.hbox_btns.Add(self.license_btn)
 
                 self.hbox_btns.AddStretchSpacer()
@@ -121,7 +127,7 @@ def setup_frame(self, status_bar=False):
 
                 # add privacy statement button
                 self.privacy_btn = wx.Button(self, label='Privacy Statement')
-                self.privacy_btn.Bind(wx.EVT_BUTTON, self.privacy)
+                self.privacy_btn.Bind(wx.EVT_BUTTON, launch_privacy)
                 self.hbox_btns.Add(self.privacy_btn)
 
                 self.vbox.AddMany([(self.vbox_top, 0, wx.EXPAND | wx.NORTH | wx.EAST | wx.WEST, 40),
@@ -130,14 +136,6 @@ def setup_frame(self, status_bar=False):
                 self.vbox_outer.Add(self.vbox, 0, wx.ALL, 5)
                 self.SetSizerAndFit(self.vbox_outer)
                 self.Center()
-
-            @staticmethod
-            def licence(_):
-                webbrowser.open_new_tab(self.parent.software_info.website)
-
-            @staticmethod
-            def privacy(_):
-                webbrowser.open_new_tab(self.parent.software_info.website)
 
         about_dlg = AboutDialog(self, f'About {self.software_info.name}')
         about_dlg.ShowModal()
@@ -182,7 +180,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
 
                 # add coordinate label
-                self.coords_label = wx.StaticText(self, label=f"x{' '*len(str(display_size))}y")
+                self.coords_label = wx.StaticText(self, label=f'x{" "*len(str(display_size))}y')
                 self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
                 self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
                 self.vbox.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
