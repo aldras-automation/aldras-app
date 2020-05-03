@@ -1712,7 +1712,7 @@ class EditFrame(wx.Frame):
 
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = f'Wait: {event.GetString()}'
+        self.lines[index] = f'Wait {event.GetString()}'
 
     def key_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -2237,6 +2237,13 @@ class EditFrame(wx.Frame):
                                 wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
 
                         def abort(self):
+                            pyauto.FAILSAFE = False
+                            # pyauto.mouseUp()
+                            # for key in self.parent.parent.software_info.all_keys:
+                            #     pyauto.keyUp(key)
+                            for button in self.parent.parent.software_info.mouse_buttons:
+                                pyauto.mouseUp(button=button.lower())
+                            pyauto.FAILSAFE = True
                             self.keep_running = False
 
                     self.execution_thread = ExecutionThread(self)
@@ -2276,6 +2283,8 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Completed!':
+                            self.execution_thread.abort()
+
                             self.directions_a.Show(False)
                             self.directions_b.Show(False)
                             self.countdown_light.SetLabel('')

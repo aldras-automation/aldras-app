@@ -1,8 +1,3 @@
-Mouse-move to (780, 140)
-Wait 0.5
-Mouse-move to (1459, 209)
-Wait 0.5
-Mouse-move to (514, 823)
-Wait 0.5
-Mouse-move to (1538, 861)
-Wait 0.5
+Left-mouse press at (500, 500)
+Wait 2
+Mouse-move to (150, 150)
