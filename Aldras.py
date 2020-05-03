@@ -151,6 +151,7 @@ def setup_frame(self, status_bar=False):
                 self.SetBackgroundColour('white')
                 self.parent = parent
                 self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
+                self.Bind(wx.EVT_CLOSE, self.close_window)
 
                 self.menubar = wx.MenuBar()
                 self.viewMenu = wx.Menu()
@@ -213,9 +214,6 @@ def setup_frame(self, status_bar=False):
                 self.Center()
                 self.Show()
 
-                # print(self.hbox_freeze.GetChildren())
-                # print(self.hbox_freeze.GetChildren()[0].GetSizer())
-                # print(self.hbox_freeze.GetChildren()[0].GetSizer().GetChildren()[0].GetWindow())
                 print()
                 print()
 
@@ -277,6 +275,11 @@ def setup_frame(self, status_bar=False):
 
                 self.monitor_thread = MonitorThread(self)
                 self.monitor_thread.start()
+
+            def close_window(self, _):
+                self.monitor_thread.abort()
+                self.parent.Layout()
+                self.Destroy()
 
         mouse_monitor_frame = MouseMonitorFrame(self)
         mouse_monitor_frame.Show()
