@@ -2160,15 +2160,24 @@ class EditFrame(wx.Frame):
 
                             drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
                             lines = self.parent.parent.lines
-                            pause = self.parent.parent.execution_pause
                             type_interval = self.parent.parent.execution_type_intrv
                             mouse_duration = self.parent.parent.execution_mouse_dur
 
                             mouse_down_coords = [0, 0]
-                            pyauto.PAUSE = pause
+                            pyauto.PAUSE = self.parent.parent.execution_pause
                             self.keep_running = True
 
                             try:
+                                def on_move(x, y):
+                                    """Process click for mouse listener for ExecutionThread instances."""
+                                    if x < 5 and y < 5:
+                                        self.keep_running = False
+
+                                self.mouse_listener = mouse.Listener(on_move=on_move)
+                                self.mouse_listener.start()
+
+                                time.sleep(0.5)  # wait for last activating CTRL key to be released fully
+
                                 for line_orig in lines:
                                     if self.keep_running:
                                         line = line_orig.replace('\n', '').lower()
@@ -2181,7 +2190,12 @@ class EditFrame(wx.Frame):
                                                              interval=type_interval)
 
                                         elif 'wait' in line:
-                                            time.sleep(self.float_in(line))
+                                            tot_time = self.float_in(line)
+                                            time_floored = math.floor(0.05 * math.floor(tot_time/0.05))
+                                            for half_sec_interval in range(20*time_floored):
+                                                if self.keep_running:
+                                                    time.sleep(0.05)
+                                            time.sleep(tot_time-time_floored)
 
                                         elif 'left-mouse' in line or 'right-mouse' in line:
                                             coords = coords_of(line)
@@ -2213,6 +2227,7 @@ class EditFrame(wx.Frame):
                                             if 'tap' in line:
                                                 key = line.replace('key', '').replace('tap', '').replace(' ', '')
                                                 pyauto.press(key)
+                                                print(key)
                                             elif 'press' in line:
                                                 key = line.replace('key', '').replace('tap', '').replace(' ', '')
                                                 pyauto.keyDown(key)
@@ -2232,13 +2247,17 @@ class EditFrame(wx.Frame):
                                             coords = coords_of(line)
                                             pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
 
-                                wx.PostEvent(self.parent, ResultEvent('Completed!'))
                             except pyauto.FailSafeException:
+                                pass
+
+                            if not self.keep_running:
                                 wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
+                            else:
+                                wx.PostEvent(self.parent, ResultEvent('Completed!'))
 
                         def abort(self):
+                            self.mouse_listener.stop()
                             pyauto.FAILSAFE = False
-                            # pyauto.mouseUp()
                             # for key in self.parent.parent.software_info.all_keys:
                             #     pyauto.keyUp(key)
                             for button in self.parent.parent.software_info.mouse_buttons:
