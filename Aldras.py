@@ -16,6 +16,9 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 
+# TODO deleting commands from advanced_edit frame and going back to workflow_frame while saving causes Aldras the quit
+# TODO eliminate line.replace('\n', '') since new default line format is without line break
+# TODO trouble shoot recording not updating Edit frame correctly
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
 # TODO implement mouse locator utility
@@ -776,7 +779,7 @@ class EditFrame(wx.Frame):
         except FileNotFoundError:  # create file if not found
             with open(parent.workflow_path_name, 'w'):
                 self.lines = []
-
+        self.lines = [line.replace('\n', '') for line in self.lines]
         self.lines_as_read = self.lines.copy()
 
         self.edit_rows = []
@@ -1368,7 +1371,7 @@ class EditFrame(wx.Frame):
 
                 self.vbox_inner.AddSpacer(5)
 
-                self.text_edit = wx.TextCtrl(self.adv_edit_panel, value=''.join(parent.lines),
+                self.text_edit = wx.TextCtrl(self.adv_edit_panel, value='\n'.join(parent.lines),
                                              style=wx.TE_MULTILINE | wx.EXPAND,
                                              size=(500, 250))
 
@@ -1517,9 +1520,9 @@ class EditFrame(wx.Frame):
 
         adv_edit_dlg = AdvancedEdit(self)
         if adv_edit_dlg.ShowModal() == wx.ID_OK:
-            if adv_edit_dlg.text_edit.GetValue() != ''.join(self.lines):
+            if adv_edit_dlg.text_edit.GetValue().split('\n') != self.lines:
                 # TODO find way to only add changes rather than compute entire panel again
-                self.lines = [f'{x}\n' for x in adv_edit_dlg.text_edit.GetValue().split('\n')]
+                self.lines = adv_edit_dlg.text_edit.GetValue().split('\n')
                 self.create_edit_panel()
                 self.Layout()
 
@@ -2173,13 +2176,13 @@ class EditFrame(wx.Frame):
                                     if x < 5 and y < 5:
                                         self.keep_running = False
 
-                                self.mouse_listener = mouse.Listener(on_move=on_move)
+                                self.mouse_listener = mouse.Listener(on_move=on_move)  # monitor mouse position to stop execution if failsafe detected
                                 self.mouse_listener.start()
 
                                 time.sleep(0.5)  # wait for last activating CTRL key to be released fully
 
                                 for line_orig in lines:
-                                    if self.keep_running:
+                                    if self.keep_running:  # only run when running
                                         line = line_orig.replace('\n', '').lower()
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
@@ -2191,11 +2194,11 @@ class EditFrame(wx.Frame):
 
                                         elif 'wait' in line:
                                             tot_time = self.float_in(line)
-                                            time_floored = math.floor(0.05 * math.floor(tot_time/0.05))
-                                            for half_sec_interval in range(20*time_floored):
+                                            time_floored = math.floor(0.05 * math.floor(tot_time/0.05))  # round down to nearest 0.05
+                                            for half_sec_interval in range(20*time_floored):  # loop through each 0.05 second and if still running
                                                 if self.keep_running:
                                                     time.sleep(0.05)
-                                            time.sleep(tot_time-time_floored)
+                                            time.sleep(tot_time-time_floored)  # wait additional time unaccounted for in rounding
 
                                         elif 'left-mouse' in line or 'right-mouse' in line:
                                             coords = coords_of(line)
@@ -2227,12 +2230,11 @@ class EditFrame(wx.Frame):
                                             if 'tap' in line:
                                                 key = line.replace('key', '').replace('tap', '').replace(' ', '')
                                                 pyauto.press(key)
-                                                print(key)
                                             elif 'press' in line:
-                                                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                                                key = line.replace('key', '').replace('press', '').replace(' ', '')
                                                 pyauto.keyDown(key)
                                             elif 'release' in line:
-                                                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                                                key = line.replace('key', '').replace('release', '').replace(' ', '')
                                                 pyauto.keyUp(key)
 
                                         elif 'mouse-move' in line:
@@ -2248,7 +2250,7 @@ class EditFrame(wx.Frame):
                                             pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
 
                             except pyauto.FailSafeException:
-                                pass
+                                self.keep_running = False
 
                             if not self.keep_running:
                                 wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
@@ -2257,13 +2259,15 @@ class EditFrame(wx.Frame):
 
                         def abort(self):
                             self.mouse_listener.stop()
+                            self.keep_running = False
                             pyauto.FAILSAFE = False
-                            # for key in self.parent.parent.software_info.all_keys:
-                            #     pyauto.keyUp(key)
+                            pyauto.PAUSE = 0.001
+                            for key in self.parent.parent.software_info.special_keys:  # release any problematic keys that may still be pressed
+                                pyauto.keyUp(key)
                             for button in self.parent.parent.software_info.mouse_buttons:
                                 pyauto.mouseUp(button=button.lower())
+                            pyauto.PAUSE = self.parent.parent.execution_pause
                             pyauto.FAILSAFE = True
-                            self.keep_running = False
 
                     self.execution_thread = ExecutionThread(self)
                     self.execution_thread.start()
@@ -2341,10 +2345,10 @@ class EditFrame(wx.Frame):
                         self.listener_thread.abort()
                     except AttributeError:
                         pass
-                    try:
-                        self.execution_thread.abort()
-                    except AttributeError:
-                        pass
+                    # try:
+                    #     self.execution_thread.abort()
+                    # except AttributeError:
+                    #     pass
                     self.Destroy()
 
             execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
@@ -2403,8 +2407,9 @@ class EditFrame(wx.Frame):
             if save_dialog == wx.ID_OK:
                 # write to workflow file
                 with open(self.parent.workflow_path_name, 'w') as record_file:
+                    print(f'LINES: {self.lines}')
                     for line in self.lines:
-                        record_file.write(line)
+                        record_file.write(f'{line}\n')
             elif save_dialog == 20:  # don't save button
                 pass
             else:  # cancel button
@@ -2431,7 +2436,7 @@ class WorkflowFrame(wx.Frame):
 
             def __init__(self):
                 self.name = 'Aldras'
-                self.version = '2020.1.2 Alpha'
+                self.version = '2020.1.3 Alpha'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -2461,10 +2466,7 @@ class WorkflowFrame(wx.Frame):
                 self.key_actions = ['Tap', 'Press', 'Release']
                 self.coord_width = 40
                 self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End',
-                                     'PageUp',
-                                     'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option',
-                                     'BrowserBack', 'BrowserForward', 'CapsLock', 'Insert', 'NumLock', 'PrntScrn',
-                                     'ScrollLock']
+                                     'PageUp', 'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option', 'BrowserBack', 'BrowserForward', 'Insert', 'NumLock', 'PrntScrn', 'ScrollLock']
                 self.media_keys = ['PlayPause', 'NextTrack', 'PrevTrack', 'VolumeMute', 'VolumeUp', 'VolumeDown']
                 self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
                 self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -2593,7 +2595,17 @@ class WorkflowFrame(wx.Frame):
                 self.launch_workflow(
                     workflow_path_name=f'{self.workflow_directory}{self.workflow_name_input.GetValue().capitalize()}.txt')
 
-    def launch_workflow(self, workflow_path_name):
+    def launch_workflow(self, workflow_path_name, recent_launch=False):
+        if recent_launch:
+            # when launching recent workflow, make sure it still exists
+            try:
+                with open(workflow_path_name, 'r') as record_file:
+                    self.lines = record_file.readlines()
+            except FileNotFoundError:
+                print('FileNotFoundError')
+                # TODO implement dialogue informing user of non-existent workflow and prompt to create new. If not, delete record in 'recent_workflows.txt'
+                raise SystemError('FileNotFoundError')
+
         self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
         self.workflow_path_name = workflow_path_name
 
@@ -2620,7 +2632,7 @@ class WorkflowFrame(wx.Frame):
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
                                           lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
-                                              workflow_path_trap))
+                                              workflow_path_trap, recent_launch=True))
             self.hbox_recent.Add(self.recent_workflow_btn)
 
         self.hbox_recent.ShowItems(show=True)

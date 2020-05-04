@@ -1,0 +1,3 @@
+Key Win Tap
+Key Shift Press
+Wait 10.123

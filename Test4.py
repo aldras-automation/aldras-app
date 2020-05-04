@@ -2,13 +2,13 @@ import pyautogui as pyauto
 import time
 import math
 
+#
+var = 'asdfjwoidfasdf'
+#
+
 t0 = time.time()
 
-var = None
-
-for ii in range(1000000):
-    var = round(1.489238476234)
+for ii in range(10000):
+    var1 = var.replace('yo', '')
 
 print(time.time()-t0)
-
-pyauto.press('Win')
