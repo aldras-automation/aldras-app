@@ -1,3 +1,1 @@
 Mouse-move to (500, 500)
-Wait 10.4732198
-Mouse-move to (150, 150)

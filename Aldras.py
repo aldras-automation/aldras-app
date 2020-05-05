@@ -17,7 +17,6 @@ from pynput import keyboard, mouse
 
 
 # TODO deleting commands from advanced_edit frame and going back to workflow_frame while saving causes Aldras the quit
-# TODO eliminate line.replace('\n', '') since new default line format is without line break
 # TODO trouble shoot recording not updating Edit frame correctly
 # TODO comments
 # TODO implement preference menu (autosave, default pauses, etc)
@@ -899,7 +898,6 @@ class EditFrame(wx.Frame):
         self.edit_row_tracker = []  # for identifying indices later
 
         for index, self.line_orig in enumerate(self.lines):
-            self.line_orig = self.line_orig.replace('\n', '')
             self.line = self.line_orig.lower()
 
             self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
@@ -1560,7 +1558,7 @@ class EditFrame(wx.Frame):
         index = self.edit_row_tracker.index(sizer)
         new_action = event.GetString()
         line_orig = self.lines[index]
-        line = line_orig.lower().replace('\n', '')
+        line = line_orig.lower()
         line_first_word = line.split(' ')[0]
 
         old_coords = (0, 0)
@@ -2183,14 +2181,10 @@ class EditFrame(wx.Frame):
 
                                 for line_orig in lines:
                                     if self.keep_running:  # only run when running
-                                        line = line_orig.replace('\n', '').lower()
+                                        line = line_orig.lower()
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('',
-                                                                                                               line_orig.replace(
-                                                                                                                   '\n',
-                                                                                                                   '')),
-                                                             interval=type_interval)
+                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig), interval=type_interval)
 
                                         elif 'wait' in line:
                                             tot_time = self.float_in(line)
