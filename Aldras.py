@@ -16,11 +16,8 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
 
-# TODO deleting commands from advanced_edit frame and going back to workflow_frame while saving causes Aldras the quit
-# TODO trouble shoot recording not updating Edit frame correctly
 # TODO comments
-# TODO implement preference menu (autosave, default pauses, etc)
-# TODO implement mouse locator utility
+# TODO revise mouse locator utility
 # TODO implement fading shade color of recently modified command
 # TODO implement encrypted file storage for preferences and other data (resolution)
 # TODO scrolled panel scroll down or up automatically
@@ -30,18 +27,13 @@ from pynput import keyboard, mouse
 # TODO image for recording, executing, and stopping (animation)
 # TODO investigate compartmentalization for better organization
 # TODO alternate row shading (edit frame)
-# TODO investigate zoom
-# TODO language switching
 # TODO command move
 # TODO control key validation
 # TODO re-runs
-# TODO create help guide
 # TODO investigate compilation speed increases (numba, cpython, pypy)
 # TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
 # TODO investigate speed optimization with multiprocessing
 # TODO premium feature separation (any workflow destination)
-# TODO for loops
-# TODO variables from excel or in range, etc.
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
 
@@ -785,7 +777,7 @@ class EditFrame(wx.Frame):
         self.lines = [line.replace('\n', '') for line in self.lines]
         self.lines_when_launched = self.lines.copy()
 
-        self.edit_rows = []
+        # self.edit_rows = []
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -889,16 +881,22 @@ class EditFrame(wx.Frame):
         self.hbox_edit.AddSpacer(10)
 
     def create_edit_panel(self):
+        self.edit_rows = []
+
         if self.vbox_edit:  # if edit panel has been created previously
             for child in self.vbox_edit.GetChildren():
                 child.Show(False)
+                child.Destroy()
 
         # delete all leading and trailing empty lines
         for index in [0, -1]:
             while self.lines[index] == '':
                 del self.lines[index]
 
-        print(self.lines)
+        try:
+            self.edit.Show(False)
+        except AttributeError:
+            pass
 
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
@@ -2428,7 +2426,6 @@ class EditFrame(wx.Frame):
             parent.Position = (self.Position[0] + ((self.Size[0] - parent.Size[0]) / 2),
                                self.Position[1] + ((self.Size[1] - parent.Size[1]) / 2))
             parent.Show()
-            self.Destroy()
 
 
 class WorkflowFrame(wx.Frame):

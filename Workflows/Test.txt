@@ -1,9 +1,3 @@
-
-
-
-
 Mouse-move to (500, 500)
 Wait 0.3
-
-
-
+Type:This is a test
