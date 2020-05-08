@@ -274,10 +274,10 @@ def setup_frame(self, status_bar=False):
                 self.monitor_thread = MonitorThread(self)
                 self.monitor_thread.start()
 
-            def close_window(self, _):
+            def close_window(self, close_event):
                 self.monitor_thread.abort()
                 self.parent.Layout()
-                self.Destroy()
+                close_event.Skip()
 
         mouse_monitor_frame = MouseMonitorFrame(self)
         mouse_monitor_frame.Show()
@@ -1513,10 +1513,10 @@ class EditFrame(wx.Frame):
                 else:
                     self.adv_edit_guide.Raise()  # bring existing edit guide to top
 
-            def close_window(self, _):
+            def close_window(self, close_event):
                 if self.adv_edit_guide:
                     self.adv_edit_guide.Close(True)
-                self.Destroy()
+                close_event.Skip()
 
         adv_edit_dlg = AdvancedEdit(self)
         if adv_edit_dlg.ShowModal() == wx.ID_OK:
@@ -1951,10 +1951,10 @@ class EditFrame(wx.Frame):
                         self.SetSizerAndFit(self.vbox_outer)
                         self.Fit()
 
-                def close_window(self, _):
+                def close_window(self, close_event):
                     self.listener_thread.abort()
                     self.parent.Layout()
-                    self.Destroy()
+                    close_event.Skip()
 
             record_counter_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
             record_counter_dlg.ShowModal()
@@ -2248,10 +2248,13 @@ class EditFrame(wx.Frame):
                             except pyauto.FailSafeException:
                                 self.keep_running = False
 
-                            if not self.keep_running:
-                                wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
-                            else:
-                                wx.PostEvent(self.parent, ResultEvent('Completed!'))
+                            try:
+                                if not self.keep_running:
+                                    wx.PostEvent(self.parent, ResultEvent('Failsafe triggered'))
+                                else:
+                                    wx.PostEvent(self.parent, ResultEvent('Completed!'))
+                            except RuntimeError:
+                                print('STOPPED')
 
                         def abort(self):
                             self.mouse_listener.stop()
@@ -2336,16 +2339,16 @@ class EditFrame(wx.Frame):
                         self.SetSizerAndFit(self.vbox_outer)
                         self.Fit()
 
-                def close_window(self, _):
-                    try:
-                        self.listener_thread.abort()
-                    except AttributeError:
-                        pass
-                    # try:
-                    #     self.execution_thread.abort()
-                    # except AttributeError:
-                    #     pass
-                    self.Destroy()
+                def close_window(self, close_event):
+                    self.keep_running = False
+
+                    for thread in [self.listener_thread, self.execution_thread]:
+                        try:
+                            thread.abort()
+                        except AttributeError:
+                            pass
+
+                    close_event.Skip()
 
             execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
             execute_counter_dlg.ShowModal()
@@ -2578,7 +2581,6 @@ class WorkflowFrame(wx.Frame):
             confirm_workflow_dlg = wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
                                                     wx.OK | wx.ICON_EXCLAMATION)
             confirm_workflow_dlg.ShowModal()
-            confirm_workflow_dlg.Destroy()
 
         else:
             confirm_workflow_dlg = wx.MessageDialog(None,
