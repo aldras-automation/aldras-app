@@ -1,3 +1,4 @@
-Mouse-move to (1302, 721)
-Wait 0.5
-Mouse-move to (294, 1011)
+Left-mouse click at (0, 0)
+Key Win Tap
+Type:Sorcerer’s Apprentice programmed to keep filling (and then overfilling) the bath with water, a bug in your program could make it go out of control. It’s hard to use the mouse to close a program if the mouse cursor is moving around on its own.
+Wait 10

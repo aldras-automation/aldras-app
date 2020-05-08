@@ -731,7 +731,6 @@ class EditFrame(wx.Frame):
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
         self.parent = parent
-
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {parent.workflow_name}')
 
         setup_frame(self, status_bar=True)
@@ -742,6 +741,11 @@ class EditFrame(wx.Frame):
         # set number of hotkeys
         # TODO to be set by preferences
         self.num_hotkeys = 3
+
+        # set default coordinates
+        self.default_coords = (10, 10)
+
+        print(f'Left-mouse click at {self.default_coords}'.lower())
 
         # create sizers
         self.vbox_container = wx.BoxSizer(wx.VERTICAL)
@@ -1305,8 +1309,8 @@ class EditFrame(wx.Frame):
         self.hbox_edit.AddSpacer(5)
 
         self.add_command_combobox('Mouse button')
-        self.create_mouse_row('Left-mouse click at (0, 0)'.lower(), self.hbox_edit)
-        self.lines.append('Left-mouse click at (0, 0)')
+        self.create_mouse_row(f'Left-mouse click at {self.default_coords}'.lower(), self.hbox_edit)
+        self.lines.append(f'Left-mouse click at {self.default_coords}')
 
         self.add_edit_row(self.hbox_edit)
         self.edit_row_tracker.append(self.hbox_edit)
@@ -1561,7 +1565,7 @@ class EditFrame(wx.Frame):
         line = line_orig.lower()
         line_first_word = line.split(' ')[0]
 
-        old_coords = (0, 0)
+        old_coords = self.default_coords
         old_action = ''
         if '-mouse' in line_first_word:
             old_action = 'Mouse button'

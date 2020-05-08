@@ -1,1 +1,3 @@
-Mouse-move to (500, 500)
+Mouse-move to (0, 0)
+Left-mouse click at (0, 0)
+Wait 10
