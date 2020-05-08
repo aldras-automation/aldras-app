@@ -884,19 +884,12 @@ class EditFrame(wx.Frame):
         self.edit_rows = []
 
         if self.vbox_edit:  # if edit panel has been created previously
-            for child in self.vbox_edit.GetChildren():
-                child.Show(False)
-                child.Destroy()
+            self.edit.Destroy()
 
         # delete all leading and trailing empty lines
         for index in [0, -1]:
             while self.lines[index] == '':
                 del self.lines[index]
-
-        try:
-            self.edit.Show(False)
-        except AttributeError:
-            pass
 
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
