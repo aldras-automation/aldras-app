@@ -783,7 +783,7 @@ class EditFrame(wx.Frame):
             with open(parent.workflow_path_name, 'w'):
                 self.lines = []
         self.lines = [line.replace('\n', '') for line in self.lines]
-        self.lines_as_read = self.lines.copy()
+        self.lines_when_launched = self.lines.copy()
 
         self.edit_rows = []
 
@@ -892,6 +892,13 @@ class EditFrame(wx.Frame):
         if self.vbox_edit:  # if edit panel has been created previously
             for child in self.vbox_edit.GetChildren():
                 child.Show(False)
+
+        # delete all leading and trailing empty lines
+        for index in [0, -1]:
+            while self.lines[index] == '':
+                del self.lines[index]
+
+        print(self.lines)
 
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
@@ -2353,7 +2360,7 @@ class EditFrame(wx.Frame):
             execute_counter_dlg.ShowModal()
 
     def close_window(self, _, parent, quitall=False):
-        if self.lines_as_read != self.lines:
+        if self.lines_when_launched != self.lines:
 
             class SaveDialog(wx.Dialog):
                 def __init__(self, parent_win):
