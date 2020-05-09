@@ -1823,12 +1823,13 @@ class EditFrame(wx.Frame):
         if record_dlg.ShowModal() == wx.ID_OK:
 
             class RecordCtrlCounterDialog(wx.Dialog):
-                def __init__(self, parent, caption):
+                def __init__(self, parent, caption, parent_dialog):
                     wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-                    self.parent = parent
                     self.SetTitle(caption)
-                    self.SetIcon(wx.Icon(self.parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+                    self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                     self.SetBackgroundColour('white')
+                    self.parent = parent
+                    self.done = False
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -1888,7 +1889,8 @@ class EditFrame(wx.Frame):
 
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Center()
+                    self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
+                                     parent_dialog.Position[1])
 
                     # Process message events from threads
                     self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)
@@ -1909,6 +1911,8 @@ class EditFrame(wx.Frame):
                         self.countdown_light.SetLabel('Some error occurred')
                         self.countdown_light.Show(True)
                     else:  # Process results
+                        self.position_old = self.GetPosition()
+                        self.size_old = self.GetSize()
                         self.countdown_dark.Show(True)
                         self.countdown_light.Show(True)
 
@@ -1946,11 +1950,15 @@ class EditFrame(wx.Frame):
                             self.recording_message_b.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
+                            self.done = True
 
                         self.vbox.Layout()
                         self.vbox_outer.Layout()
                         self.SetSizerAndFit(self.vbox_outer)
-                        self.Center()
+                        if self.done:
+                            self.Raise()
+                            self.Position = (self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2),
+                                             self.position_old[1])
                         self.Fit()
 
                 def finish(self, _):
@@ -1963,7 +1971,7 @@ class EditFrame(wx.Frame):
                     self.parent.Layout()
                     self.Destroy()
 
-            record_counter_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
+            record_counter_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}', record_dlg)
             record_counter_dlg.ShowModal()
 
     def on_execute(self):
@@ -2071,12 +2079,13 @@ class EditFrame(wx.Frame):
                 self.execution_type_intrv = 0.02
 
             class ExecuteCtrlCounterDialog(wx.Dialog):
-                def __init__(self, parent, caption):
+                def __init__(self, parent, caption, parent_dialog):
                     wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
                     self.SetTitle(caption)
                     self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                     self.SetBackgroundColour('white')
                     self.parent = parent
+                    self.done = False
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -2134,7 +2143,8 @@ class EditFrame(wx.Frame):
 
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Center()
+                    self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
+                                     parent_dialog.Position[1])
 
                     # Process message events from threads
                     self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)
@@ -2285,6 +2295,8 @@ class EditFrame(wx.Frame):
                         self.countdown_light.SetLabel('Some error occurred')
                         self.countdown_light.Show(True)
                     else:  # Process results
+                        self.position_old = self.GetPosition()
+                        self.size_old = self.GetSize()
                         self.countdown_dark.Show(True)
                         self.countdown_light.Show(True)
 
@@ -2323,6 +2335,7 @@ class EditFrame(wx.Frame):
                             self.executing_message_a.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
+                            self.done = True
 
                         elif event.data == 'Failsafe triggered':
                             self.listener_thread.abort()
@@ -2339,25 +2352,32 @@ class EditFrame(wx.Frame):
                             self.executing_message_a.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
-                            self.Raise()
+                            self.done = True
 
                         self.vbox.Layout()
                         self.vbox_outer.Layout()
                         self.SetSizerAndFit(self.vbox_outer)
+                        if self.done:
+                            self.Raise()
+                            self.Position = (self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2),
+                                             self.position_old[1])
                         self.Fit()
 
                 def close_window(self, close_event):
                     self.keep_running = False
 
-                    for thread in [self.listener_thread, self.execution_thread]:
-                        try:
-                            thread.abort()
-                        except AttributeError:
-                            pass
+                    try:
+                        self.listener_thread.abort()
+                    except AttributeError:
+                        pass
+                    try:
+                        self.execution_thread.abort()
+                    except AttributeError:
+                        pass
 
                     close_event.Skip()
 
-            execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
+            execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}', execute_dlg)
             execute_counter_dlg.ShowModal()
 
     def close_window(self, _, parent, quitall=False):
