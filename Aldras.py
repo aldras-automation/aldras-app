@@ -887,9 +887,12 @@ class EditFrame(wx.Frame):
             self.edit.Destroy()
 
         # delete all leading and trailing empty lines
-        for index in [0, -1]:
-            while self.lines[index] == '':
-                del self.lines[index]
+        try:
+            for index in [0, -1]:
+                while self.lines[index] == '':
+                    del self.lines[index]
+        except IndexError:
+            pass
 
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
@@ -1874,7 +1877,7 @@ class EditFrame(wx.Frame):
                     self.spacer_a.Show(False)
 
                     self.finish_btn = wx.Button(self, label='Finish')
-                    self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
+                    self.finish_btn.Bind(wx.EVT_BUTTON, self.finish)
                     self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
                     self.finish_btn.Show(False)
 
@@ -1943,18 +1946,22 @@ class EditFrame(wx.Frame):
                             self.recording_message_b.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
-                            self.parent.lines = self.listener_thread.abort()
-                            self.parent.create_edit_panel()
 
                         self.vbox.Layout()
                         self.vbox_outer.Layout()
                         self.SetSizerAndFit(self.vbox_outer)
+                        self.Center()
                         self.Fit()
 
-                def close_window(self, close_event):
+                def finish(self, _):
+                    self.parent.lines = self.listener_thread.abort()
+                    self.parent.create_edit_panel()
+                    self.close_window(None)
+
+                def close_window(self, _):
                     self.listener_thread.abort()
                     self.parent.Layout()
-                    close_event.Skip()
+                    self.Destroy()
 
             record_counter_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
             record_counter_dlg.ShowModal()

@@ -1,6 +1,6 @@
 Workflows/Test.txt
-Workflows/Workflow.txt
 Workflows/Test2.txt
+Workflows/Workflow.txt
 Workflows/Test1.txt
 Workflows/To_delete.txt
 Workflows/Anafora.txt
