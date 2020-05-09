@@ -1962,8 +1962,12 @@ class EditFrame(wx.Frame):
                         self.Fit()
 
                 def finish(self, _):
-                    self.parent.lines = self.listener_thread.abort()
-                    self.parent.create_edit_panel()
+                    lines_recorded = self.listener_thread.abort()
+                    if lines_recorded:
+                        self.parent.lines = lines_recorded
+                        self.parent.create_edit_panel()
+                    else:
+                        wx.MessageBox('No actions detected nor recorded.', 'Warning', wx.OK | wx.ICON_WARNING)
                     self.close_window(None)
 
                 def close_window(self, _):
