@@ -174,7 +174,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
 
                 # add coordinate label
-                self.coords_label = wx.StaticText(self, label=f'x{" "*len(str(display_size))}y')
+                self.coords_label = wx.StaticText(self, label=f'x{" " * len(str(display_size))}y')
                 self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
                 self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
                 self.vbox.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
@@ -184,7 +184,7 @@ def setup_frame(self, status_bar=False):
                 self.hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
                 for ii in range(self.num_freezes):
                     vbox_freeze = wx.BoxSizer(wx.VERTICAL)
-                    freeze_coord = wx.StaticText(self, label='_'*len(str(display_size)))
+                    freeze_coord = wx.StaticText(self, label='_' * len(str(display_size)))
                     vbox_freeze.Add(freeze_coord, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     freeze_type = wx.StaticText(self, label='')
                     vbox_freeze.Add(freeze_type, 0, wx.ALIGN_CENTER_HORIZONTAL)
@@ -227,11 +227,14 @@ def setup_frame(self, status_bar=False):
                             if y < 0:
                                 y = 0
                             if freeze:
-                                self.freezes = self.freezes[-self.parent.num_freezes:]  # keep only latest freeze history
+                                self.freezes = self.freezes[
+                                               -self.parent.num_freezes:]  # keep only latest freeze history
                                 # update freeze history
                                 for index, freeze in enumerate(reversed(self.freezes)):
-                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[0].GetWindow().SetLabel(freeze[0])  # set freeze coordinate
-                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[1].GetWindow().SetLabel(freeze[1])  # set freeze type
+                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[
+                                        0].GetWindow().SetLabel(freeze[0])  # set freeze coordinate
+                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[
+                                        1].GetWindow().SetLabel(freeze[1])  # set freeze type
 
                                 self.parent.Layout()
 
@@ -239,7 +242,7 @@ def setup_frame(self, status_bar=False):
                             self.parent.current_coords.SetLabel(output)
                             if len(output) != self.prev_output_len:
                                 self.prev_output_len = len(output)
-                                self.parent.coords_label.SetLabel(f"x{' '*len(output)}y")
+                                self.parent.coords_label.SetLabel(f"x{' ' * len(output)}y")
                                 self.parent.Layout()
 
                         def on_move(x, y):
@@ -1087,11 +1090,11 @@ class EditFrame(wx.Frame):
             keycode = int(event.GetKeyCode())
             if keycode < 256:
                 key = chr(keycode)
-                if self.flag == 'no-alpha' and key in string.ascii_letters:
+                if self.flag == 'no_alpha' and key in string.ascii_letters:
                     return
-                if self.flag == 'no-digit' and key in string.digits:
+                if self.flag == 'only_digit' and not (key.isdecimal() or key == '.'):
                     return
-                if self.flag == 'only_decimal' and not key.isdecimal():
+                if self.flag == 'only_integer' and not key.isdecimal():
                     return
             event.Skip()
 
@@ -1106,14 +1109,14 @@ class EditFrame(wx.Frame):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(x_val),
-                                   validator=self.CharValidator('only_decimal', self))  # TODO validator
+                                   validator=self.CharValidator('only_integer', self))  # TODO validator
         self.x_coord.SetMaxLength(len(str(display_size[0])))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(y_val),
-                                   validator=self.CharValidator('only_decimal', self))  # TODO validator
+                                   validator=self.CharValidator('only_integer', self))  # TODO validator
         self.y_coord.SetMaxLength(len(str(display_size[1])))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
 
@@ -1145,9 +1148,13 @@ class EditFrame(wx.Frame):
             sizer = self.hbox_edit
             value = line.replace('wait', '').replace(' ', '')
 
-        wait_entry = wx.TextCtrl(self.edit, value=value, validator=self.CharValidator('no-alpha', self))
+        wait_entry = wx.TextCtrl(self.edit, value=value, style=wx.TE_RICH,
+                                 validator=self.CharValidator('only_digit', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(30)
+        self.error_display = wx.StaticText(self.edit, label='')
+        sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1701,7 +1708,6 @@ class EditFrame(wx.Frame):
         except CustomInvalidCoordError:
             text_ctrl.SetForegroundColour(wx.RED)
             event.Skip()
-            print('OUT OF RANGE')
             if x:
                 error_msg = f'The max X value is {display_size[0]} px.'
             elif y:
@@ -1716,7 +1722,52 @@ class EditFrame(wx.Frame):
 
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
-        self.lines[index] = f'Wait {event.GetString()}'
+        command_change = event.GetString()
+        text_ctrl = event.GetEventObject()
+        text_ctrl.SetMaxLength(0)
+        text_ctrl.SetForegroundColour(wx.BLACK)
+        error_static_text = sizer.GetChildren()[-1].GetWindow()
+        error_static_text.SetForegroundColour(wx.RED)
+        error_static_text.SetLabel('')
+        too_big = False
+
+        intervals = (
+            ('days', 86400),  # 60 * 60 * 24
+            ('hrs', 3600),  # 60 * 60
+            ('mins', 60),
+            ('secs', 1),
+        )
+
+        def verbalize_time(seconds, granularity=4):
+            result = []
+            for name, count in intervals:
+                value = seconds // count
+                if value:
+                    seconds -= value * count
+                    if value == 1:
+                        name = name.rstrip('s')
+                    # result.append("{} {}".format(value, name))
+                    result.append(f'{int(value)} {name}')
+            return ', '.join(result[:granularity])
+
+        try:
+            wait_time = float(command_change)
+            if wait_time > 604800:  # more than a week
+                error_static_text.SetLabel('The max wait time is one week.')
+                too_big = True
+                raise ValueError
+            elif wait_time > 60:  # more than a day
+                error_static_text.SetLabel(verbalize_time(wait_time))
+                error_static_text.SetForegroundColour(wx.BLACK)
+            self.lines[index] = f'Wait {command_change}'
+        except ValueError:
+            if command_change:  # if the wait entry is not empty
+                text_ctrl.SetForegroundColour(wx.RED)
+                if not too_big:
+                    error_static_text.SetLabel('Invalid number.')
+                text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
+            else:
+                self.lines[index] = 'Wait 0'
 
     def key_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -2195,7 +2246,8 @@ class EditFrame(wx.Frame):
                                     if x < 5 and y < 5:
                                         self.keep_running = False
 
-                                self.mouse_listener = mouse.Listener(on_move=on_move)  # monitor mouse position to stop execution if failsafe detected
+                                self.mouse_listener = mouse.Listener(
+                                    on_move=on_move)  # monitor mouse position to stop execution if failsafe detected
                                 self.mouse_listener.start()
 
                                 time.sleep(0.5)  # wait for last activating CTRL key to be released fully
@@ -2205,15 +2257,20 @@ class EditFrame(wx.Frame):
                                         line = line_orig.lower()
 
                                         if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig), interval=type_interval)
+                                            pyauto.typewrite(
+                                                re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
+                                                interval=type_interval)
 
                                         elif 'wait' in line:
                                             tot_time = self.float_in(line)
-                                            time_floored = math.floor(0.05 * math.floor(tot_time/0.05))  # round down to nearest 0.05
-                                            for half_sec_interval in range(20*time_floored):  # loop through each 0.05 second and if still running
+                                            time_floored = math.floor(
+                                                0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
+                                            for half_sec_interval in range(
+                                                    20 * time_floored):  # loop through each 0.05 second and if still running
                                                 if self.keep_running:
                                                     time.sleep(0.05)
-                                            time.sleep(tot_time-time_floored)  # wait additional time unaccounted for in rounding
+                                            time.sleep(
+                                                tot_time - time_floored)  # wait additional time unaccounted for in rounding
 
                                         elif 'left-mouse' in line or 'right-mouse' in line:
                                             coords = coords_of(line)
@@ -2273,7 +2330,8 @@ class EditFrame(wx.Frame):
                                 else:
                                     wx.PostEvent(self.parent, ResultEvent('Completed!'))
                             except RuntimeError:
-                                print('STOPPED')
+                                print('Runtime error code kTPbmaAW66')
+                                raise SystemError('Runtime error code kTPbmaAW66')
 
                         def abort(self):
                             self.mouse_listener.stop()
@@ -2488,7 +2546,9 @@ class WorkflowFrame(wx.Frame):
                 self.key_actions = ['Tap', 'Press', 'Release']
                 self.coord_width = 40
                 self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End',
-                                     'PageUp', 'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command', 'Option', 'BrowserBack', 'BrowserForward', 'Insert', 'NumLock', 'PrntScrn', 'ScrollLock']
+                                     'PageUp', 'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command',
+                                     'Option', 'BrowserBack', 'BrowserForward', 'Insert', 'NumLock', 'PrntScrn',
+                                     'ScrollLock']
                 self.media_keys = ['PlayPause', 'NextTrack', 'PrevTrack', 'VolumeMute', 'VolumeUp', 'VolumeDown']
                 self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
                 self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -2687,7 +2747,8 @@ if __name__ == '__main__':
     global capslock
     global EVT_RESULT_ID
     global display_size
-    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    display_size = (
+    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
     app = wx.App(False)
     WorkflowFrame(None)
