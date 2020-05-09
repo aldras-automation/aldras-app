@@ -1263,7 +1263,7 @@ class EditFrame(wx.Frame):
                     choices = []
                 else:
                     choices = parent.lines
-                self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=choices)
+                self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=choices, size=(300, -1), style=wx.LB_HSCROLL)
                 sizer.Add(self.check_list_box, 1, wx.ALL | wx.EXPAND, 5)
 
                 self.checkbox = wx.CheckBox(self, wx.ID_ANY, 'Select all')
