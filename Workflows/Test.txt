@@ -1,3 +1,4 @@
 Mouse-move to (500, 500)
-Wait 30
+Wait 1
 Type:This is a test
+Mouse-move to (10, 10)

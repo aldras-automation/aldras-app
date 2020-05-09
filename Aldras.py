@@ -737,8 +737,6 @@ class EditFrame(wx.Frame):
         # set default coordinates
         self.default_coords = (10, 10)
 
-        print(f'Left-mouse click at {self.default_coords}'.lower())
-
         # create sizers
         self.vbox_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -2328,8 +2326,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Completed!':
-                            self.execution_thread.abort()
-
+                            self.keep_running = False
                             self.directions_a.Show(False)
                             self.directions_b.Show(False)
                             self.countdown_light.SetLabel('')
@@ -2342,9 +2339,7 @@ class EditFrame(wx.Frame):
                             self.done = True
 
                         elif event.data == 'Failsafe triggered':
-                            self.listener_thread.abort()
-                            self.execution_thread.abort()
-
+                            self.keep_running = False
                             self.directions_a.Show(False)
                             self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
                             self.countdown_light.SetLabel('')
@@ -2367,9 +2362,8 @@ class EditFrame(wx.Frame):
                                              self.position_old[1])
                         self.Fit()
 
-                def close_window(self, close_event):
+                def close_window(self, _):
                     self.keep_running = False
-
                     try:
                         self.listener_thread.abort()
                     except AttributeError:
@@ -2378,8 +2372,7 @@ class EditFrame(wx.Frame):
                         self.execution_thread.abort()
                     except AttributeError:
                         pass
-
-                    close_event.Skip()
+                    self.Destroy()
 
             execute_counter_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}', execute_dlg)
             execute_counter_dlg.ShowModal()
