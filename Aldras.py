@@ -845,6 +845,13 @@ class EditFrame(wx.Frame):
         self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
 
         self.vbox_edit = None
+        self.move_btn_size = set([2 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
+        self.up_arrow_image = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.up_arrow_image.Replace(*3 * (166,), *3 * (100,))
+        self.up_arrow_image = self.up_arrow_image.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.down_arrow_image = self.up_arrow_image.Mirror(horizontally=False)
+        self.up_arrow_bitmap = self.up_arrow_image.ConvertToBitmap()
+        self.down_arrow_bitmap = self.down_arrow_image.ConvertToBitmap()
         self.create_edit_panel()
 
         t1 = time.time()
@@ -912,15 +919,29 @@ class EditFrame(wx.Frame):
             try:
                 self.hbox_edit.AddSpacer(5)
 
-                self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
+                self.vbox_move = wx.BoxSizer(wx.VERTICAL)
+
+                self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
+                self.move_up.SetBackgroundColour(wx.WHITE)
+                self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
                 self.move_up.Bind(wx.EVT_BUTTON,
                                   lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-                self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
+                self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                if index == 0:
+                    self.move_up.Show(False)
 
-                self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
+                self.vbox_move.AddSpacer(5)
+
+                self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.down_arrow_bitmap)
+                self.move_down.SetBackgroundColour(wx.WHITE)
+                self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
                 self.move_down.Bind(wx.EVT_BUTTON,
                                     lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-                self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
+                self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                if index == len(self.lines)-1:
+                    self.move_down.Show(False)
+
+                self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL)
 
                 self.hbox_edit.AddSpacer(5)
                 self.line_first_word = self.line.split(' ')[0]
@@ -1263,7 +1284,8 @@ class EditFrame(wx.Frame):
                     choices = []
                 else:
                     choices = parent.lines
-                self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=choices, size=(300, -1), style=wx.LB_HSCROLL)
+                self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=choices, size=(300, -1),
+                                                      style=wx.LB_HSCROLL)
                 sizer.Add(self.check_list_box, 1, wx.ALL | wx.EXPAND, 5)
 
                 self.checkbox = wx.CheckBox(self, wx.ID_ANY, 'Select all')
@@ -1537,6 +1559,9 @@ class EditFrame(wx.Frame):
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)
         if index > 0:
+            if index == len(self.lines) - 1:
+                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show()  # show move up button now that command is not at the top
+                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move up button of replacing command now that it is at the top
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
             self.Layout()
@@ -1547,10 +1572,11 @@ class EditFrame(wx.Frame):
             self.edit_row_tracker[index - 1], self.edit_row_tracker[index] = self.edit_row_tracker[index], \
                                                                              self.edit_row_tracker[index - 1]
 
-    # noinspection PyProtectedMember
     def move_command_down(self, sizer):
         index = self.edit_row_tracker.index(sizer)
-        # noinspection PyProtectedMember
+        if index == 0:
+            sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button now that command is not at the top
+            self.edit_row_tracker[index+1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(False)  # hide move up button of replacing command now that it is at the top
         try:
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
@@ -2748,7 +2774,7 @@ if __name__ == '__main__':
     global EVT_RESULT_ID
     global display_size
     display_size = (
-    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+        sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
     app = wx.App(False)
     WorkflowFrame(None)
