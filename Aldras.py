@@ -206,9 +206,6 @@ def setup_frame(self, status_bar=False):
                 self.Center()
                 self.Show()
 
-                print()
-                print()
-
                 # noinspection PyGlobalUndefined
                 class MonitorThread(threading.Thread):
                     def __init__(self, thread_parent):
@@ -355,6 +352,13 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
     if status:
         obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}'))
         obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent))
+
+
+def textctrl_char_down(event):
+    keycode = event.GetKeyCode()
+    if keycode == wx.WXK_TAB:
+        event.EventObject.Navigate()
+    event.Skip()
 
 
 class ResultEvent(wx.PyEvent):
@@ -705,6 +709,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         self.default_text = kwargs.pop('placeholder', '')
         wx.TextCtrl.__init__(self, *args, **kwargs)
         self.on_unfocus(None)
+        self.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
         self.Bind(wx.EVT_SET_FOCUS, self.on_focus)
         self.Bind(wx.EVT_KILL_FOCUS, self.on_unfocus)
 
@@ -748,6 +753,7 @@ class EditFrame(wx.Frame):
         # add back button
         self.back_btn = wx.Button(self, size=wx.Size(30, -1), label='<')
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.close_window(event, parent, quitall=False))
+        self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
         config_status_and_tooltip(self, self.back_btn, 'Back to workflow selection', 'Back to workflow selection')
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -886,7 +892,6 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(row_to_add, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
         self.edit_rows.append(edit_row_vbox)
-        print(self.edit_rows)
 
     def add_command_combobox(self, command_value):
         self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
@@ -1143,16 +1148,18 @@ class EditFrame(wx.Frame):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(x_val),
-                                   validator=self.CharValidator('only_integer', self))  # TODO validator
+                                   validator=self.CharValidator('only_integer', self))
         self.x_coord.SetMaxLength(len(str(display_size[0])))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
+        self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(y_val),
-                                   validator=self.CharValidator('only_integer', self))  # TODO validator
+                                   validator=self.CharValidator('only_integer', self))
         self.y_coord.SetMaxLength(len(str(display_size[1])))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
+        self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1185,6 +1192,7 @@ class EditFrame(wx.Frame):
         wait_entry = wx.TextCtrl(self.edit, value=value, style=wx.TE_RICH,
                                  validator=self.CharValidator('only_digit', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
+        wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
         self.error_display = wx.StaticText(self.edit, label='')
@@ -1763,7 +1771,6 @@ class EditFrame(wx.Frame):
         try:
             if not command_change.isdecimal() and command_change:
                 raise CustomInvalidCoordError()
-            print([command_change])
             if x:
                 if command_change:
                     x_coord = command_change
@@ -2694,10 +2701,10 @@ class WorkflowFrame(wx.Frame):
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
-        self.program_version = wx.StaticText(self.workflow_panel, label=f'Version {self.software_info.version}')
-        self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())
-        self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
-        self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        # self.program_version = wx.StaticText(self.workflow_panel, label=f'Version {self.software_info.version}')
+        # self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())
+        # self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+        # self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.vbox.AddSpacer(self.padding_y)
 
         # add input field for the workflow name
@@ -2709,9 +2716,18 @@ class WorkflowFrame(wx.Frame):
         self.vbox.AddSpacer(self.padding_y)
 
         # add recent workflows
+        self.vbox_recent = wx.BoxSizer(wx.VERTICAL)
+        self.recent_title = wx.StaticText(self.workflow_panel, label='Recent')
+        self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
+        self.recent_title.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+        self.recent_title.Show(False)  # hide until know there are recent workflows
+
+        self.vbox_recent.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
+
         self.hbox_recent = wx.BoxSizer(wx.HORIZONTAL)
         self.update_recent_workflows()
-        self.vbox.Add(self.hbox_recent, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox_recent.Add(self.hbox_recent, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox.Add(self.vbox_recent, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.vbox.AddSpacer(self.padding_y)
 
         self.vbox_outer.AddStretchSpacer()
@@ -2729,7 +2745,7 @@ class WorkflowFrame(wx.Frame):
         self.button_array.Add(self.exit_btn)
         self.vbox_outer.Add(self.button_array, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 
-        self.workflow_panel.SetSizer(self.vbox_outer)
+        self.workflow_panel.SetSizerAndFit(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
 
         self.ok_btn.SetFocus()
@@ -2779,10 +2795,16 @@ class WorkflowFrame(wx.Frame):
         self.update_recent_workflows()
         self.hbox_recent.Layout()
         self.Layout()
+        self.workflow_panel.SetSizerAndFit(self.vbox_outer)
+        self.vbox_outer.SetSizeHints(self)
+        self.Fit()
 
     def update_recent_workflows(self):
         self.hbox_recent.ShowItems(show=False)
         self.hbox_recent.Clear(delete_windows=True)
+
+        if self.recent_workflows:
+            self.recent_title.Show()
 
         # create buttons for 3 most recently accessed workflows
         for workflow_path_name in self.recent_workflows[0:3]:
