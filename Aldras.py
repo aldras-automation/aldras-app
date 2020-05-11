@@ -845,13 +845,21 @@ class EditFrame(wx.Frame):
         self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
 
         self.vbox_edit = None
-        self.move_btn_size = set([2 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
+
+        self.move_btn_size = tuple([3 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
         self.up_arrow_image = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
         self.up_arrow_image.Replace(*3 * (166,), *3 * (100,))
         self.up_arrow_image = self.up_arrow_image.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
         self.down_arrow_image = self.up_arrow_image.Mirror(horizontally=False)
         self.up_arrow_bitmap = self.up_arrow_image.ConvertToBitmap()
         self.down_arrow_bitmap = self.down_arrow_image.ConvertToBitmap()
+
+        self.up_arrow_image_faded = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.up_arrow_image_faded.Replace(*3 * (166,), *3 * (0,))
+        self.up_arrow_image_faded = self.up_arrow_image_faded.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.down_arrow_image_faded = self.up_arrow_image_faded.Mirror(horizontally=False)
+        self.up_arrow_bitmap_faded = self.up_arrow_image_faded.ConvertToBitmap()
+        self.down_arrow_bitmap_faded = self.down_arrow_image_faded.ConvertToBitmap()
         self.create_edit_panel()
 
         t1 = time.time()
@@ -878,6 +886,7 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(row_to_add, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
         self.edit_rows.append(edit_row_vbox)
+        print(self.edit_rows)
 
     def add_command_combobox(self, command_value):
         self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
@@ -926,6 +935,8 @@ class EditFrame(wx.Frame):
                 self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
                 self.move_up.Bind(wx.EVT_BUTTON,
                                   lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
+                self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
+                self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
                 self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
                 if index == 0:
                     self.move_up.Show(False)
@@ -937,13 +948,15 @@ class EditFrame(wx.Frame):
                 self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
                 self.move_down.Bind(wx.EVT_BUTTON,
                                     lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
+                self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
+                self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
                 self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
                 if index == len(self.lines)-1:
                     self.move_down.Show(False)
 
                 self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL)
-
                 self.hbox_edit.AddSpacer(5)
+
                 self.line_first_word = self.line.split(' ')[0]
 
                 if not self.line:  # if line is empty, insert spacers
@@ -1252,6 +1265,20 @@ class EditFrame(wx.Frame):
 
         self.create_point_input(line, sizer)
 
+    def button_hover_on(self, event, btn_kind):
+        btn = event.GetEventObject()
+        if btn_kind == 'move_up':
+            btn.SetBitmap(self.up_arrow_bitmap_faded)
+        elif btn_kind == 'move_down':
+            btn.SetBitmap(self.down_arrow_bitmap_faded)
+
+    def button_hover_off(self, event, btn_kind):
+        btn = event.GetEventObject()
+        if btn_kind == 'move_up':
+            btn.SetBitmap(self.up_arrow_bitmap)
+        elif btn_kind == 'move_down':
+            btn.SetBitmap(self.down_arrow_bitmap)
+
     def refresh_edit_panel(self):
         # hide all vbox_edit children
         for child in self.vbox_edit.GetChildren():
@@ -1324,15 +1351,29 @@ class EditFrame(wx.Frame):
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_edit.AddSpacer(5)
 
-        self.move_up = wx.Button(self.edit, size=wx.Size(25, -1), label='▲')
+        self.vbox_move = wx.BoxSizer(wx.VERTICAL)
+
+        self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
+        self.move_up.SetBackgroundColour(wx.WHITE)
+        self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
         self.move_up.Bind(wx.EVT_BUTTON,
                           lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-        self.hbox_edit.Add(self.move_up, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
+        self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
+        self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
-        self.move_down = wx.Button(self.edit, size=wx.Size(25, -1), label='▼')
+        self.vbox_move.AddSpacer(5)
+
+        self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.down_arrow_bitmap)
+        self.move_down.SetBackgroundColour(wx.WHITE)
+        self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
         self.move_down.Bind(wx.EVT_BUTTON,
                             lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-        self.hbox_edit.Add(self.move_down, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
+        self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
+        self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.hbox_edit.AddSpacer(5)
 
@@ -1344,9 +1385,11 @@ class EditFrame(wx.Frame):
         self.edit_row_tracker.append(self.hbox_edit)
 
         self.refresh_edit_panel()
+        self.move_down.Show(False)
 
         self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
                                        isinstance(child.GetWindow(), wx.ComboBox)][-1])
+        self.Layout()
 
     def open_reorder_dialog(self):
         items = self.lines
@@ -1559,9 +1602,13 @@ class EditFrame(wx.Frame):
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)
         if index > 0:
-            if index == len(self.lines) - 1:
-                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show()  # show move up button now that command is not at the top
-                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move up button of replacing command now that it is at the top
+            if index == 1:  # moving up second top-most command
+                sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(False)  # hide move up button
+                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button
+            if index == len(self.lines) - 1:  # moving down second to bottom-most command
+                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show()  # show move down button
+                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move down button
+
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
             self.Layout()
@@ -1574,10 +1621,16 @@ class EditFrame(wx.Frame):
 
     def move_command_down(self, sizer):
         index = self.edit_row_tracker.index(sizer)
-        if index == 0:
-            sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button now that command is not at the top
-            self.edit_row_tracker[index+1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(False)  # hide move up button of replacing command now that it is at the top
-        try:
+        if index < len(self.lines):
+            if index == 0:  # moving down top-most command
+                sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button
+                self.edit_row_tracker[index + 1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(
+                    False)  # hide move up button
+            if index == len(self.lines) - 2:  # moving down second to bottom-most command
+                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move down button
+                self.edit_row_tracker[index + 1].GetChildren()[1].GetSizer().GetChildren()[
+                    2].GetWindow().Show()  # show move down button
+
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
             self.Layout()
@@ -1587,8 +1640,6 @@ class EditFrame(wx.Frame):
             # noinspection PyPep8
             self.edit_row_tracker[index], self.edit_row_tracker[index + 1] = self.edit_row_tracker[index + 1], \
                                                                              self.edit_row_tracker[index]
-        except (IndexError, wx._core.wxAssertionError):
-            pass
 
     def command_combobox_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)

@@ -1,1 +1,14 @@
-Left-mouse click at (341, 505)Right-mouse press at (262, 637)RIGHT-mouse release at (76, 42)Type:This proposal initiated by John Smith.Type:This proposal initiated by John Smith.Hotkey ctrl+sHotkey ctrl+shift+leftWait 0.5Mouse-move to (749, 450)Key Win TapLeft-mouse click at (749, 450)Double-click at (749, 450)Triple-click at (749, 450)Key Esc Tap
+Left-mouse click at (341, 505)
+Right-mouse press at (262, 637)
+RIGHT-mouse release at (76, 42)
+Type:This proposal initiated by John Smith.
+Type:This proposal initiated by John Smith.
+Hotkey ctrl+s
+Hotkey ctrl+shift+left
+Wait 0.5
+Mouse-move to (749, 450)
+Key Win Tap
+Left-mouse click at (749, 450)
+Double-click at (749, 450)
+Triple-click at (749, 450)
+Key Esc Tap
