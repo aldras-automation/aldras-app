@@ -159,49 +159,68 @@ def setup_frame(self, status_bar=False):
                 self.SetMenuBar(self.menubar)
 
                 # create sizers
-                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                self.vbox = wx.BoxSizer(wx.VERTICAL)
+                self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
+                self.vbox_live = wx.BoxSizer(wx.VERTICAL)
 
                 # add rescaled mouse logo image
                 png = wx.Image('data/aldras_mouse.png', wx.BITMAP_TYPE_PNG).Scale(80, 80, quality=wx.IMAGE_QUALITY_HIGH)
                 self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
-                self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 50)
+                self.vbox_live.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add coordinate text
                 self.current_coords = wx.StaticText(self, label=f'{display_size}')
                 self.current_coords.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                 self.current_coords.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
-                self.vbox.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
+                self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
 
                 # add coordinate label
-                self.coords_label = wx.StaticText(self, label=f'x{" " * len(str(display_size))}y')
+                self.coords_label_spacer = ' ' * len(str(display_size))
+                self.coords_label = wx.StaticText(self, label=f'x{self.coords_label_spacer}y')
                 self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
                 self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
-                self.vbox.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+                self.vbox_live.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
 
-                self.num_freezes = 3
+                # add spacer to prevent ugly resizing with 100 symmetric east and west margin
+                self.vbox_live.Add(self.current_coords.GetSize()[0]+100, 0, 0)
 
-                self.hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
-                for ii in range(self.num_freezes):
-                    vbox_freeze = wx.BoxSizer(wx.VERTICAL)
-                    freeze_coord = wx.StaticText(self, label='_' * len(str(display_size)))
-                    vbox_freeze.Add(freeze_coord, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    freeze_type = wx.StaticText(self, label='')
-                    vbox_freeze.Add(freeze_type, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    spacer_val = 0
-                    if ii != self.num_freezes:
-                        spacer_val = 10
-                    self.hbox_freeze.Add(vbox_freeze, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 10)
+                self.hbox_outer.Add(self.vbox_live, 0, wx.ALIGN_CENTER_VERTICAL | wx.NORTH | wx.SOUTH, 50)
 
-                self.vbox.Add(self.hbox_freeze, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+                self.vbox_history = wx.BoxSizer(wx.VERTICAL)
 
-                self.vbox.AddSpacer(50)
+                self.recent_title = wx.StaticText(self, label='History')
+                self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
+                self.recent_title.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+                self.vbox_history.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
 
-                self.vbox_outer.AddStretchSpacer()
-                self.vbox_outer.Add(self.vbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
-                self.vbox_outer.AddStretchSpacer()
+                self.freeze_panel = wx.lib.scrolledpanel.ScrolledPanel(self)
+                self.freeze_panel.SetAutoLayout(1)
+                self.freeze_panel.SetupScrolling()
+                # self.freeze_panel.SetupScrolling(scrollToTop=False, scrollIntoView=False)
+                self.freeze_panel.Bind(wx.EVT_SCROLLWIN, self.scroll_func)
 
-                self.SetSizerAndFit(self.vbox_outer)
+                self.vbox_freeze = wx.BoxSizer(wx.VERTICAL)
+                self.freeze_panel.SetSizer(self.vbox_freeze)
+
+                hbox_freeze_test = wx.BoxSizer(wx.HORIZONTAL)
+
+                freeze_coords_test = wx.StaticText(self.freeze_panel, label=f'{display_size}')
+                freeze_coords_test.SetFont(wx.Font(wx.FontInfo(11)))
+                hbox_freeze_test.Add(freeze_coords_test, 1, wx.WEST, 5)
+
+                freeze_type_test = wx.StaticText(self.freeze_panel, label='click')
+                freeze_type_test.SetFont(wx.Font(wx.FontInfo(11)).Italic())
+                freeze_type_test.SetForegroundColour(3 * (40,))
+                hbox_freeze_test.Add(freeze_type_test, 0, wx.EAST, 5)
+
+                self.freeze_panel.SetMinSize(wx.Size(round(1.5*hbox_freeze_test.GetMinSize()[0]), -1))
+                hbox_freeze_test.Clear(delete_windows=True)
+
+                self.vbox_history.Add(self.freeze_panel, 1, wx.EXPAND)
+                self.hbox_outer.Add(self.vbox_history, 1, wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | wx.NORTH | wx.SOUTH, 40)
+
+                self.hbox_outer.AddSpacer(50)
+
+                self.SetSizerAndFit(self.hbox_outer)
 
                 self.Center()
                 self.Show()
@@ -218,28 +237,39 @@ def setup_frame(self, status_bar=False):
                         self.prev_output_len = 0
                         self.freezes = []
 
-                        def update_monitor(x, y, freeze=False):
+                        def update_monitor(x, y, freeze=''):
                             if x < 0:
                                 x = 0
                             if y < 0:
                                 y = 0
+                            output = f'({x}, {y})'
+
                             if freeze:
-                                self.freezes = self.freezes[
-                                               -self.parent.num_freezes:]  # keep only latest freeze history
-                                # update freeze history
-                                for index, freeze in enumerate(reversed(self.freezes)):
-                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[
-                                        0].GetWindow().SetLabel(freeze[0])  # set freeze coordinate
-                                    self.parent.hbox_freeze.GetChildren()[index].GetSizer().GetChildren()[
-                                        1].GetWindow().SetLabel(freeze[1])  # set freeze type
+                                hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
+
+                                freeze_coords = wx.StaticText(self.parent.freeze_panel, label=output)
+                                freeze_coords.SetFont(wx.Font(wx.FontInfo(11)))
+                                hbox_freeze.Add(freeze_coords, 1, wx.ALIGN_LEFT | wx.WEST, 5)
+
+                                freeze_type = wx.StaticText(self.parent.freeze_panel, label=freeze)
+                                freeze_type.SetFont(wx.Font(wx.FontInfo(11)).Italic())
+                                freeze_type.SetForegroundColour(3 * (60,))
+                                hbox_freeze.Add(freeze_type, 0, wx.ALIGN_RIGHT | wx.EAST, 5)
+
+                                self.parent.vbox_freeze.Insert(0, hbox_freeze, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
+
+                                self.parent.freeze_panel.SetSizer(self.parent.vbox_freeze)
+                                self.parent.freeze_panel.SetupScrolling()
+
+                                self.parent.freeze_panel.ScrollChildIntoView(self.parent.vbox_freeze.GetChildren()[0])
 
                                 self.parent.Layout()
+                                self.parent.Update()
 
-                            output = f'({x}, {y})'
                             self.parent.current_coords.SetLabel(output)
                             if len(output) != self.prev_output_len:
                                 self.prev_output_len = len(output)
-                                self.parent.coords_label.SetLabel(f"x{' ' * len(output)}y")
+                                self.parent.coords_label.SetLabel(f'x{" " * len(output)}y')
                                 self.parent.Layout()
 
                         def on_move(x, y):
@@ -250,7 +280,7 @@ def setup_frame(self, status_bar=False):
                             """Process click for mouse listener for MonitorThread instances."""
                             if pressed and self.parent.cb_click_freeze.IsChecked():
                                 self.freezes.append([str((x, y)), 'CLICK'])
-                                update_monitor(x, y, freeze=True)
+                                update_monitor(x, y, freeze='click')
 
                         self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click)
                         self.mouse_listener.start()
@@ -260,7 +290,7 @@ def setup_frame(self, status_bar=False):
                             if 'ctrl' in str(key) and self.parent.cb_ctrl_freeze.IsChecked():
                                 x, y = pyauto.position().x, pyauto.position().y
                                 self.freezes.append([str((x, y)), 'R-CTRL'])
-                                update_monitor(x, y, freeze=True)
+                                update_monitor(x, y, freeze='ctrl')
 
                         self.key_listener = keyboard.Listener(on_release=on_key_press)
                         self.key_listener.start()
@@ -273,6 +303,20 @@ def setup_frame(self, status_bar=False):
 
                 self.monitor_thread = MonitorThread(self)
                 self.monitor_thread.start()
+
+            def scroll_func(self, event):
+                event.Skip()
+                # print('SCROLL')
+                # self.vbox_freeze.Layout()
+                # self.Refresh()
+                # self.Update()
+                # self.Layout()
+                # self.Update()
+                # self.Refresh()
+                # orig_size = self.GetSize()
+                # self.SetSize(wx.Size(orig_size[0]+1, orig_size[1]+1))
+                # self.SetSize(orig_size)
+                # self.Layout()
 
             def close_window(self, close_event):
                 self.monitor_thread.abort()
