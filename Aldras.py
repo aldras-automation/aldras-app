@@ -60,6 +60,11 @@ def coords_of(line):
     return coords
 
 
+def float_in(input_string):
+    """Returns parsed float from string."""
+    return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
+
+
 def setup_frame(self, status_bar=False):
     """Setup standardized frame characteristics including file menu and status bar."""
 
@@ -942,6 +947,17 @@ class EditFrame(wx.Frame):
         self.line = ''  # reset to empty because used by other functions to determine if they are called from outside loop
 
         for self.edit_row in self.edit_rows:
+            self.command_row_error = False
+            command_widgets = self.edit_row.GetChildren()[0].GetSizer().GetChildren()
+            combobox_window = command_widgets[1].GetWindow()
+            if combobox_window:
+                text_ctrls = [widget.GetWindow() for widget in command_widgets if (
+                            isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
+                                                                                           wx.lib.expando.ExpandoTextCtrl))]
+                for text_ctrl in text_ctrls:
+                    if not self.command_row_error:
+                        text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
+
             self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
 
         self.edit.SetSizer(self.vbox_edit)
@@ -1137,7 +1153,6 @@ class EditFrame(wx.Frame):
         def on_char(self, event):
             # process character
             keycode = int(event.GetKeyCode())
-            print(keycode)
             if keycode < 256 and keycode != 127:  # process keycode 127 for delete key
                 key = chr(keycode)
                 # return and do not process key if conditions satisfied
@@ -1804,6 +1819,7 @@ class EditFrame(wx.Frame):
         except CustomInvalidCoordError:
             text_ctrl.SetForegroundColour(wx.RED)
             event.Skip()
+            # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
             if x:
                 error_msg = f'The max X value is {display_size[0]} px.'
             elif y:
@@ -1811,6 +1827,7 @@ class EditFrame(wx.Frame):
             else:
                 error_msg = f'The maximum coordinates are {display_size} px.'
             sizer.GetChildren()[-1].GetWindow().SetLabel(error_msg)
+            self.command_row_error = True
 
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
@@ -1863,6 +1880,8 @@ class EditFrame(wx.Frame):
                 if not too_long:
                     error_static_text.SetLabel('Invalid number.')
                 text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
+                self.command_row_error = True
+                self.lines[index] = f'Wait {float_in(command_change)}'
             else:
                 self.lines[index] = 'Wait 0'
 
@@ -1992,7 +2011,7 @@ class EditFrame(wx.Frame):
                     self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
 
                     self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)
-                    change_font(self.directions_a, size=22)
+                    change_font(self.countdown_dark, size=22)
                     self.hbox_countdown.Add(self.countdown_dark)
                     self.countdown_dark.Show(False)
 
@@ -2072,7 +2091,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Action':
-                            change_font(self.countdown_dark, color=(170, 20, 20))
+                            self.countdown_dark.SetForegroundColour((170, 20, 20))
                             self.directions_a.SetLabel(f'Stop{self.parent.software_info.start_stop_directions}')
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
@@ -2245,7 +2264,7 @@ class EditFrame(wx.Frame):
 
                     # add main directions
                     self.directions_a = wx.StaticText(self,
-                                                      label=f'Start:{self.parent.software_info.start_stop_directions}')
+                                                      label=f'Start{self.parent.software_info.start_stop_directions}')
                     change_font(self.directions_a, size=14)
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -2268,7 +2287,7 @@ class EditFrame(wx.Frame):
                     self.countdown_dark.Show(False)
 
                     self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
-                    change_font(self.directions_b, size=22, color=3 * (150,))
+                    change_font(self.countdown_light, size=22, color=3 * (150,))
                     self.hbox_countdown.Add(self.countdown_light)
                     self.countdown_light.Show(False)
 
@@ -2325,11 +2344,6 @@ class EditFrame(wx.Frame):
                             # global execution_thread
                             # execution_thread = self
 
-                        @staticmethod
-                        def float_in(input_string):
-                            """Returns parsed float from string."""
-                            return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
-
                         def run(self):
                             """Run Worker Thread."""
 
@@ -2364,7 +2378,7 @@ class EditFrame(wx.Frame):
                                                 interval=type_interval)
 
                                         elif 'wait' in line:
-                                            tot_time = self.float_in(line)
+                                            tot_time = float_in(line)
                                             time_floored = math.floor(
                                                 0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
                                             for half_sec_interval in range(
@@ -2472,7 +2486,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Action':
-                            change_font(self.countdown_dark, color=(20, 120, 20))
+                            self.countdown_dark.SetForegroundColour((20, 120, 20))
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
                             self.executing_message_a.Show(True)
@@ -2485,7 +2499,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Completed!':
-                            self.keep_running = False
+                            self.execution_thread.abort()
                             self.directions_a.Show(False)
                             self.directions_b.Show(False)
                             self.countdown_light.SetLabel('')
@@ -2497,7 +2511,7 @@ class EditFrame(wx.Frame):
                             self.done = True
 
                         elif event.data == 'Failsafe triggered':
-                            self.keep_running = False
+                            self.execution_thread.abort()
                             self.directions_a.Show(False)
                             self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
                             self.countdown_light.SetLabel('')
