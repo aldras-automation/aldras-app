@@ -89,14 +89,12 @@ def setup_frame(self, status_bar=False):
 
                 # add program name text
                 self.program_name = wx.StaticText(self, label=f'{self.parent.software_info.name} Automation')
-                self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font
-                self.program_name.SetForegroundColour(3 * (20,))  # change font color to (r,g,b)
+                change_font(self.program_name, size=18, color=3 * (20,))
                 self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program version text
                 self.program_version = wx.StaticText(self, label=f'Version {self.parent.software_info.version}')
-                self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())  # change font
-                self.program_version.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
+                change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -104,8 +102,7 @@ def setup_frame(self, status_bar=False):
 
                 # add program description text
                 self.program_description = wx.StaticText(self, label=self.parent.software_info.description)
-                self.program_description.SetFont(wx.Font(wx.FontInfo(10)))  # change font
-                self.program_description.SetForegroundColour(3 * (40,))  # change font color to (r,g,b)
+                change_font(self.program_description, size=10, color=3 * (40,))
                 self.vbox_top.Add(self.program_description, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program link
@@ -185,28 +182,27 @@ def setup_frame(self, status_bar=False):
                     self.vbox_live = wx.BoxSizer(wx.VERTICAL)
 
                     # add rescaled mouse logo image
-                    png = wx.Image('data/aldras_mouse.png', wx.BITMAP_TYPE_PNG).Scale(80, 80, quality=wx.IMAGE_QUALITY_HIGH)
+                    png = wx.Image('data/aldras_mouse.png', wx.BITMAP_TYPE_PNG).Scale(80, 80,
+                                                                                      quality=wx.IMAGE_QUALITY_HIGH)
                     self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
                     self.vbox_live.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     # add coordinate text
                     self.current_coords = wx.StaticText(self, label=f'{display_size}')
-                    self.current_coords.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-                    self.current_coords.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
+                    change_font(self.current_coords, size=22, color=3 * (60,))
                     self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 4 * self.padding)
 
                     # add coordinate label
                     self.coords_label_spacer = ' ' * len(str(display_size))
                     self.coords_label = wx.StaticText(self, label=f'x{self.coords_label_spacer}y')
-                    self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
-                    self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
+                    change_font(self.coords_label, size=14, color=3 * (100,))
                     self.vbox_live.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 2 * self.padding)
 
                     # ----------------------------------------------------------------------------------- freeze history
                     self.vbox_history = wx.BoxSizer(wx.VERTICAL)
 
                     self.recent_title = wx.StaticText(self, label='History')
-                    self.recent_title.SetFont(wx.Font(11, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
+                    change_font(self.recent_title, size=11, style=wx.ITALIC)
                     self.vbox_history.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_TOP | wx.SOUTH,
                                           self.padding)
 
@@ -219,12 +215,11 @@ def setup_frame(self, status_bar=False):
                     hbox_freeze_temp = wx.BoxSizer(wx.HORIZONTAL)
 
                     freeze_coords_temp = wx.StaticText(self.freeze_panel, label=f'{display_size}')
-                    freeze_coords_temp.SetFont(wx.Font(wx.FontInfo(11)))
+                    change_font(freeze_coords_temp, size=11)
                     hbox_freeze_temp.Add(freeze_coords_temp, 0, wx.WEST, self.padding)
 
                     freeze_type_temp = wx.StaticText(self.freeze_panel, label='click')
-                    freeze_type_temp.SetFont(wx.Font(wx.FontInfo(11)).Italic())
-                    freeze_type_temp.SetForegroundColour(3 * (40,))
+                    change_font(freeze_type_temp, size=11, style=wx.ITALIC)
                     hbox_freeze_temp.Add(freeze_type_temp, 0, wx.EAST, 5)
 
                     self.freeze_panel.SetMinSize(wx.Size(round(1.5 * hbox_freeze_temp.GetMinSize()[0]), -1))
@@ -281,15 +276,15 @@ def setup_frame(self, status_bar=False):
                                     hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
 
                                     freeze_coords = wx.StaticText(self.parent.freeze_panel, label=output)
-                                    freeze_coords.SetFont(wx.Font(wx.FontInfo(11)))
+                                    change_font(freeze_coords, size=11)
                                     hbox_freeze.Add(freeze_coords, 1, wx.ALIGN_LEFT | wx.WEST, 5)
 
                                     freeze_type = wx.StaticText(self.parent.freeze_panel, label=freeze)
-                                    freeze_type.SetFont(wx.Font(wx.FontInfo(11)).Italic())
-                                    freeze_type.SetForegroundColour(3 * (60,))
+                                    change_font(freeze_type, size=11, style=wx.ITALIC, color=3 * (60,))
                                     hbox_freeze.Add(freeze_type, 0, wx.ALIGN_RIGHT | wx.EAST, 5)
 
-                                    self.parent.vbox_freeze.Insert(0, hbox_freeze, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
+                                    self.parent.vbox_freeze.Insert(0, hbox_freeze, 0, wx.EXPAND | wx.NORTH | wx.SOUTH,
+                                                                   5)
 
                                     num_freezes = 5
                                     if len(self.parent.vbox_freeze.GetChildren()) > num_freezes:
@@ -374,6 +369,19 @@ def setup_frame(self, status_bar=False):
     self.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
 
     self.SetBackgroundColour('white')  # set background color
+
+
+def change_font(static_text, size=None, family=None, style=None, weight=None, color=None):
+    # set default parameters
+    size = size if size is not None else 9
+    family = family if family is not None else wx.DEFAULT
+    style = style if style is not None else wx.NORMAL
+    weight = weight if weight is not None else wx.NORMAL
+
+    static_text.SetFont(wx.Font(size, family, style, weight))
+
+    if color is not None:
+        static_text.SetForegroundColour(color)
 
 
 # noinspection PyTypeChecker
@@ -769,7 +777,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
     def on_unfocus(self, _):
         if self.GetValue().strip() == '':
             self.SetValue(self.default_text)
-            self.SetForegroundColour(3 * (120,))  # change font color to (r,g,b)
+            self.SetForegroundColour(3 * (120,))
 
 
 class EditFrame(wx.Frame):
@@ -805,8 +813,7 @@ class EditFrame(wx.Frame):
 
         # add workflow title
         self.title = wx.StaticText(self, label=parent.workflow_name)
-        self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
-        self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
+        change_font(self.title, size=18, color=3 * (60,))
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_outer.Add(self.hbox_top, 0, wx.SOUTH, 10)
@@ -911,7 +918,7 @@ class EditFrame(wx.Frame):
         self.edit_rows = []
 
         # if self.vbox_edit:
-        if not first_creation: # if edit panel has been created previously
+        if not first_creation:  # if edit panel has been created previously
             self.edit.Destroy()
 
         # delete all leading and trailing empty lines
@@ -980,7 +987,7 @@ class EditFrame(wx.Frame):
             self.move_down.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'move_down'))
             self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
             if index == len(self.lines) - 1:
-                self.move_down.Show(False) # hide move down button if bottommost command
+                self.move_down.Show(False)  # hide move down button if bottommost command
 
             self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
             # ----------------------------------------------------------------------------------------------------------
@@ -1005,17 +1012,14 @@ class EditFrame(wx.Frame):
 
                 self.comment_label = wx.StaticText(self.edit, label='#')
                 self.comment_contrast = 100
-                self.comment_label.SetFont(wx.Font(wx.FontInfo(12)))
-                self.comment_label.SetForegroundColour(3 * (self.comment_contrast,))
+                change_font(self.comment_label, size=12, color=3 * (self.comment_contrast,))
                 self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL)
 
                 self.hbox_edit.AddSpacer(5)
 
                 self.comment_value = str(line_orig).replace('#', '').strip()
-                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit,
-                                                              value=self.comment_value)
-                self.comment.SetFont(wx.Font(wx.FontInfo(10)).Italic())
-                self.comment.SetForegroundColour(3 * (self.comment_contrast,))
+                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.comment_value)
+                change_font(self.comment, size=10, style=wx.ITALIC, color=3 * (self.comment_contrast,))
                 self.hbox_edit.Add(self.comment, 3, wx.EXPAND)
 
                 self.hbox_edit.AddStretchSpacer()
@@ -1076,8 +1080,7 @@ class EditFrame(wx.Frame):
             # display indecipherable line
             self.hbox_edit.AddSpacer(10)
             self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
-            self.unknown_cmd_msg.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
-            self.unknown_cmd_msg.SetForegroundColour(3 * (70,))
+            change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
             self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
         # add bottom static line below command
@@ -1325,6 +1328,7 @@ class EditFrame(wx.Frame):
 
         class DeleteCommandsDialog(wx.Dialog):
             """Dialog to delete commands."""
+
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
@@ -1443,8 +1447,7 @@ class EditFrame(wx.Frame):
 
                 # add workflow title
                 self.title = wx.StaticText(self.adv_edit_panel, label=parent.workflow_name)
-                self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
-                self.title.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
+                change_font(self.title, size=18, color=3 * (60,))
                 self.vbox_inner.Add(self.title)
 
                 self.vbox_inner.AddSpacer(5)
@@ -1500,9 +1503,8 @@ class EditFrame(wx.Frame):
 
                         # add advanced edit guide title
                         self.title = wx.StaticText(self, label='Advanced Edit Guide')
-                        self.title.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
                         self.title_contrast = 60
-                        self.title.SetForegroundColour(3 * (self.title_contrast,))  # change font color to (r,g,b)
+                        change_font(self.title, size=18, color=3 * (self.title_contrast,))
                         self.vbox_inner.Add(self.title)
 
                         self.vbox_inner.AddSpacer(5)
@@ -1519,17 +1521,14 @@ class EditFrame(wx.Frame):
 
                         # add commands title
                         self.command_title = wx.StaticText(self, label='Commands')
-                        self.command_title.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
+                        change_font(self.command_title, size=14, color=3 * (self.title_contrast,))
                         self.command_title_contrast = self.title_contrast
-                        self.command_title.SetForegroundColour(
-                            3 * (self.command_title_contrast,))  # change font color to (r,g,b)
                         self.vbox_inner.Add(self.command_title)
 
                         self.sbox_guide = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ''), wx.VERTICAL)
                         self.command_description = wx.StaticText(self,
                                                                  label=self.software_info.advanced_edit_guide_command_description)
-                        self.command_description.SetFont(
-                            wx.Font(10, wx.SWISS, wx.ITALIC, wx.NORMAL))  # change font size
+                        change_font(self.command_description, size=10, family=wx.SWISS, style=wx.ITALIC)
                         self.sbox_guide.Add(self.command_description, 0, wx.ALIGN_RIGHT)
 
                         self.sbox_guide.AddSpacer(25)
@@ -1541,7 +1540,7 @@ class EditFrame(wx.Frame):
 
                             # add command label
                             self.command = wx.StaticText(self, label=f'  {command}     ')
-                            self.command.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))  # change font size
+                            change_font(self.command, size=10, family=wx.SWISS, weight=wx.BOLD)
                             self.command.SetToolTip(description)
                             self.sbox_guide.Add(self.command)
                             self.sbox_guide.AddSpacer(5)
@@ -1549,10 +1548,10 @@ class EditFrame(wx.Frame):
                             # add command example(s)
                             def formatted_example(example_text):
                                 formatted_example_static_text = wx.StaticText(self, label=f'   {example_text}')
-                                formatted_example_static_text.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL))  # change font size
-                                formatted_example_static_text.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
+                                change_font(formatted_example_static_text, size=10, family=wx.MODERN, color=3 * (80,))
                                 formatted_example_static_text.SetToolTip(description)
                                 return formatted_example_static_text
+
                             if isinstance(example, list):
                                 for each_example in example:
                                     self.sbox_guide.Add(formatted_example(each_example))
@@ -1567,8 +1566,7 @@ class EditFrame(wx.Frame):
 
                         # add documentation title
                         self.docs = wx.StaticText(self, label='Read the Docs')
-                        self.docs.SetFont(wx.Font(13, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
-                        self.docs.SetForegroundColour(3 * (80,))  # change font color to (r,g,b)
+                        change_font(self.docs, size=13, family=wx.DECORATIVE, color=3 * (80,))
                         config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
                         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
@@ -1578,7 +1576,7 @@ class EditFrame(wx.Frame):
                                                               url=f'{self.software_info.website}/docs',
                                                               style=wx.adv.HL_DEFAULT_STYLE)
                         config_status_and_tooltip(self, self.docs_link, tooltip=f'{self.software_info.website}/docs')
-                        self.docs_link.SetFont(wx.Font(11, wx.DECORATIVE, wx.NORMAL, wx.NORMAL))  # change font size
+                        change_font(self.docs_link, size=11, family=wx.DECORATIVE)
                         self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
 
                         self.vbox_inner.AddSpacer(25)
@@ -1979,12 +1977,13 @@ class EditFrame(wx.Frame):
                     self.SetBackgroundColour('white')
                     self.parent = parent
                     self.done = False
-            
+
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
                     # add main directions
-                    self.directions_a = wx.StaticText(self, label=f'Start{self.parent.software_info.start_stop_directions}')
-                    self.directions_a.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
+                    self.directions_a = wx.StaticText(self,
+                                                      label=f'Start{self.parent.software_info.start_stop_directions}')
+                    change_font(self.directions_a, size=14)
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     self.vbox.AddSpacer(30)
@@ -1993,13 +1992,12 @@ class EditFrame(wx.Frame):
                     self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
 
                     self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)
-                    self.countdown_dark.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
+                    change_font(self.directions_a, size=22)
                     self.hbox_countdown.Add(self.countdown_dark)
                     self.countdown_dark.Show(False)
 
                     self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
-                    self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-                    self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+                    change_font(self.countdown_light, size=22, color=3 * (150,))
                     self.hbox_countdown.Add(self.countdown_light)
                     self.countdown_light.Show(False)
 
@@ -2010,8 +2008,7 @@ class EditFrame(wx.Frame):
 
                     # add main status message
                     self.recording_message_a = wx.StaticText(self, label='Now recording clicks and keypresses')
-                    self.recording_message_a.SetFont(wx.Font(wx.FontInfo(13)))  # change font size
-                    self.recording_message_a.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                    change_font(self.recording_message_a, size=13, color=(170, 20, 20))
                     self.vbox.Add(self.recording_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.recording_message_a.Show(False)
 
@@ -2019,14 +2016,13 @@ class EditFrame(wx.Frame):
 
                     # add secondary status message
                     self.recording_message_b = wx.StaticText(self, label='Left control key: record mouse position')
-                    self.recording_message_b.SetFont(wx.Font(wx.FontInfo(10)))  # change font size
-                    self.recording_message_b.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                    change_font(self.recording_message_b, size=10, color=(170, 20, 20))
                     self.vbox.Add(self.recording_message_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.recording_message_b.Show(False)
 
                     # add completion spacer
                     self.spacer_a = wx.StaticText(self, label='')
-                    self.spacer_a.SetFont(wx.Font(wx.FontInfo(5)))  # change font size
+                    change_font(self.spacer_a, size=5)
                     self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.spacer_a.Show(False)
 
@@ -2038,7 +2034,7 @@ class EditFrame(wx.Frame):
 
                     # add in-action spacer
                     self.spacer_b = wx.StaticText(self, label='')
-                    self.spacer_b.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+                    change_font(self.spacer_b, size=20)
                     self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.spacer_b.Show(False)
 
@@ -2048,7 +2044,8 @@ class EditFrame(wx.Frame):
                     self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
                                      parent_dialog.Position[1])
 
-                    self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)  # Process message events from threads
+                    self.Connect(-1, -1, int(EVT_RESULT_ID),
+                                 self.read_thread_event_input)  # Process message events from threads
                     self.listener_thread = ListenerThread(self, record=True)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
@@ -2075,7 +2072,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Action':
-                            self.countdown_dark.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                            change_font(self.countdown_dark, color=(170, 20, 20))
                             self.directions_a.SetLabel(f'Stop{self.parent.software_info.start_stop_directions}')
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
@@ -2092,8 +2089,7 @@ class EditFrame(wx.Frame):
                             self.directions_a.Show(False)
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
-                            self.countdown_dark.SetFont(
-                                wx.Font(22, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
+                            change_font(self.countdown_dark, size=22)
                             self.recording_message_a.Show(False)
                             self.recording_message_b.Show(False)
                             self.spacer_a.Show(True)
@@ -2118,7 +2114,8 @@ class EditFrame(wx.Frame):
                         self.parent.create_edit_panel()
                     else:
                         # raise warning if no actions recorded
-                        wx.MessageDialog(self, 'No actions detected nor recorded.', 'Warning', wx.OK | wx.ICON_WARNING).ShowModal()
+                        wx.MessageDialog(self, 'No actions detected nor recorded.', 'Warning',
+                                         wx.OK | wx.ICON_WARNING).ShowModal()
                     self.close_window(None)
 
                 def close_window(self, _):
@@ -2247,8 +2244,9 @@ class EditFrame(wx.Frame):
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
                     # add main directions
-                    self.directions_a = wx.StaticText(self, label=f'Start:{self.parent.software_info.start_stop_directions}')
-                    self.directions_a.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
+                    self.directions_a = wx.StaticText(self,
+                                                      label=f'Start:{self.parent.software_info.start_stop_directions}')
+                    change_font(self.directions_a, size=14)
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     self.vbox.AddSpacer(10)
@@ -2256,8 +2254,7 @@ class EditFrame(wx.Frame):
                     # add secondary directions
                     self.directions_b = wx.StaticText(self,
                                                       label='Stop: Move the mouse to the upper-left screen corner')
-                    self.directions_b.SetFont(wx.Font(wx.FontInfo(14)))  # change font size
-                    self.directions_b.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                    change_font(self.directions_b, size=14, color=(170, 20, 20))
                     self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     self.vbox.AddSpacer(30)
@@ -2266,13 +2263,12 @@ class EditFrame(wx.Frame):
 
                     # add countdown
                     self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)  # ---------------------------
-                    self.countdown_dark.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
+                    change_font(self.countdown_dark, size=22)
                     self.hbox_countdown.Add(self.countdown_dark)
                     self.countdown_dark.Show(False)
 
                     self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
-                    self.countdown_light.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
-                    self.countdown_light.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+                    change_font(self.directions_b, size=22, color=3 * (150,))
                     self.hbox_countdown.Add(self.countdown_light)
                     self.countdown_light.Show(False)
 
@@ -2283,14 +2279,13 @@ class EditFrame(wx.Frame):
 
                     # add status message
                     self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
-                    self.executing_message_a.SetFont(wx.Font(wx.FontInfo(13)))  # change font size
-                    self.executing_message_a.SetForegroundColour((20, 120, 20))  # change font color to (r,g,b)
+                    change_font(self.executing_message_a, size=13, color=(20, 120, 20))
                     self.vbox.Add(self.executing_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.executing_message_a.Show(False)
 
                     # add completion spacer
                     self.spacer_a = wx.StaticText(self, label='')
-                    self.spacer_a.SetFont(wx.Font(wx.FontInfo(5)))  # change font size
+                    change_font(self.spacer_a, size=5)
                     self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.spacer_a.Show(False)
 
@@ -2302,7 +2297,7 @@ class EditFrame(wx.Frame):
 
                     # add in-action spacer
                     self.spacer_b = wx.StaticText(self, label='')
-                    self.spacer_b.SetFont(wx.Font(wx.FontInfo(20)))  # change font size
+                    change_font(self.spacer_b, size=20)
                     self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     self.spacer_b.Show(False)
 
@@ -2477,7 +2472,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel(' 1')
 
                         elif event.data == 'Action':
-                            self.countdown_dark.SetForegroundColour((20, 120, 20))  # change font color to (r,g,b)
+                            change_font(self.countdown_dark, color=(20, 120, 20))
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
                             self.executing_message_a.Show(True)
@@ -2495,8 +2490,7 @@ class EditFrame(wx.Frame):
                             self.directions_b.Show(False)
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
-                            self.countdown_dark.SetFont(
-                                wx.Font(22, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
+                            change_font(self.countdown_dark, size=22)
                             self.executing_message_a.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
@@ -2509,9 +2503,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.SetLabel('')
                             self.countdown_light.Show(False)
                             self.countdown_dark.SetLabel('Execution Stopped')
-                            self.countdown_dark.SetFont(
-                                wx.Font(22, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font size
-                            self.countdown_dark.SetForegroundColour((170, 20, 20))  # change font color to (r,g,b)
+                            change_font(self.countdown_dark, size=22, style=wx.ITALIC, color=(170, 20, 20))
                             self.executing_message_a.Show(False)
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
@@ -2541,7 +2533,7 @@ class EditFrame(wx.Frame):
                     self.Destroy()
 
             ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}', execute_dlg).ShowModal()
-    
+
     @staticmethod
     def show_move_button(command_row_sizeritem, up_down, show=True):
         """Show move bitmap button."""
@@ -2574,8 +2566,7 @@ class EditFrame(wx.Frame):
                     # add save message
                     self.message = wx.StaticText(self, wx.ID_ANY,
                                                  f'Do you want to save changes to \'{parent.workflow_name}\'?')
-                    self.message.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL))  # change font size
-                    self.message.SetForegroundColour((35, 75, 160))  # change font color to (r,g,b)
+                    change_font(self.message, size=13, color=(35, 75, 160))
                     self.vbox.Add(self.message, 0, wx.ALL, 10)
 
                     self.vbox.AddSpacer(20)
@@ -2686,6 +2677,7 @@ class SelectionFrame(wx.Frame):
                                       ';', '<',
                                       '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~']
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
+
         self.software_info = SoftwareInfo()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation')
         setup_frame(self)
@@ -2725,8 +2717,7 @@ class SelectionFrame(wx.Frame):
 
         # add program name text
         self.program_name = wx.StaticText(self.workflow_panel, label=f'{self.software_info.name} Automation')
-        self.program_name.SetFont(wx.Font(wx.FontInfo(18)))
-        self.program_name.SetForegroundColour(3 * (60,))
+        change_font(self.program_name, size=18, color=3 * (60,))
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
 
         # add input field for the workflow name
@@ -2739,8 +2730,7 @@ class SelectionFrame(wx.Frame):
         # add recent workflow title
         self.vbox_recent = wx.BoxSizer(wx.VERTICAL)
         self.recent_title = wx.StaticText(self.workflow_panel, label='Recent')
-        self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
-        self.recent_title.SetForegroundColour(3 * (150,))
+        change_font(self.recent_title, size=10, style=wx.ITALIC, color=3 * (150,))
         self.recent_title.Show(False)  # hide until know there are recent workflows
         self.vbox_recent.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
 
