@@ -145,6 +145,9 @@ def setup_frame(self, status_bar=False):
                 self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
                 self.Bind(wx.EVT_CLOSE, self.close_window)
 
+                self.padding = 5
+                self.margin = 40
+
                 self.menubar = wx.MenuBar()
                 self.viewMenu = wx.Menu()
                 self.cb_click_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze mouse click positions',
@@ -159,7 +162,8 @@ def setup_frame(self, status_bar=False):
                 self.SetMenuBar(self.menubar)
 
                 # create sizers
-                self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
+                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+                self.flex_grid = wx.FlexGridSizer(1, 2, 10, 10)
                 self.vbox_live = wx.BoxSizer(wx.VERTICAL)
 
                 # add rescaled mouse logo image
@@ -171,56 +175,54 @@ def setup_frame(self, status_bar=False):
                 self.current_coords = wx.StaticText(self, label=f'{display_size}')
                 self.current_coords.SetFont(wx.Font(wx.FontInfo(22)))  # change font size
                 self.current_coords.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
-                self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 20)
+                self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 4*self.padding)
 
                 # add coordinate label
                 self.coords_label_spacer = ' ' * len(str(display_size))
                 self.coords_label = wx.StaticText(self, label=f'x{self.coords_label_spacer}y')
                 self.coords_label.SetFont(wx.Font(wx.FontInfo(14)))
                 self.coords_label.SetForegroundColour(3 * (100,))  # change font color to (r,g,b)
-                self.vbox_live.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
+                self.vbox_live.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 2*self.padding)
 
-                # add spacer to prevent ugly resizing with 100 symmetric east and west margin
-                self.vbox_live.Add(self.current_coords.GetSize()[0]+100, 0, 0)
-
-                self.hbox_outer.Add(self.vbox_live, 0, wx.ALIGN_CENTER_VERTICAL | wx.NORTH | wx.SOUTH, 50)
-
+                # ----------------------------------------------------------------------------------- freeze history
                 self.vbox_history = wx.BoxSizer(wx.VERTICAL)
 
                 self.recent_title = wx.StaticText(self, label='History')
-                self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
-                self.recent_title.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
-                self.vbox_history.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
+                self.recent_title.SetFont(wx.Font(11, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
+                self.vbox_history.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_TOP | wx.SOUTH, self.padding)
 
-                self.freeze_panel = wx.lib.scrolledpanel.ScrolledPanel(self)
-                self.freeze_panel.SetAutoLayout(1)
-                self.freeze_panel.SetupScrolling()
-                # self.freeze_panel.SetupScrolling(scrollToTop=False, scrollIntoView=False)
-                self.freeze_panel.Bind(wx.EVT_SCROLLWIN, self.scroll_func)
+                self.freeze_panel = wx.Panel(self)
 
                 self.vbox_freeze = wx.BoxSizer(wx.VERTICAL)
                 self.freeze_panel.SetSizer(self.vbox_freeze)
 
-                hbox_freeze_test = wx.BoxSizer(wx.HORIZONTAL)
+                # set minimum size of freeze panel before any freezes triggered
+                hbox_freeze_temp = wx.BoxSizer(wx.HORIZONTAL)
 
-                freeze_coords_test = wx.StaticText(self.freeze_panel, label=f'{display_size}')
-                freeze_coords_test.SetFont(wx.Font(wx.FontInfo(11)))
-                hbox_freeze_test.Add(freeze_coords_test, 1, wx.WEST, 5)
+                freeze_coords_temp = wx.StaticText(self.freeze_panel, label=f'{display_size}')
+                freeze_coords_temp.SetFont(wx.Font(wx.FontInfo(11)))
+                hbox_freeze_temp.Add(freeze_coords_temp, 0, wx.WEST, self.padding)
 
-                freeze_type_test = wx.StaticText(self.freeze_panel, label='click')
-                freeze_type_test.SetFont(wx.Font(wx.FontInfo(11)).Italic())
-                freeze_type_test.SetForegroundColour(3 * (40,))
-                hbox_freeze_test.Add(freeze_type_test, 0, wx.EAST, 5)
+                freeze_type_temp = wx.StaticText(self.freeze_panel, label='click')
+                freeze_type_temp.SetFont(wx.Font(wx.FontInfo(11)).Italic())
+                freeze_type_temp.SetForegroundColour(3 * (40,))
+                hbox_freeze_temp.Add(freeze_type_temp, 0, wx.EAST, 5)
 
-                self.freeze_panel.SetMinSize(wx.Size(round(1.5*hbox_freeze_test.GetMinSize()[0]), -1))
-                hbox_freeze_test.Clear(delete_windows=True)
+                self.freeze_panel.SetMinSize(wx.Size(round(1.5 * hbox_freeze_temp.GetMinSize()[0]), -1))
+                hbox_freeze_temp.Clear(delete_windows=True)
 
                 self.vbox_history.Add(self.freeze_panel, 1, wx.EXPAND)
-                self.hbox_outer.Add(self.vbox_history, 1, wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | wx.NORTH | wx.SOUTH, 40)
 
-                self.hbox_outer.AddSpacer(50)
+                self.flex_grid.AddMany([(self.vbox_live, 1, wx.EXPAND | wx.EAST, self.margin), (self.vbox_history, 1, wx.EXPAND)])
+                self.flex_grid.AddGrowableCol(0, 2)
+                self.flex_grid.AddGrowableCol(1, 1)
 
-                self.SetSizerAndFit(self.hbox_outer)
+                self.vbox_outer.AddStretchSpacer()
+                self.vbox_outer.Add(self.flex_grid, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, self.margin)
+                self.vbox_outer.AddStretchSpacer()
+
+                self.SetSizerAndFit(self.vbox_outer)
+                self.vbox_live.SetMinSize( self.vbox_live.GetSize())  # prevent resizing of window as length of live coordinate changes
 
                 self.Center()
                 self.Show()
@@ -244,6 +246,13 @@ def setup_frame(self, status_bar=False):
                                 y = 0
                             output = f'({x}, {y})'
 
+                            self.parent.current_coords.SetLabel(output)  # set current coordinates
+                            if len(
+                                    output) != self.prev_output_len:  # change 'x' and 'y' label spacing if length is different
+                                self.prev_output_len = len(output)
+                                self.parent.coords_label.SetLabel(f'x{" " * len(output)}y')
+                                self.parent.Layout()
+
                             if freeze:
                                 hbox_freeze = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -258,19 +267,19 @@ def setup_frame(self, status_bar=False):
 
                                 self.parent.vbox_freeze.Insert(0, hbox_freeze, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
 
-                                self.parent.freeze_panel.SetSizer(self.parent.vbox_freeze)
-                                self.parent.freeze_panel.SetupScrolling()
+                                num_freezes = 5
+                                if len(self.parent.vbox_freeze.GetChildren()) > num_freezes:
+                                    self.parent.vbox_freeze.Remove(
+                                        self.parent.vbox_freeze.GetChildren()[num_freezes].GetSizer())
 
-                                self.parent.freeze_panel.ScrollChildIntoView(self.parent.vbox_freeze.GetChildren()[0])
+                                for index, freeze_sizeritem in enumerate(self.parent.vbox_freeze.GetChildren()):
+                                    freeze_sizer_sizeritems = freeze_sizeritem.GetSizer().GetChildren()
+                                    for static_text_sizeritem in freeze_sizer_sizeritems:
+                                        static_text = static_text_sizeritem.GetWindow()
+                                        static_text.SetForegroundColour(3 * (index * 50,))
 
                                 self.parent.Layout()
                                 self.parent.Update()
-
-                            self.parent.current_coords.SetLabel(output)
-                            if len(output) != self.prev_output_len:
-                                self.prev_output_len = len(output)
-                                self.parent.coords_label.SetLabel(f'x{" " * len(output)}y')
-                                self.parent.Layout()
 
                         def on_move(x, y):
                             """Process click for mouse listener for MonitorThread instances."""
@@ -304,27 +313,13 @@ def setup_frame(self, status_bar=False):
                 self.monitor_thread = MonitorThread(self)
                 self.monitor_thread.start()
 
-            def scroll_func(self, event):
-                event.Skip()
-                # print('SCROLL')
-                # self.vbox_freeze.Layout()
-                # self.Refresh()
-                # self.Update()
-                # self.Layout()
-                # self.Update()
-                # self.Refresh()
-                # orig_size = self.GetSize()
-                # self.SetSize(wx.Size(orig_size[0]+1, orig_size[1]+1))
-                # self.SetSize(orig_size)
-                # self.Layout()
-
             def close_window(self, close_event):
                 self.monitor_thread.abort()
                 self.parent.Layout()
                 close_event.Skip()
 
-        mouse_monitor_frame = MouseMonitorFrame(self)
-        mouse_monitor_frame.Show()
+        self.mouse_monitor_frame = MouseMonitorFrame(self)
+        self.mouse_monitor_frame.Show()
 
     def on_exit(_):
         self.Close(True)
@@ -768,7 +763,6 @@ class PlaceholderTextCtrl(wx.TextCtrl):
             self.SetForegroundColour(3 * (120,))  # change font color to (r,g,b)
 
 
-# noinspection PyProtectedMember
 class EditFrame(wx.Frame):
     def __init__(self, parent):
         t0 = time.time()
@@ -776,15 +770,13 @@ class EditFrame(wx.Frame):
         self.workflow_name = parent.workflow_name
         self.parent = parent
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {parent.workflow_name}')
-
         setup_frame(self, status_bar=True)
 
         # set margin
-        self.margins = 10
+        self.margin = 10
 
         # set number of hotkeys
-        # TODO to be set by preferences
-        self.num_hotkeys = 3
+        self.num_hotkeys = 3  # TODO to be set by preferences
 
         # set default coordinates
         self.default_coords = (10, 10)
@@ -815,8 +807,7 @@ class EditFrame(wx.Frame):
 
         # ------------------------------------------------------------------------------------------- bottom sizer
 
-        self.hbox_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)
+        self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)  # FlexGridSizer to allow more equal spacing
 
         # read or create workflow file
         try:
@@ -826,9 +817,7 @@ class EditFrame(wx.Frame):
             with open(parent.workflow_path_name, 'w'):
                 self.lines = []
         self.lines = [line.replace('\n', '') for line in self.lines]
-        self.lines_when_launched = self.lines.copy()
-
-        # self.edit_rows = []
+        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -837,9 +826,7 @@ class EditFrame(wx.Frame):
         self.delete_btn = wx.Button(self, label='-', size=(20, -1))
         self.delete_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_open_delete_command_dialog())
         config_status_and_tooltip(self, self.delete_btn, 'Delete commands', 'Delete commands')
-        self.hbox_line_mods.Add(self.delete_btn, 1, wx.EXPAND)
-
-        self.hbox_line_mods.AddSpacer(5)
+        self.hbox_line_mods.Add(self.delete_btn, 1, wx.EXPAND | wx.SOUTH, 5)
 
         # add plus command button
         self.plus_btn = wx.Button(self, label='+', size=(20, -1))
@@ -847,17 +834,13 @@ class EditFrame(wx.Frame):
         config_status_and_tooltip(self, self.plus_btn, 'Add commands', 'Add commands')
         self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
 
-        self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND)
-
-        self.vbox_action.AddSpacer(10)
+        self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND | wx.SOUTH, 10)
 
         # add reorder commands button
         self.reorder_btn = wx.Button(self, label='Reorder')
         self.reorder_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
         config_status_and_tooltip(self, self.reorder_btn, 'Reorder commands', 'Reorder commands')
-        self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND)
-
-        self.vbox_action.AddSpacer(10)
+        self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
         # add advanced command button
         self.advanced_btn = wx.Button(self, label='Advanced')
@@ -871,9 +854,7 @@ class EditFrame(wx.Frame):
         self.record_btn = wx.Button(self, label='Record')
         self.record_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_record())
         config_status_and_tooltip(self, self.record_btn, 'Record workflow actions', 'Record workflow actions')
-        self.vbox_action.Add(self.record_btn, 0, wx.EXPAND)
-
-        self.vbox_action.AddSpacer(10)
+        self.vbox_action.Add(self.record_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
         # add execute command button
         self.execute_btn = wx.Button(self, label='Execute')
@@ -888,11 +869,10 @@ class EditFrame(wx.Frame):
         self.fg_bottom.AddGrowableCol(0, 0)
         self.fg_bottom.AddGrowableRow(0, 0)
 
-        self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND)
+        self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND | wx.SOUTH, 5)
 
         # add margins and inside sizers
-        self.vbox_outer.AddSpacer(5)
-        self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margins)
+        self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margin)
 
         self.vbox_edit = None
 
@@ -928,18 +908,151 @@ class EditFrame(wx.Frame):
         pass
 
     class EditCommandError(Exception):
+        """Custom exception handled elsewhere."""
         pass
 
-    def add_edit_row(self, row_to_add):
-        """Adds edit row to self.edit_rows and adds edit row as well as line to sizer."""
+    def create_command_sizer(self, index, line_orig):
+        self.line = line_orig.lower()
+        self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
+        comment = False
+        try:
+            self.vbox_move = wx.BoxSizer(wx.VERTICAL)
+
+            self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
+            self.move_up.SetBackgroundColour(wx.WHITE)
+            self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
+            self.move_up.Bind(wx.EVT_BUTTON,
+                              lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
+            self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
+            self.move_up.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'move_up'))
+            self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
+            self.move_up.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'move_up'))
+            self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
+            if index == 0:
+                self.move_up.Show(False)
+
+            self.vbox_move.AddSpacer(5)
+
+            self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size),
+                                             bitmap=self.down_arrow_bitmap)
+            self.move_down.SetBackgroundColour(wx.WHITE)
+            self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
+            self.move_down.Bind(wx.EVT_BUTTON,
+                                lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
+            self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
+            self.move_down.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'move_down'))
+            self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
+            self.move_down.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'move_down'))
+            self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
+            if index == len(self.lines) - 1:
+                self.move_down.Show(False)
+
+            self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
+
+            self.line_first_word = self.line.split(' ')[0]
+
+            if not self.line:  # if line is empty, insert spacers
+                self.hbox_edit.Insert(0, 0, 50, 1)
+                self.hbox_edit.Insert(0, 0, 0, 1)
+
+            elif self.line.replace(' ', '')[0] == '#':  # workflow comment
+                comment = True
+                self.vbox_comment = wx.BoxSizer(wx.VERTICAL)
+                self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY, size=wx.Size(200, 3)), 0, wx.ALIGN_CENTER)
+                self.vbox_comment.AddSpacer(5)
+                self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
+                self.vbox_comment.AddSpacer(5)
+
+                self.hbox_comment = wx.BoxSizer(wx.HORIZONTAL)
+
+                self.comment_label = wx.StaticText(self.edit, label='#')
+                self.comment_contrast = 100
+                self.comment_label.SetFont(wx.Font(wx.FontInfo(12)))
+                self.comment_label.SetForegroundColour(3 * (self.comment_contrast,))
+                self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                self.hbox_edit.AddSpacer(5)
+
+                self.comment_value = str(line_orig).replace('#', '').strip()
+                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit,
+                                                              value=self.comment_value)
+                self.comment.SetFont(wx.Font(wx.FontInfo(10)).Italic())
+                self.comment.SetForegroundColour(3 * (self.comment_contrast,))
+                self.hbox_edit.Add(self.comment, 3, wx.EXPAND)
+
+                self.hbox_edit.AddStretchSpacer()
+                self.hbox_edit.AddSpacer(15)
+
+                self.edit_row_tracker.append(self.hbox_edit)
+
+                self.vbox_comment.Add(self.hbox_edit, 1, wx.EXPAND)
+                self.hbox_edit = self.vbox_comment
+
+            elif '-mouse' in self.line_first_word:
+                self.add_command_combobox('Mouse button')
+                self.create_mouse_row(self.line)
+
+            elif 'type:' in self.line_first_word:
+                self.add_command_combobox('Type')
+                self.create_type_row(line_orig)
+
+            elif 'wait' in self.line_first_word:
+                self.add_command_combobox('Wait')
+                self.create_wait_row(self.line)
+
+            elif 'hotkey' in self.line_first_word:
+                self.add_command_combobox('Hotkey')
+                self.create_hotkey_row(self.line)
+
+            elif 'key' in self.line_first_word:
+                self.key_in = self.line.split(' ')[1]
+
+                if self.key_in in [x.lower() for x in self.software_info.special_keys]:
+                    key_type = 'Special key'
+                elif self.key_in in [x.lower() for x in self.software_info.function_keys]:
+                    key_type = 'Function key'
+                elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
+                    key_type = 'Media key'
+                else:
+                    raise self.EditCommandError()
+
+                self.add_command_combobox(key_type)
+                self.create_key_row(self.line)
+
+            elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
+                self.add_command_combobox('Mouse-move')
+                self.create_mousemove_row(self.line)
+
+            elif ('double' in self.line) and ('click' in self.line):
+                self.add_command_combobox('Double-click')
+                self.create_multi_click_row(self.line)
+
+            elif ('triple' in self.line) and ('click' in self.line):
+                self.add_command_combobox('Triple-click')
+                self.create_multi_click_row(self.line)
+
+            else:
+                raise self.EditCommandError()
+
+        except self.EditCommandError as _:
+            # display indecipherable line
+            self.hbox_edit.AddSpacer(10)
+            self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
+            self.unknown_cmd_msg.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
+            self.unknown_cmd_msg.SetForegroundColour(3 * (70,))
+            self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
+
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
-        edit_row_vbox.Add(row_to_add, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
+        edit_row_vbox.Add(self.hbox_edit, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
+
         self.edit_rows.append(edit_row_vbox)
+        if not comment:
+            self.edit_row_tracker.append(self.hbox_edit)
 
     def add_command_combobox(self, command_value):
         self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
-                                   style=wx.CB_READONLY)
+                                   style=wx.CB_READONLY, name='command')
         self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         self.command.Bind(wx.EVT_COMBOBOX,
                           lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
@@ -968,140 +1081,8 @@ class EditFrame(wx.Frame):
 
         self.edit_row_tracker = []  # for identifying indices later
 
-        for index, self.line_orig in enumerate(self.lines):
-            self.line = self.line_orig.lower()
-
-            self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-
-            comment = False
-            try:
-                self.hbox_edit.AddSpacer(5)
-
-                self.vbox_move = wx.BoxSizer(wx.VERTICAL)
-
-                self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
-                self.move_up.SetBackgroundColour(wx.WHITE)
-                self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
-                self.move_up.Bind(wx.EVT_BUTTON,
-                                  lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-                self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
-                self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
-                self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                if index == 0:
-                    self.move_up.Show(False)
-
-                self.vbox_move.AddSpacer(5)
-
-                self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.down_arrow_bitmap)
-                self.move_down.SetBackgroundColour(wx.WHITE)
-                self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
-                self.move_down.Bind(wx.EVT_BUTTON,
-                                    lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-                self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
-                self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
-                self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                if index == len(self.lines)-1:
-                    self.move_down.Show(False)
-
-                self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL)
-                self.hbox_edit.AddSpacer(5)
-
-                self.line_first_word = self.line.split(' ')[0]
-
-                if not self.line:  # if line is empty, insert spacers
-                    self.hbox_edit.Insert(0, 0, 50, 1)
-                    self.hbox_edit.Insert(0, 0, 0, 1)
-
-                elif self.line.replace(' ', '')[0] == '#':  # workflow comment
-                    comment = True
-                    self.vbox_comment = wx.BoxSizer(wx.VERTICAL)
-                    self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY, size=wx.Size(200, 3)), 0, wx.ALIGN_CENTER)
-                    self.vbox_comment.AddSpacer(5)
-                    self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
-                    self.vbox_comment.AddSpacer(5)
-
-                    self.hbox_comment = wx.BoxSizer(wx.HORIZONTAL)
-
-                    self.comment_label = wx.StaticText(self.edit, label='#')
-                    self.comment_contrast = 100
-                    self.comment_label.SetFont(wx.Font(wx.FontInfo(12)))
-                    self.comment_label.SetForegroundColour(3 * (self.comment_contrast,))
-                    self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                    self.hbox_edit.AddSpacer(5)
-
-                    self.comment_value = str(self.line_orig).replace('#', '').strip()
-                    self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit,
-                                                                  value=self.comment_value)
-                    self.comment.SetFont(wx.Font(wx.FontInfo(10)).Italic())
-                    self.comment.SetForegroundColour(3 * (self.comment_contrast,))
-                    self.hbox_edit.Add(self.comment, 3, wx.EXPAND)
-
-                    self.hbox_edit.AddStretchSpacer()
-                    self.hbox_edit.AddSpacer(15)
-
-                    self.edit_row_tracker.append(self.hbox_edit)
-
-                    self.vbox_comment.Add(self.hbox_edit, 1, wx.EXPAND)
-                    self.hbox_edit = self.vbox_comment
-
-                elif '-mouse' in self.line_first_word:
-                    self.add_command_combobox('Mouse button')
-                    self.create_mouse_row(self.line)
-
-                elif 'type:' in self.line_first_word:
-                    self.add_command_combobox('Type')
-                    self.create_type_row(self.line_orig)
-
-                elif 'wait' in self.line_first_word:
-                    self.add_command_combobox('Wait')
-                    self.create_wait_row(self.line)
-
-                elif 'hotkey' in self.line_first_word:
-                    self.add_command_combobox('Hotkey')
-                    self.create_hotkey_row(self.line)
-
-                elif 'key' in self.line_first_word:
-                    self.key_in = self.line.split(' ')[1]
-
-                    if self.key_in in [x.lower() for x in self.software_info.special_keys]:
-                        key_type = 'Special key'
-                    elif self.key_in in [x.lower() for x in self.software_info.function_keys]:
-                        key_type = 'Function key'
-                    elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
-                        key_type = 'Media key'
-                    else:
-                        raise self.EditCommandError()
-
-                    self.add_command_combobox(key_type)
-                    self.create_key_row(self.line)
-
-                elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                    self.add_command_combobox('Mouse-move')
-                    self.create_mousemove_row(self.line)
-
-                elif ('double' in self.line) and ('click' in self.line):
-                    self.add_command_combobox('Double-click')
-                    self.create_multi_click_row(self.line)
-
-                elif ('triple' in self.line) and ('click' in self.line):
-                    self.add_command_combobox('Triple-click')
-                    self.create_multi_click_row(self.line)
-
-                else:
-                    raise self.EditCommandError()
-
-            except self.EditCommandError as _:
-                # display indecipherable line
-                self.hbox_edit.AddSpacer(10)
-                self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
-                self.unknown_cmd_msg.SetFont(wx.Font(9, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
-                self.unknown_cmd_msg.SetForegroundColour(3 * (70,))
-                self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
-
-            self.add_edit_row(self.hbox_edit)
-            if not comment:
-                self.edit_row_tracker.append(self.hbox_edit)
+        for index, line_orig in enumerate(self.lines):
+            self.create_command_sizer(index, line_orig)
 
         self.line = ''  # reset to empty because used by other functions to determine if they are called from outside loop
 
@@ -1400,51 +1381,27 @@ class EditFrame(wx.Frame):
                 self.Layout()
 
     def add_command(self):
-        self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox_edit.AddSpacer(5)
+        self.default_new_command = f'Left-mouse click at {self.default_coords}'
+        self.lines.append(self.default_new_command)
+        new_line_index = len(self.lines) - 1
 
-        self.vbox_move = wx.BoxSizer(wx.VERTICAL)
+        self.create_command_sizer(new_line_index, self.lines[-1])
 
-        self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
-        self.move_up.SetBackgroundColour(wx.WHITE)
-        self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
-        self.move_up.Bind(wx.EVT_BUTTON,
-                          lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-        self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
-        self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
-        self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox_edit.Add(self.edit_rows[new_line_index], 0, wx.EXPAND)
 
-        self.vbox_move.AddSpacer(5)
+        # show move-down button of previously bottom-most command
+        self.show_move_button(self.edit_rows[-2], 'down', True)
 
-        self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.down_arrow_bitmap)
-        self.move_down.SetBackgroundColour(wx.WHITE)
-        self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
-        self.move_down.Bind(wx.EVT_BUTTON,
-                            lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-        self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
-        self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
-        self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
-
-        self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        self.hbox_edit.AddSpacer(5)
-
-        self.add_command_combobox('Mouse button')
-        self.create_mouse_row(f'Left-mouse click at {self.default_coords}'.lower(), self.hbox_edit)
-        self.lines.append(f'Left-mouse click at {self.default_coords}')
-
-        self.add_edit_row(self.hbox_edit)
-        self.edit_row_tracker.append(self.hbox_edit)
-
-        self.refresh_edit_panel()
-        self.move_down.Show(False)
+        self.Layout()  # update frame
 
         self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
                                        isinstance(child.GetWindow(), wx.ComboBox)][-1])
         self.Layout()
 
     def open_reorder_dialog(self):
-        items = self.lines
+        reorder_character_cutoff = 50
+        items = [f'{line[:reorder_character_cutoff]}...' if len(line) > reorder_character_cutoff else line for line in
+                 self.lines]
         order = range(len(self.lines))
 
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
@@ -1651,15 +1608,29 @@ class EditFrame(wx.Frame):
                 self.create_edit_panel()
                 self.Layout()
 
+    @staticmethod
+    def show_move_button(command_row, up_down, show=True):
+        """Show move bitmap button."""
+
+        if up_down == 'up':
+            up_down_index = 0
+        elif up_down == 'down':
+            up_down_index = -1
+        else:
+            raise ValueError('The up_down parameter passed did not match \'up\' nor \'down\'.')
+
+        return command_row.GetChildren()[0].GetSizer().GetChildren()[0].GetSizer().GetChildren()[
+            up_down_index].GetWindow().Show(show)
+
     def move_command_up(self, sizer):
         index = self.edit_row_tracker.index(sizer)
         if index > 0:
             if index == 1:  # moving up second top-most command
-                sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(False)  # hide move up button
-                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button
-            if index == len(self.lines) - 1:  # moving down second to bottom-most command
-                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show()  # show move down button
-                self.edit_row_tracker[index-1].GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move down button
+                self.show_move_button(self.edit_rows[index], 'up', False)
+                self.show_move_button(self.edit_rows[index - 1], 'up', True)
+            if index == len(self.lines) - 1:  # moving up bottom-most command
+                self.show_move_button(self.edit_rows[index], 'down', True)
+                self.show_move_button(self.edit_rows[index - 1], 'down', False)
 
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
@@ -1675,13 +1646,11 @@ class EditFrame(wx.Frame):
         index = self.edit_row_tracker.index(sizer)
         if index < len(self.lines):
             if index == 0:  # moving down top-most command
-                sizer.GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show()  # show move up button
-                self.edit_row_tracker[index + 1].GetChildren()[1].GetSizer().GetChildren()[0].GetWindow().Show(
-                    False)  # hide move up button
+                self.show_move_button(self.edit_rows[index], 'up', True)
+                self.show_move_button(self.edit_rows[index + 1], 'up', False)
             if index == len(self.lines) - 2:  # moving down second to bottom-most command
-                sizer.GetChildren()[1].GetSizer().GetChildren()[2].GetWindow().Show(False)  # hide move down button
-                self.edit_row_tracker[index + 1].GetChildren()[1].GetSizer().GetChildren()[
-                    2].GetWindow().Show()  # show move down button
+                self.show_move_button(self.edit_rows[index], 'down', False)
+                self.show_move_button(self.edit_rows[index + 1], 'down', True)
 
             self.vbox_edit.Detach(index)
             self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
@@ -1741,8 +1710,19 @@ class EditFrame(wx.Frame):
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
 
-        for ii in reversed(range(6, len(sizer.GetChildren()))):
+        # determine index of command combobox to hide all widgets after it
+        command_cb_index = 0
+        for sizeritem in sizer.GetChildren():
+            widget = sizeritem.GetWindow()
+            if isinstance(widget, wx.ComboBox):
+                if widget.GetName() == 'command':
+                    command_cb_index = sizer.GetChildren().index(sizeritem)
+                    break
+
+        # hide all widgets after command combobox
+        for ii in reversed(range(command_cb_index + 2, len(sizer.GetChildren()))):
             sizer.GetChildren()[ii].Show(False)
+            sizer.Remove(ii)
 
         if new_action == 'Mouse button':
             self.lines[index] = f'Left-mouse click at {old_coords}'
@@ -2634,11 +2614,10 @@ class EditFrame(wx.Frame):
             parent.Show()
 
 
-class WorkflowFrame(wx.Frame):
+class SelectionFrame(wx.Frame):
     """Main frame to select workflow."""
 
     def __init__(self, parent):
-
         class SoftwareInfo:
             """Object to contain all information about Aldras."""
 
@@ -2648,7 +2627,7 @@ class WorkflowFrame(wx.Frame):
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
-                self.copyright = f'2020 {self.name}'
+                self.copyright = f'2019-2020 {self.name}'
                 self.website = f'http://www.{self.name.lower()}.com/'
                 self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
@@ -2694,8 +2673,9 @@ class WorkflowFrame(wx.Frame):
         global capslock
         capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
 
+        # global variable needed for threading event receiving
         global EVT_RESULT_ID
-        EVT_RESULT_ID = wx.NewIdRef()  # global variable needed for threading event receiving
+        EVT_RESULT_ID = wx.NewIdRef()
 
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation')
         setup_frame(self)
@@ -2740,30 +2720,22 @@ class WorkflowFrame(wx.Frame):
 
         # add program name text
         self.program_name = wx.StaticText(self.workflow_panel, label=f'{self.software_info.name} Automation')
-        self.program_name.SetFont(wx.Font(wx.FontInfo(18)))  # change font size
-        self.program_name.SetForegroundColour(3 * (60,))  # change font color to (r,g,b)
-        self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
-
-        # add program version text
-        # self.program_version = wx.StaticText(self.workflow_panel, label=f'Version {self.software_info.version}')
-        # self.program_version.SetFont(wx.Font(wx.FontInfo(10)).Italic())
-        # self.program_version.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
-        # self.vbox.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        self.vbox.AddSpacer(self.padding_y)
+        self.program_name.SetFont(wx.Font(wx.FontInfo(18)))
+        self.program_name.SetForegroundColour(3 * (60,))
+        self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
 
         # add input field for the workflow name
         self.workflow_name_input = PlaceholderTextCtrl(self.workflow_panel, wx.ID_ANY, placeholder='Workflow',
                                                        size=(200, -1),
                                                        style=wx.TE_PROCESS_ENTER)
-        self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.workflow_name_input)  # process enter to trigger self.on_ok method
-        self.vbox.Add(self.workflow_name_input, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        self.vbox.AddSpacer(self.padding_y)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.workflow_name_input)
+        self.vbox.Add(self.workflow_name_input, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
 
         # add recent workflows
         self.vbox_recent = wx.BoxSizer(wx.VERTICAL)
         self.recent_title = wx.StaticText(self.workflow_panel, label='Recent')
-        self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))  # change font
-        self.recent_title.SetForegroundColour(3 * (150,))  # change font color to (r,g,b)
+        self.recent_title.SetFont(wx.Font(10, wx.DEFAULT, wx.ITALIC, wx.NORMAL))
+        self.recent_title.SetForegroundColour(3 * (150,))
         self.recent_title.Show(False)  # hide until know there are recent workflows
 
         self.vbox_recent.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
@@ -2792,18 +2764,39 @@ class WorkflowFrame(wx.Frame):
         self.workflow_panel.SetSizerAndFit(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
 
+        self.Bind(wx.EVT_CLOSE, self.close_window)
+
         self.ok_btn.SetFocus()
         self.Center()
         self.Show()
 
+    def update_recent_workflows(self):
+        self.hbox_recent.ShowItems(show=False)
+        self.hbox_recent.Clear(delete_windows=True)
+
+        if self.recent_workflows:
+            self.recent_title.Show()
+
+        # create buttons for 3 most recently accessed workflows
+        for workflow_path_name in self.recent_workflows[0:3]:
+            workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+            self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
+            self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
+                                          lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
+                                              workflow_path_trap, recent_launch=True))
+            self.hbox_recent.Add(self.recent_workflow_btn)
+
+        self.hbox_recent.ShowItems(show=True)
+
     def on_ok(self, _):
         if self.workflow_name_input.GetValue() == '':
-            # workflow confirmation
+            # error warning if entry is empty
             confirm_workflow_dlg = wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
                                                     wx.OK | wx.ICON_EXCLAMATION)
             confirm_workflow_dlg.ShowModal()
 
         else:
+            # workflow confirmation if entry is default 'Workflow'
             confirm_workflow_dlg = wx.MessageDialog(None,
                                                     f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.',
                                                     f'{self.software_info.name} Workflow Confirmation',
@@ -2843,26 +2836,15 @@ class WorkflowFrame(wx.Frame):
         self.vbox_outer.SetSizeHints(self)
         self.Fit()
 
-    def update_recent_workflows(self):
-        self.hbox_recent.ShowItems(show=False)
-        self.hbox_recent.Clear(delete_windows=True)
-
-        if self.recent_workflows:
-            self.recent_title.Show()
-
-        # create buttons for 3 most recently accessed workflows
-        for workflow_path_name in self.recent_workflows[0:3]:
-            workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
-            self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
-            self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
-                                          lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
-                                              workflow_path_trap, recent_launch=True))
-            self.hbox_recent.Add(self.recent_workflow_btn)
-
-        self.hbox_recent.ShowItems(show=True)
-
     def on_exit(self, _):
-        self.Close(True)  # close the frame
+        self.Close(True)
+
+    def close_window(self, close_event):
+        try:
+            self.mouse_monitor_frame.Close(True)
+        except (AttributeError, RuntimeError):
+            pass
+        close_event.Skip()
 
     # def on_open(self, e):
     #     """ Open a file"""
@@ -2891,8 +2873,8 @@ if __name__ == '__main__':
     global EVT_RESULT_ID
     global display_size
     display_size = (
-        sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
     app = wx.App(False)
-    WorkflowFrame(None)
+    SelectionFrame(None)
     app.MainLoop()
