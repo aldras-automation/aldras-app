@@ -767,7 +767,6 @@ class PlaceholderTextCtrl(wx.TextCtrl):
 
     def __init__(self, *args, **kwargs):
         self.default_text = kwargs.pop('placeholder', '')  # remove default text parameter
-        print([self.default_text])
         wx.TextCtrl.__init__(self, *args, **kwargs)
         self.on_unfocus(None)
         self.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
@@ -849,7 +848,7 @@ class EditFrame(wx.Frame):
         self.plus_btn = wx.Button(self, label='+', size=(20, -1))
         self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_add_command_dialog())
         config_status_and_tooltip(self, self.plus_btn, 'Add commands', 'Add commands')
-        self.hbox_line_mods.Add(self.plus_btn, 1, wx.ALIGN_RIGHT)
+        self.hbox_line_mods.Add(self.plus_btn, 1)
 
         self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND | wx.SOUTH, 10)
 
@@ -877,7 +876,7 @@ class EditFrame(wx.Frame):
         self.execute_btn = wx.Button(self, label='Execute')
         self.execute_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_execute())
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions', 'Execute workflow actions')
-        self.vbox_action.Add(self.execute_btn, 0, wx.ALIGN_BOTTOM | wx.EXPAND)
+        self.vbox_action.Add(self.execute_btn, 0, wx.EXPAND)
 
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.AddStretchSpacer()
@@ -990,6 +989,9 @@ class EditFrame(wx.Frame):
             self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
             if index == 0:
                 self.move_up.Show(False)  # hide move up button if topmost command
+
+            # add spacer to preserve width (mainly for when adding single command)
+            self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
 
             self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size),
                                              bitmap=self.down_arrow_bitmap)
@@ -1405,7 +1407,14 @@ class EditFrame(wx.Frame):
         self.vbox_edit.Add(self.edit_rows[new_line_index], 0, wx.EXPAND)
 
         # show move-down button of previously bottom-most command
-        self.show_move_button(self.edit_rows[-2], 'down', True)
+        try:
+            self.show_move_button(self.edit_rows[-2], 'down', True)
+        except IndexError:
+            pass
+            # try:
+            #     self.show_move_button(self.edit_rows[-1], 'down', True)
+            # except IndexError:
+            #     pass
 
         self.Layout()
 

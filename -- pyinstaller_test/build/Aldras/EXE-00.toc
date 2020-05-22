@@ -1,6 +1,6 @@
 ('C:\\Users\\Noah Baculi\\Documents\\Git\\aldras\\-- '
  'pyinstaller_test\\build\\Aldras\\Aldras.exe',
- False,
+ True,
  False,
  True,
  'data\\Aldras.ico',
@@ -15,36 +15,44 @@
    'pyinstaller_test\\build\\Aldras\\PYZ-00.pyz',
    'PYZ'),
   ('struct',
-   'C:\\Users\\Noah '
-   'Baculi\\AppData\\Local\\Programs\\Python\\Python37\\lib\\struct.pyo',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\struct.pyo',
    'PYMODULE'),
   ('pyimod01_os_path',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\pyimod01_os_path.pyc',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\pyimod01_os_path.pyc',
    'PYMODULE'),
   ('pyimod02_archive',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\pyimod02_archive.pyc',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\pyimod02_archive.pyc',
    'PYMODULE'),
   ('pyimod03_importers',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\pyimod03_importers.pyc',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\pyimod03_importers.pyc',
    'PYMODULE'),
   ('pyiboot01_bootstrap',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
    'PYSOURCE'),
   ('pyi_rth_multiprocessing',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_multiprocessing.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_multiprocessing.py',
    'PYSOURCE'),
   ('pyi_rth__tkinter',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth__tkinter.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth__tkinter.py',
    'PYSOURCE'),
   ('pyi_rth_pkgres',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_pkgres.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_pkgres.py',
+   'PYSOURCE'),
+  ('pyi_rth_mplconfig',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_mplconfig.py',
+   'PYSOURCE'),
+  ('pyi_rth_mpldata',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_mpldata.py',
    'PYSOURCE'),
   ('Aldras',
    'C:\\Users\\Noah Baculi\\Documents\\Git\\aldras\\-- '
@@ -57,8 +65,8 @@
  [],
  False,
  False,
- 1586210111,
- [('runw.exe',
+ 1590109904,
+ [('run.exe',
    'c:\\users\\noah '
-   'baculi\\documents\\git\\venv\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\run.exe',
    'EXECUTABLE')])
