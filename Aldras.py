@@ -966,7 +966,7 @@ class EditFrame(wx.Frame):
 
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
-        self.vbox_edit_container.SetMinSize(wx.Size(600, 300))
+        self.vbox_edit_container.SetMinSize(wx.Size(650, 300))
         self.vbox_container.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
     def create_command_sizer(self, index, line_orig):
@@ -1814,7 +1814,7 @@ class EditFrame(wx.Frame):
                     x_coord = '0'
                 if int(x_coord) > display_size[0]:
                     raise CustomInvalidCoordError()
-                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord)
+                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord, 1)
 
             elif y:
                 if command_change:
@@ -1823,7 +1823,7 @@ class EditFrame(wx.Frame):
                     y_coord = '0'
                 if int(y_coord) > display_size[1]:
                     raise CustomInvalidCoordError()
-                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[1]), y_coord)
+                self.lines[index] = y_coord.join(self.lines[index].rsplit(str(coords_of(self.lines[index])[1]), 1))  # split line based on old y-coord from the right and re-join with new y-coord
 
         except CustomInvalidCoordError:
             text_ctrl.SetForegroundColour(wx.RED)
@@ -1841,6 +1841,7 @@ class EditFrame(wx.Frame):
     def text_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
         self.lines[index] = f'Type:{event.GetString()}'
+        event.Skip()
 
     def wait_change(self, sizer, event):
         index = self.edit_row_tracker.index(sizer)
