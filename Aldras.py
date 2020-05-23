@@ -1074,7 +1074,7 @@ class EditFrame(wx.Frame):
                 elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
                     key_type = 'Media key'
                 else:
-                    raise self.EditCommandError()
+                    raise ValueError
 
                 self.add_command_combobox(key_type)
                 self.create_key_row(self.line)
@@ -1092,9 +1092,9 @@ class EditFrame(wx.Frame):
                 self.create_multi_click_row(self.line)
 
             else:
-                raise self.EditCommandError()
+                raise ValueError
 
-        except self.EditCommandError as _:
+        except ValueError:
             # display indecipherable line
             self.hbox_edit.AddSpacer(10)
             self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
@@ -1135,10 +1135,6 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
         self.hbox_edit.AddSpacer(10)
 
-    class EditCommandError(Exception):
-        """Custom exception handled elsewhere."""
-        pass
-
     class CharValidator(wx.Validator):
         """ Validates data as it is entered into the text controls. """
 
@@ -1177,7 +1173,7 @@ class EditFrame(wx.Frame):
         elif 'right' in line:
             button = 'Right'
         else:
-            raise self.EditCommandError('Mouse button not specified.')
+            raise ValueError
         mouse_button = wx.ComboBox(self.edit, value=button, choices=self.software_info.mouse_buttons,
                                    style=wx.CB_READONLY)
         mouse_button.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
@@ -1191,7 +1187,7 @@ class EditFrame(wx.Frame):
             action = 'Release'
         else:
             mouse_button.Show(False)
-            raise self.EditCommandError('Mouse action not specified.')
+            raise ValueError
         mouse_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.mouse_actions,
                                    style=wx.CB_READONLY)
         mouse_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
@@ -1293,7 +1289,7 @@ class EditFrame(wx.Frame):
         elif 'release' in line:
             action = 'Release'
         else:
-            raise self.EditCommandError('Key action not specified.')
+            raise ValueError
         key_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.key_actions, style=wx.CB_READONLY)
         key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.key_action_change(sizer, event))
         key_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
@@ -1801,19 +1797,16 @@ class EditFrame(wx.Frame):
         sizer.GetChildren()[-1].GetWindow().SetLabel('')
 
         # validate input and display feedback
-        class CustomInvalidCoordError(Exception):
-            pass
-
         try:
             if not command_change.isdecimal() and command_change:
-                raise CustomInvalidCoordError()
+                raise ValueError()
             if x:
                 if command_change:
                     x_coord = command_change
                 else:
                     x_coord = '0'
                 if int(x_coord) > display_size[0]:
-                    raise CustomInvalidCoordError()
+                    raise ValueError()
                 self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord, 1)
 
             elif y:
@@ -1822,10 +1815,10 @@ class EditFrame(wx.Frame):
                 else:
                     y_coord = '0'
                 if int(y_coord) > display_size[1]:
-                    raise CustomInvalidCoordError()
+                    raise ValueError()
                 self.lines[index] = y_coord.join(self.lines[index].rsplit(str(coords_of(self.lines[index])[1]), 1))  # split line based on old y-coord from the right and re-join with new y-coord
 
-        except CustomInvalidCoordError:
+        except ValueError:
             text_ctrl.SetForegroundColour(wx.RED)
             event.Skip()
             # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
@@ -2572,8 +2565,9 @@ class EditFrame(wx.Frame):
         return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[0].GetSizer().GetChildren()[
             up_down_index].GetWindow().Show(show)
 
+    # do_nothing = lambda: None
     @staticmethod
-    def do_nothing(_):
+    def do_nothing(_):  # might want to use to redirect scroll inputs
         """Function to bind events to be disabled."""
         pass
 
