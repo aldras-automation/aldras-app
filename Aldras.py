@@ -14,6 +14,7 @@ import wx.adv
 import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
+from platform import system as system_platform
 
 
 # TODO comments
@@ -2893,6 +2894,14 @@ class SelectionFrame(wx.Frame):
 
 
 def main():
+    # get system platform
+    print(f'system_platform: {system_platform()}')
+
+    # get unique hardware id
+    import subprocess
+    hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
+    print(f'hardware_id: {hardware_id}')
+
     # get capslock status on windows
     global capslock
     capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
