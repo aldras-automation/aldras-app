@@ -402,18 +402,20 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
         tooltip (bool or str): 'True' should be passed if the tooltip should be configured with the status string. Another string should be passed if the tooltip should be configured with another string.
     """
 
-    def update_status_bar(parent_win, status_to_update):
+    def update_status_bar(parent_win, status_to_update, event):
         parent_win.StatusBar.SetStatusText(status_to_update)
+        event.Skip()
 
-    def clear_status_bar(parent_win):
+    def clear_status_bar(parent_win, event):
         parent_win.StatusBar.SetStatusText('')
+        event.Skip()
 
     if tooltip:
         obj_to_config.SetToolTip(tooltip)
 
     if status:
-        obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}'))
-        obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent))
+        obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}', event))
+        obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent, event))
 
 
 def textctrl_char_down(event):
@@ -801,6 +803,44 @@ class EditFrame(wx.Frame):
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
 
+        # create move up/down bitmaps
+        self.move_btn_size = tuple([3 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
+
+        self.up_arrow_image = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.up_arrow_image.Replace(*3 * (0,), *3 * (100,))
+        self.up_arrow_image = self.up_arrow_image.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.down_arrow_image = self.up_arrow_image.Mirror(horizontally=False)
+        self.up_arrow_bitmap = self.up_arrow_image.ConvertToBitmap()
+        self.down_arrow_bitmap = self.down_arrow_image.ConvertToBitmap()
+
+        self.up_arrow_image_hover = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.up_arrow_image_hover = self.up_arrow_image_hover.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.down_arrow_image_hover = self.up_arrow_image_hover.Mirror(horizontally=False)
+        self.up_arrow_bitmap_hover = self.up_arrow_image_hover.ConvertToBitmap()
+        self.down_arrow_bitmap_hover = self.down_arrow_image_hover.ConvertToBitmap()
+
+        # create delete X bitmaps
+        self.delete_x_size = 2 * (0.7 * self.move_btn_size[0],)
+        self.delete_x_image = wx.Image('data/delete_x.png', wx.BITMAP_TYPE_PNG)
+        self.delete_x_image.Replace(*3 * (0,), *3 * (100,))
+        self.delete_x_image = self.delete_x_image.Scale(*self.delete_x_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.delete_x_bitmap = self.delete_x_image.ConvertToBitmap()
+
+        self.delete_x_image_hover = wx.Image('data/delete_x.png', wx.BITMAP_TYPE_PNG)
+        self.delete_x_image_hover = self.delete_x_image_hover.Scale(*self.delete_x_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.delete_x_bitmap_hover = self.delete_x_image_hover.ConvertToBitmap()
+
+        # create back btn bitmaps
+        self.back_btn_size = 2 * (1.2 * self.move_btn_size[0],)
+        self.back_btn_image = wx.Image('data/back_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.back_btn_image.Replace(*3 * (0,), *3 * (100,))
+        self.back_btn_image = self.back_btn_image.Scale(*self.back_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.back_btn_bitmap = self.back_btn_image.ConvertToBitmap()
+
+        self.back_btn_image_hover = wx.Image('data/back_arrow.png', wx.BITMAP_TYPE_PNG)
+        self.back_btn_image_hover = self.back_btn_image_hover.Scale(*self.back_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
+        self.back_btn_bitmap_hover = self.back_btn_image_hover.ConvertToBitmap()
+
         # create sizers
         self.vbox_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -808,10 +848,18 @@ class EditFrame(wx.Frame):
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------------------------
 
         # add back button
-        self.back_btn = wx.Button(self, size=wx.Size(30, -1), label='<')
+        self.back_btn = wx.BitmapButton(self, size=wx.Size(*self.back_btn_size), bitmap=self.back_btn_bitmap)
+        self.back_btn.SetBackgroundColour(wx.WHITE)
+        self.back_btn.SetWindowStyleFlag(wx.NO_BORDER)
+        self.back_btn.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'back_btn'))
+        self.back_btn.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'back_btn'))
+        self.back_btn.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'back_btn'))
+        self.back_btn.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'back_btn'))
+
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.close_window(event, parent, quitall=False))
         self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
         config_status_and_tooltip(self, self.back_btn, 'Back to workflow selection', 'Back to workflow selection')
+
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.hbox_top.AddSpacer(10)
@@ -876,6 +924,7 @@ class EditFrame(wx.Frame):
         # add execute command button
         self.execute_btn = wx.Button(self, label='Execute')
         self.execute_btn.Bind(wx.EVT_BUTTON, lambda event: self.on_execute())
+        self.execute_btn.SetFocus()
         config_status_and_tooltip(self, self.execute_btn, 'Execute workflow actions', 'Execute workflow actions')
         self.vbox_action.Add(self.execute_btn, 0, wx.EXPAND)
 
@@ -892,21 +941,6 @@ class EditFrame(wx.Frame):
         # add margins and inside sizers
         self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margin)
 
-        # create move up/down bitmaps
-        self.move_btn_size = tuple([3 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
-        self.up_arrow_image = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.up_arrow_image.Replace(*3 * (166,), *3 * (100,))
-        self.up_arrow_image = self.up_arrow_image.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.down_arrow_image = self.up_arrow_image.Mirror(horizontally=False)
-        self.up_arrow_bitmap = self.up_arrow_image.ConvertToBitmap()
-        self.down_arrow_bitmap = self.down_arrow_image.ConvertToBitmap()
-
-        self.up_arrow_image_faded = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.up_arrow_image_faded.Replace(*3 * (166,), *3 * (0,))
-        self.up_arrow_image_faded = self.up_arrow_image_faded.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.down_arrow_image_faded = self.up_arrow_image_faded.Mirror(horizontally=False)
-        self.up_arrow_bitmap_faded = self.up_arrow_image_faded.ConvertToBitmap()
-        self.down_arrow_bitmap_faded = self.down_arrow_image_faded.ConvertToBitmap()
         self.create_edit_panel(first_creation=True)
 
         t1 = time.time()
@@ -920,7 +954,7 @@ class EditFrame(wx.Frame):
         print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
 
     def create_edit_panel(self, first_creation=False):
-        self.edit_rows = []
+        self.edit_row_container_sizers = []
 
         # if self.vbox_edit:
         if not first_creation:  # if edit panel has been created previously
@@ -939,14 +973,14 @@ class EditFrame(wx.Frame):
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        self.edit_row_tracker = []  # for identifying indices later
+        self.edit_row_widget_sizers = []  # for identifying indices later
 
         for index, line_orig in enumerate(self.lines):
             self.create_command_sizer(index, line_orig)
 
         self.line = ''  # reset to empty because used by other functions to determine if they are called from outside loop
 
-        for self.edit_row in self.edit_rows:
+        for self.edit_row in self.edit_row_container_sizers:
             self.command_row_error = False
             command_widgets = self.edit_row.GetChildren()[0].GetSizer().GetChildren()
             combobox_window = command_widgets[1].GetWindow()
@@ -973,7 +1007,7 @@ class EditFrame(wx.Frame):
     def create_command_sizer(self, index, line_orig):
         self.line = line_orig.lower()
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-        comment = False
+        no_right_spacer = False
         try:
             # add move buttons
             self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
@@ -1018,36 +1052,21 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.Insert(0, 0, 0, 1)
 
             elif self.line.replace(' ', '')[0] == '#':  # workflow comment
-                comment = True
-
-                # add comment separator line
-                self.vbox_comment = wx.BoxSizer(wx.VERTICAL)
-                self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY, size=wx.Size(200, 3)), 0, wx.ALIGN_CENTER)
-                self.vbox_comment.AddSpacer(5)
-                self.vbox_comment.Add(wx.StaticLine(self.edit, wx.ID_ANY), 0, wx.EXPAND)
-                self.vbox_comment.AddSpacer(5)
-
-                self.hbox_comment = wx.BoxSizer(wx.HORIZONTAL)
+                self.hbox_edit.AddStretchSpacer(2)
 
                 self.comment_label = wx.StaticText(self.edit, label='#')
                 self.comment_contrast = 100
                 change_font(self.comment_label, size=12, color=3 * (self.comment_contrast,))
-                self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.hbox_edit.AddSpacer(5)
+                self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 5)
 
                 self.comment_value = str(line_orig).replace('#', '').strip()
-                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.comment_value)
+                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.comment_value, style=wx.TE_RIGHT)
+                # layout EditFrame when expandotextctrl size changes
+                self.comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())
                 change_font(self.comment, size=10, style=wx.ITALIC, color=3 * (self.comment_contrast,))
-                self.hbox_edit.Add(self.comment, 3, wx.EXPAND)
+                self.hbox_edit.Add(self.comment, 1, wx.EXPAND)
 
-                self.hbox_edit.AddStretchSpacer()
-                self.hbox_edit.AddSpacer(15)
-
-                self.edit_row_tracker.append(self.hbox_edit)
-
-                self.vbox_comment.Add(self.hbox_edit, 1, wx.EXPAND)
-                self.hbox_edit = self.vbox_comment  # set hbox_edit
+                no_right_spacer = True
 
             elif '-mouse' in self.line_first_word:
                 self.add_command_combobox('Mouse button')
@@ -1056,6 +1075,7 @@ class EditFrame(wx.Frame):
             elif 'type:' in self.line_first_word:
                 self.add_command_combobox('Type')
                 self.create_type_row(line_orig)
+                no_right_spacer = True
 
             elif 'wait' in self.line_first_word:
                 self.add_command_combobox('Wait')
@@ -1102,22 +1122,42 @@ class EditFrame(wx.Frame):
             change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
             self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
+        if not no_right_spacer:
+            self.hbox_edit.AddStretchSpacer()
+
+        self.hbox_edit.AddSpacer(15)
+
+        self.delete_button = wx.BitmapButton(self.edit, size=wx.Size(*self.delete_x_size), bitmap=self.delete_x_bitmap)
+        self.delete_button.SetBackgroundColour(wx.WHITE)
+        self.delete_button.SetWindowStyleFlag(wx.NO_BORDER)
+        self.delete_button.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.delete_command(sizer_trap))
+        self.delete_button.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'delete_x'))
+        self.delete_button.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'delete_x'))
+        self.delete_button.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'delete_x'))
+        self.delete_button.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'delete_x'))
+
+        self.hbox_edit.Add(self.delete_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+
+        self.edit_row_widget_sizers.append(self.hbox_edit)
+
         # add bottom static line below command
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
         edit_row_vbox.Add(self.hbox_edit, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
-        self.edit_rows.append(edit_row_vbox)
-        if not comment:
-            self.edit_row_tracker.append(self.hbox_edit)
+        self.edit_row_container_sizers.append(edit_row_vbox)
 
     def button_hover_on(self, event, btn_kind):
         btn = event.GetEventObject()
         # replace button bitmap with faded version
         if btn_kind == 'move_up':
-            btn.SetBitmap(self.up_arrow_bitmap_faded)
+            btn.SetBitmap(self.up_arrow_bitmap_hover)
         elif btn_kind == 'move_down':
-            btn.SetBitmap(self.down_arrow_bitmap_faded)
+            btn.SetBitmap(self.down_arrow_bitmap_hover)
+        elif btn_kind == 'delete_x':
+            btn.SetBitmap(self.delete_x_bitmap_hover)
+        elif btn_kind == 'back_btn':
+            btn.SetBitmap(self.back_btn_bitmap_hover)
 
     def button_hover_off(self, event, btn_kind):
         btn = event.GetEventObject()
@@ -1126,6 +1166,10 @@ class EditFrame(wx.Frame):
             btn.SetBitmap(self.up_arrow_bitmap)
         elif btn_kind == 'move_down':
             btn.SetBitmap(self.down_arrow_bitmap)
+        elif btn_kind == 'delete_x':
+            btn.SetBitmap(self.delete_x_bitmap)
+        elif btn_kind == 'back_btn':
+            btn.SetBitmap(self.back_btn_bitmap)
 
     def add_command_combobox(self, command_value):
         self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
@@ -1231,7 +1275,7 @@ class EditFrame(wx.Frame):
         sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
-        self.error_display = wx.StaticText(self.edit, label='')
+        self.error_display = wx.StaticText(self.edit, label='', name='error_display')
         self.error_display.SetForegroundColour(wx.RED)
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1243,9 +1287,9 @@ class EditFrame(wx.Frame):
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event))
-
+        # layout EditFrame when expandotextctrl size changes
+        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())
         sizer.Add(text_to_type, 1, wx.EXPAND)
-        sizer.AddSpacer(15)
 
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1260,7 +1304,7 @@ class EditFrame(wx.Frame):
         wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
-        self.error_display = wx.StaticText(self.edit, label='')
+        self.error_display = wx.StaticText(self.edit, label='', name='error_display')
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
@@ -1387,8 +1431,8 @@ class EditFrame(wx.Frame):
             if indices_to_delete:  # if indices_to_delete is not empty
                 for index in sorted(indices_to_delete, reverse=True):
                     del (self.lines[index])
-                    del (self.edit_rows[index])
-                    del (self.edit_row_tracker[index])
+                    del (self.edit_row_container_sizers[index])
+                    del (self.edit_row_widget_sizers[index])
                     self.vbox_edit.Show(index, False)
                     self.vbox_edit.Remove(index)
                 self.vbox_edit.Layout()
@@ -1401,17 +1445,13 @@ class EditFrame(wx.Frame):
 
         self.create_command_sizer(new_line_index, self.lines[-1])
 
-        self.vbox_edit.Add(self.edit_rows[new_line_index], 0, wx.EXPAND)
+        self.vbox_edit.Add(self.edit_row_container_sizers[new_line_index], 0, wx.EXPAND)
 
         # show move-down button of previously bottom-most command
         try:
-            self.show_move_button(self.edit_rows[-2], 'down', True)
+            self.show_move_button(self.edit_row_container_sizers[-2], 'down', True)
         except IndexError:
             pass
-            # try:
-            #     self.show_move_button(self.edit_rows[-1], 'down', True)
-            # except IndexError:
-            #     pass
 
         self.Layout()
 
@@ -1439,12 +1479,12 @@ class EditFrame(wx.Frame):
             order = reorder_dlg.GetOrder()
             if order != list(range(len(order))):  # only perform operations if order changes
                 self.lines = [self.lines[index] for index in order]
-                self.edit_rows = [self.edit_rows[index] for index in order]
-                self.edit_row_tracker = [self.edit_row_tracker[index] for index in order]
-                for index in range(len(self.edit_rows)):
+                self.edit_row_container_sizers = [self.edit_row_container_sizers[index] for index in order]
+                self.edit_row_widget_sizers = [self.edit_row_widget_sizers[index] for index in order]
+                for index in range(len(self.edit_row_container_sizers)):
                     if index != order[index]:  # only perform costly GUI operations if indices are different
                         self.vbox_edit.Detach(index)
-                        self.vbox_edit.Insert(index, self.edit_rows[index], 0, wx.EXPAND)
+                        self.vbox_edit.Insert(index, self.edit_row_container_sizers[index], 0, wx.EXPAND)
                 self.Layout()
 
     def open_advanced_edit_frame(self):
@@ -1630,48 +1670,58 @@ class EditFrame(wx.Frame):
                 self.create_edit_panel()
                 self.Layout()
 
+    def delete_command(self, sizer):
+        index = self.edit_row_widget_sizers.index(sizer)
+        del (self.lines[index])
+        del (self.edit_row_container_sizers[index])
+        del (self.edit_row_widget_sizers[index])
+        self.vbox_edit.Show(index, False)
+        self.vbox_edit.Remove(index)
+        self.vbox_edit.Layout()
+        self.Layout()
+
     def move_command_up(self, sizer):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         if index > 0:
             if index == 1:  # moving up second top-most command
-                self.show_move_button(self.edit_rows[index], 'up', False)
-                self.show_move_button(self.edit_rows[index - 1], 'up', True)
+                self.show_move_button(self.edit_row_container_sizers[index], 'up', False)
+                self.show_move_button(self.edit_row_container_sizers[index - 1], 'up', True)
             if index == len(self.lines) - 1:  # moving up bottom-most command
-                self.show_move_button(self.edit_rows[index], 'down', True)
-                self.show_move_button(self.edit_rows[index - 1], 'down', False)
+                self.show_move_button(self.edit_row_container_sizers[index], 'down', True)
+                self.show_move_button(self.edit_row_container_sizers[index - 1], 'down', False)
 
             self.vbox_edit.Detach(index - 1)
-            self.vbox_edit.Insert(index, self.edit_rows[index - 1], 0, wx.EXPAND)
+            self.vbox_edit.Insert(index, self.edit_row_container_sizers[index - 1], 0, wx.EXPAND)
             self.Layout()
 
             self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
-            self.edit_rows[index - 1], self.edit_rows[index] = self.edit_rows[index], self.edit_rows[index - 1]
+            self.edit_row_container_sizers[index - 1], self.edit_row_container_sizers[index] = self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
             # noinspection PyPep8
-            self.edit_row_tracker[index - 1], self.edit_row_tracker[index] = self.edit_row_tracker[index], \
-                                                                             self.edit_row_tracker[index - 1]
+            self.edit_row_widget_sizers[index - 1], self.edit_row_widget_sizers[index] = self.edit_row_widget_sizers[index], \
+                                                                             self.edit_row_widget_sizers[index - 1]
 
     def move_command_down(self, sizer):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         if index < len(self.lines):
             if index == 0:  # moving down top-most command
-                self.show_move_button(self.edit_rows[index], 'up', True)
-                self.show_move_button(self.edit_rows[index + 1], 'up', False)
+                self.show_move_button(self.edit_row_container_sizers[index], 'up', True)
+                self.show_move_button(self.edit_row_container_sizers[index + 1], 'up', False)
             if index == len(self.lines) - 2:  # moving down second to bottom-most command
-                self.show_move_button(self.edit_rows[index], 'down', False)
-                self.show_move_button(self.edit_rows[index + 1], 'down', True)
+                self.show_move_button(self.edit_row_container_sizers[index], 'down', False)
+                self.show_move_button(self.edit_row_container_sizers[index + 1], 'down', True)
 
             self.vbox_edit.Detach(index)
-            self.vbox_edit.Insert(index + 1, self.edit_rows[index], 0, wx.EXPAND)
+            self.vbox_edit.Insert(index + 1, self.edit_row_container_sizers[index], 0, wx.EXPAND)
             self.Layout()
 
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
-            self.edit_rows[index], self.edit_rows[index + 1] = self.edit_rows[index + 1], self.edit_rows[index]
+            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
             # noinspection PyPep8
-            self.edit_row_tracker[index], self.edit_row_tracker[index + 1] = self.edit_row_tracker[index + 1], \
-                                                                             self.edit_row_tracker[index]
+            self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[index + 1], \
+                                                                             self.edit_row_widget_sizers[index]
 
     def command_combobox_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         new_action = event.GetString()
         line_orig = self.lines[index]
         line = line_orig.lower()
@@ -1775,7 +1825,7 @@ class EditFrame(wx.Frame):
         self.Layout()
 
     def mouse_command_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         command_change = event.GetString()  # can be mouse_button change or mouse_action change
 
         if command_change == 'Left':
@@ -1791,11 +1841,13 @@ class EditFrame(wx.Frame):
                                                                                            self.lines[index])
 
     def coord_change(self, sizer, event, x=None, y=None):
-        index = self.edit_row_tracker.index(sizer)
         command_change = event.GetString()
+        index = self.edit_row_widget_sizers.index(sizer)
         text_ctrl = event.GetEventObject()
         text_ctrl.SetForegroundColour(wx.BLACK)
-        sizer.GetChildren()[-1].GetWindow().SetLabel('')
+        # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
+        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
+        error_static_text.SetLabel('')
 
         # validate input and display feedback
         try:
@@ -1829,21 +1881,22 @@ class EditFrame(wx.Frame):
                 error_msg = f'The max Y value is {display_size[1]} px.'
             else:
                 error_msg = f'The maximum coordinates are {display_size} px.'
-            sizer.GetChildren()[-1].GetWindow().SetLabel(error_msg)
+            error_static_text.SetLabel(error_msg)
             self.command_row_error = True
 
     def text_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         self.lines[index] = f'Type:{event.GetString()}'
         event.Skip()
 
     def wait_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         command_change = event.GetString()
         text_ctrl = event.GetEventObject()
         text_ctrl.SetMaxLength(0)
         text_ctrl.SetForegroundColour(wx.BLACK)
-        error_static_text = sizer.GetChildren()[-1].GetWindow()
+        # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
+        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
         error_static_text.SetForegroundColour(wx.RED)
         error_static_text.SetLabel('')
         too_long = False
@@ -1890,19 +1943,19 @@ class EditFrame(wx.Frame):
                 self.lines[index] = 'Wait 0'
 
     def key_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         new_key = event.GetString()
         old_key = self.lines[index].split(' ')[1]
         self.lines[index] = self.lines[index].replace(old_key, new_key)
 
     def key_action_change(self, sizer, event):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
         new_action = event.GetString()
         old_action = self.lines[index].split(' ')[2]
         self.lines[index] = self.lines[index].replace(old_action, new_action)
 
     def hotkey_change(self, sizer, _):
-        index = self.edit_row_tracker.index(sizer)
+        index = self.edit_row_widget_sizers.index(sizer)
 
         # only cycle through last number of comboboxes because only they are the hotkey inputs
         combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
@@ -2901,6 +2954,11 @@ def main():
     import subprocess
     hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
     print(f'hardware_id: {hardware_id}')
+
+    # get number of cores
+    import psutil
+    cpu_num_cores = psutil.cpu_count()
+    print(f'cpu_num_cores: {cpu_num_cores}')
 
     # get capslock status on windows
     global capslock
