@@ -418,7 +418,7 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
         obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent, event))
 
 
-def textctrl_char_down(event):
+def textctrl_tab_trigger_nav(event):
     """Function to process tab keypresses and trigger panel navigation."""
     if event.GetKeyCode() == wx.WXK_TAB:
         event.EventObject.Navigate()
@@ -772,7 +772,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         self.default_text = kwargs.pop('placeholder', '')  # remove default text parameter
         wx.TextCtrl.__init__(self, *args, **kwargs)
         self.on_unfocus(None)
-        self.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
+        self.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         self.Bind(wx.EVT_SET_FOCUS, self.on_focus)
         self.Bind(wx.EVT_KILL_FOCUS, self.on_unfocus)
 
@@ -803,43 +803,34 @@ class EditFrame(wx.Frame):
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
 
+        def create_bitmaps(source_file_name: str, size: tuple, hover_contrast=100, flip=False):
+            # manipulate default image
+            image = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
+            image.Replace(*3 * (0,), *3 * (hover_contrast,))  # change color from native black to lighter grey
+            image = image.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
+            if flip:
+                image = image.Mirror(horizontally=False)  # flip image about x-axis
+
+            # manipulate hover image
+            image_hover = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
+            image_hover = image_hover.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
+            if flip:
+                image_hover = image_hover.Mirror(horizontally=False)  # flip image about x-axis
+
+            return image.ConvertToBitmap(), image_hover.ConvertToBitmap()
+
         # create move up/down bitmaps
         self.move_btn_size = tuple([3 * dimen for dimen in [5, 3]])  # maintain 5:3 ratio
-
-        self.up_arrow_image = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.up_arrow_image.Replace(*3 * (0,), *3 * (100,))
-        self.up_arrow_image = self.up_arrow_image.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.down_arrow_image = self.up_arrow_image.Mirror(horizontally=False)
-        self.up_arrow_bitmap = self.up_arrow_image.ConvertToBitmap()
-        self.down_arrow_bitmap = self.down_arrow_image.ConvertToBitmap()
-
-        self.up_arrow_image_hover = wx.Image('data/up_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.up_arrow_image_hover = self.up_arrow_image_hover.Scale(*self.move_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.down_arrow_image_hover = self.up_arrow_image_hover.Mirror(horizontally=False)
-        self.up_arrow_bitmap_hover = self.up_arrow_image_hover.ConvertToBitmap()
-        self.down_arrow_bitmap_hover = self.down_arrow_image_hover.ConvertToBitmap()
+        self.up_arrow_bitmap, self.up_arrow_bitmap_hover = create_bitmaps('up_arrow', self.move_btn_size)
+        self.down_arrow_bitmap, self.down_arrow_bitmap_hover = create_bitmaps('up_arrow', self.move_btn_size, flip=True)
 
         # create delete X bitmaps
         self.delete_x_size = 2 * (0.7 * self.move_btn_size[0],)
-        self.delete_x_image = wx.Image('data/delete_x.png', wx.BITMAP_TYPE_PNG)
-        self.delete_x_image.Replace(*3 * (0,), *3 * (100,))
-        self.delete_x_image = self.delete_x_image.Scale(*self.delete_x_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.delete_x_bitmap = self.delete_x_image.ConvertToBitmap()
-
-        self.delete_x_image_hover = wx.Image('data/delete_x.png', wx.BITMAP_TYPE_PNG)
-        self.delete_x_image_hover = self.delete_x_image_hover.Scale(*self.delete_x_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.delete_x_bitmap_hover = self.delete_x_image_hover.ConvertToBitmap()
+        self.delete_x_bitmap, self.delete_x_bitmap_hover = create_bitmaps('delete_x', self.delete_x_size)
 
         # create back btn bitmaps
         self.back_btn_size = 2 * (1.2 * self.move_btn_size[0],)
-        self.back_btn_image = wx.Image('data/back_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.back_btn_image.Replace(*3 * (0,), *3 * (100,))
-        self.back_btn_image = self.back_btn_image.Scale(*self.back_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.back_btn_bitmap = self.back_btn_image.ConvertToBitmap()
-
-        self.back_btn_image_hover = wx.Image('data/back_arrow.png', wx.BITMAP_TYPE_PNG)
-        self.back_btn_image_hover = self.back_btn_image_hover.Scale(*self.back_btn_size, quality=wx.IMAGE_QUALITY_HIGH)
-        self.back_btn_bitmap_hover = self.back_btn_image_hover.ConvertToBitmap()
+        self.back_btn_bitmap, self.back_btn_bitmap_hover = create_bitmaps('back_arrow', self.back_btn_size)
 
         # create sizers
         self.vbox_container = wx.BoxSizer(wx.VERTICAL)
@@ -848,17 +839,9 @@ class EditFrame(wx.Frame):
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------------------------
 
         # add back button
-        self.back_btn = wx.BitmapButton(self, size=wx.Size(*self.back_btn_size), bitmap=self.back_btn_bitmap)
-        self.back_btn.SetBackgroundColour(wx.WHITE)
-        self.back_btn.SetWindowStyleFlag(wx.NO_BORDER)
-        self.back_btn.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'back_btn'))
-        self.back_btn.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'back_btn'))
-        self.back_btn.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'back_btn'))
-        self.back_btn.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'back_btn'))
-
+        self.back_btn = self.create_bitmap_btn(self, self.back_btn_size, self.back_btn_bitmap, 'back_btn', 'Back to workflow selection')
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.close_window(event, parent, quitall=False))
-        self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
-        config_status_and_tooltip(self, self.back_btn, 'Back to workflow selection', 'Back to workflow selection')
+        self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -953,6 +936,17 @@ class EditFrame(wx.Frame):
         print(f'Time to open Edit frame: {time.time() - t0:.2f} s')
         print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
 
+    def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip=''):
+        bitmap_btn = wx.BitmapButton(parent, size=wx.Size(*size), bitmap=bitmap)
+        bitmap_btn.SetBackgroundColour(wx.WHITE)
+        bitmap_btn.SetWindowStyleFlag(wx.NO_BORDER)
+        bitmap_btn.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, hover_keyword))
+        bitmap_btn.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, hover_keyword))
+        bitmap_btn.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, hover_keyword))
+        bitmap_btn.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, hover_keyword))
+        config_status_and_tooltip(self, bitmap_btn, description, tooltip)
+        return bitmap_btn
+
     def create_edit_panel(self, first_creation=False):
         self.edit_row_container_sizers = []
 
@@ -1012,15 +1006,8 @@ class EditFrame(wx.Frame):
             # add move buttons
             self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
 
-            self.move_up = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size), bitmap=self.up_arrow_bitmap)
-            self.move_up.SetBackgroundColour(wx.WHITE)
-            self.move_up.SetWindowStyleFlag(wx.NO_BORDER)
-            self.move_up.Bind(wx.EVT_BUTTON,
-                              lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-            self.move_up.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_up'))
-            self.move_up.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'move_up'))
-            self.move_up.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_up'))
-            self.move_up.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'move_up'))
+            self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up', 'Move command up')
+            self.move_up.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
             self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
             if index == 0:
                 self.move_up.Show(False)  # hide move up button if topmost command
@@ -1028,16 +1015,8 @@ class EditFrame(wx.Frame):
             # add spacer to preserve width (mainly for when adding single command)
             self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
 
-            self.move_down = wx.BitmapButton(self.edit, size=wx.Size(*self.move_btn_size),
-                                             bitmap=self.down_arrow_bitmap)
-            self.move_down.SetBackgroundColour(wx.WHITE)
-            self.move_down.SetWindowStyleFlag(wx.NO_BORDER)
-            self.move_down.Bind(wx.EVT_BUTTON,
-                                lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-            self.move_down.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'move_down'))
-            self.move_down.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'move_down'))
-            self.move_down.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'move_down'))
-            self.move_down.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'move_down'))
+            self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down', 'Move command down')
+            self.move_down.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
             self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
             if index == len(self.lines) - 1:
                 self.move_down.Show(False)  # hide move down button if bottommost command
@@ -1127,14 +1106,8 @@ class EditFrame(wx.Frame):
 
         self.hbox_edit.AddSpacer(15)
 
-        self.delete_button = wx.BitmapButton(self.edit, size=wx.Size(*self.delete_x_size), bitmap=self.delete_x_bitmap)
-        self.delete_button.SetBackgroundColour(wx.WHITE)
-        self.delete_button.SetWindowStyleFlag(wx.NO_BORDER)
+        self.delete_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x', 'Delete command')
         self.delete_button.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.delete_command(sizer_trap))
-        self.delete_button.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, 'delete_x'))
-        self.delete_button.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, 'delete_x'))
-        self.delete_button.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, 'delete_x'))
-        self.delete_button.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, 'delete_x'))
 
         self.hbox_edit.Add(self.delete_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
@@ -1260,7 +1233,7 @@ class EditFrame(wx.Frame):
                                    validator=self.CharValidator('only_integer', self))
         self.x_coord.SetMaxLength(len(str(display_size[0])))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
-        self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
+        self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
@@ -1268,7 +1241,7 @@ class EditFrame(wx.Frame):
                                    validator=self.CharValidator('only_integer', self))
         self.y_coord.SetMaxLength(len(str(display_size[1])))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
-        self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
+        self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1301,7 +1274,7 @@ class EditFrame(wx.Frame):
         wait_entry = wx.TextCtrl(self.edit, value=value, style=wx.TE_RICH,
                                  validator=self.CharValidator('only_digit', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
-        wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_char_down)
+        wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
         self.error_display = wx.StaticText(self.edit, label='', name='error_display')
