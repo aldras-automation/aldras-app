@@ -1015,7 +1015,7 @@ class EditFrame(wx.Frame):
     def create_command_sizer(self, index, line_orig):
         self.line = line_orig.lower()
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
-        no_right_spacer = False
+        self.no_right_spacer = False
         try:
             # add move buttons
             self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
@@ -1045,21 +1045,8 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.Insert(0, 0, 0, 1)
 
             elif self.line.replace(' ', '')[0] == '#':  # workflow comment
-                self.hbox_edit.AddStretchSpacer(2)
-
-                self.comment_label = non_flickering_static_text(self.edit, '#')
-                self.comment_contrast = 100
-                change_font(self.comment_label, size=12, color=3 * (self.comment_contrast,))
-                self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 5)
-
-                self.comment_value = str(line_orig).replace('#', '').strip()
-                self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.comment_value, style=wx.TE_RIGHT)
-                self.comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
-                change_font(self.comment, size=10, style=wx.ITALIC, color=3 * (self.comment_contrast,))
-                self.hbox_edit.Add(self.comment, 1, wx.EXPAND)
-                self.comment.Bind(wx.EVT_TEXT, lambda event, sizer_trap=self.hbox_edit: self.text_change(sizer_trap, event, 'comment'))
-
-                no_right_spacer = True
+                self.add_command_combobox('Comment')
+                self.create_comment_row(self.line, line_orig)
 
             elif '-mouse' in self.line_first_word:
                 self.add_command_combobox('Mouse button')
@@ -1068,7 +1055,6 @@ class EditFrame(wx.Frame):
             elif 'type:' in self.line_first_word:
                 self.add_command_combobox('Type')
                 self.create_type_row(line_orig)
-                no_right_spacer = True
 
             elif 'wait' in self.line_first_word:
                 self.add_command_combobox('Wait')
@@ -1115,15 +1101,7 @@ class EditFrame(wx.Frame):
             change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
             self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        if not no_right_spacer:
-            self.hbox_edit.AddStretchSpacer()
-
-        self.hbox_edit.AddSpacer(15)
-
-        self.delete_x_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x', 'Delete command')
-        self.delete_x_button.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.delete_command(sizer_trap))
-
-        self.hbox_edit.Add(self.delete_x_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        self.create_delete_x_btn(self.hbox_edit)
 
         self.edit_row_widget_sizers.append(self.hbox_edit)
 
@@ -1133,6 +1111,16 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.append(edit_row_vbox)
+
+    def create_delete_x_btn(self, sizer):
+        sizer.AddSpacer(15)
+        if not self.no_right_spacer:
+            sizer.AddStretchSpacer()
+
+        delete_x_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x',
+                                                      'Delete command')
+        delete_x_button.Bind(wx.EVT_BUTTON, lambda _: self.delete_command(sizer))
+        sizer.Add(delete_x_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
     def button_hover_on(self, event, btn_kind):
         btn = event.GetEventObject()
@@ -1262,12 +1250,10 @@ class EditFrame(wx.Frame):
         sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(non_flickering_static_text(self.edit, '  )'), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(25)
-        sizer.AddStretchSpacer()
         self.error_display = non_flickering_static_text(self.edit, '')
         self.error_display.SetName('error_display')
         self.error_display.SetForegroundColour(wx.RED)
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer.AddStretchSpacer()
 
     def create_type_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1279,6 +1265,7 @@ class EditFrame(wx.Frame):
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
         text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(text_to_type, 1, wx.EXPAND)
+        self.no_right_spacer = True
 
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1371,6 +1358,25 @@ class EditFrame(wx.Frame):
         sizer.Add(non_flickering_static_text(self.edit, 'at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
+
+    def create_comment_row(self, line, line_orig, sizer=None):
+        if not sizer:
+            sizer = self.hbox_edit
+
+        sizer.AddStretchSpacer(2)
+
+        comment_label = non_flickering_static_text(self.edit, '#')
+        comment_contrast = 100
+        change_font(comment_label, size=12, color=3 * (comment_contrast,))
+        sizer.Add(comment_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 5)
+
+        comment_value = str(line_orig).replace('#', '').strip()
+        comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=comment_value, style=wx.TE_RIGHT)
+        change_font(comment, size=10, style=wx.ITALIC, color=3 * (comment_contrast,))
+        comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        comment.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'comment'))
+        sizer.Add(comment, 1, wx.EXPAND)
+        self.no_right_spacer = True
 
     def open_delete_command_dialog(self):
 
@@ -1775,9 +1781,11 @@ class EditFrame(wx.Frame):
             sizer.GetChildren()[ii].Show(False)
             sizer.Remove(ii)
 
+        self.no_right_spacer = False
+
         if new_action == 'Comment':
             self.lines[index] = '#'
-            # self.create_mouse_row(self.lines[index].lower(), sizer)
+            self.create_comment_row(self.lines[index].lower(), self.lines[index], sizer)
 
         elif new_action == 'Mouse button':
             self.lines[index] = f'Left-mouse click at {old_coords}'
@@ -1819,6 +1827,7 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Triple-click at {old_coords}'
             self.create_multi_click_row(self.lines[index].lower(), sizer)
 
+        self.create_delete_x_btn(sizer)
         self.Layout()
 
     def mouse_command_change(self, sizer, event):
