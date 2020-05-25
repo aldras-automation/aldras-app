@@ -1,9 +1,10 @@
 Left-mouse click at (341, 505)
 Right-mouse press at (262, 637)
-Right-mouse release at (76, 46)
+Right-mouse release at (736, 46)
 Type: This proposal initiated by John Smith.
 Hotkey ctrl+s
 Hotkey ctrl+shift+left
+asdfasdfasdfhwoiejfasdf
 Wait 0.5
 Mouse-move to (749, 450)
 Wait 0.5
@@ -13,25 +14,3 @@ Left-mouse click at (749, 450)
 Double-click at (749, 450)
 Triple-click at (749, 450)
 Key Esc Tap
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)

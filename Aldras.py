@@ -390,6 +390,12 @@ def change_font(static_text, size=None, family=None, style=None, weight=None, co
         static_text.SetForegroundColour(color)
 
 
+def non_flickering_static_text(parent, label):
+    static_text = wx.StaticText(parent, wx.ID_ANY, label)
+    static_text.Bind(wx.EVT_ERASE_BACKGROUND, lambda _: None)
+    return static_text
+
+
 # noinspection PyTypeChecker
 def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
     """
@@ -1033,7 +1039,7 @@ class EditFrame(wx.Frame):
             elif self.line.replace(' ', '')[0] == '#':  # workflow comment
                 self.hbox_edit.AddStretchSpacer(2)
 
-                self.comment_label = wx.StaticText(self.edit, label='#')
+                self.comment_label = non_flickering_static_text(self.edit, '#')
                 self.comment_contrast = 100
                 change_font(self.comment_label, size=12, color=3 * (self.comment_contrast,))
                 self.hbox_edit.Add(self.comment_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 5)
@@ -1097,7 +1103,7 @@ class EditFrame(wx.Frame):
         except ValueError:
             # display indecipherable line
             self.hbox_edit.AddSpacer(10)
-            self.unknown_cmd_msg = wx.StaticText(self.edit, label=f'**Unknown command from line: "{self.line}"')
+            self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
             change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
             self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1215,9 +1221,7 @@ class EditFrame(wx.Frame):
         sizer.AddSpacer(10)
         sizer.Add(mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(10)
-        test_st = wx.StaticText(self.edit, label='at pt. (  ')
-        test_st.Bind(wx.EVT_ERASE_BACKGROUND, lambda _: None)
-        sizer.Add(test_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(non_flickering_static_text(self.edit, 'at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
@@ -1246,12 +1250,13 @@ class EditFrame(wx.Frame):
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(non_flickering_static_text(self.edit, ' , '), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(non_flickering_static_text(self.edit, '  )'), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(25)
         sizer.AddStretchSpacer()
-        self.error_display = wx.StaticText(self.edit, label='', name='error_display')
+        self.error_display = non_flickering_static_text(self.edit, '')
+        self.error_display.SetName('error_display')
         self.error_display.SetForegroundColour(wx.RED)
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddStretchSpacer()
@@ -1280,7 +1285,8 @@ class EditFrame(wx.Frame):
         wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
-        self.error_display = wx.StaticText(self.edit, label='', name='error_display')
+        self.error_display = non_flickering_static_text(self.edit, '')
+        self.error_display.SetName('error_display')
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_key_row(self, line, sizer=None):
@@ -1338,14 +1344,14 @@ class EditFrame(wx.Frame):
 
             if index < len(combination) - 1:
                 # only add '+' in between keys (not after)
-                sizer.Add(wx.StaticText(self.edit, label='  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
+                sizer.Add(non_flickering_static_text(self.edit, '  +  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
     def create_mousemove_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if not sizer:
             sizer = self.hbox_edit
 
-        sizer.Add(wx.StaticText(self.edit, label='to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(non_flickering_static_text(self.edit, 'to pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
@@ -1354,7 +1360,7 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(non_flickering_static_text(self.edit, 'at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
