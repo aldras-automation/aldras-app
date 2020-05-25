@@ -1040,10 +1040,10 @@ class EditFrame(wx.Frame):
 
                 self.comment_value = str(line_orig).replace('#', '').strip()
                 self.comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=self.comment_value, style=wx.TE_RIGHT)
-                # layout EditFrame when expandotextctrl size changes
-                self.comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())
+                self.comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
                 change_font(self.comment, size=10, style=wx.ITALIC, color=3 * (self.comment_contrast,))
                 self.hbox_edit.Add(self.comment, 1, wx.EXPAND)
+                self.comment.Bind(wx.EVT_TEXT, lambda event, sizer_trap=self.hbox_edit: self.text_change(sizer_trap, event, 'comment'))
 
                 no_right_spacer = True
 
@@ -1106,10 +1106,10 @@ class EditFrame(wx.Frame):
 
         self.hbox_edit.AddSpacer(15)
 
-        self.delete_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x', 'Delete command')
-        self.delete_button.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.delete_command(sizer_trap))
+        self.delete_x_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x', 'Delete command')
+        self.delete_x_button.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.delete_command(sizer_trap))
 
-        self.hbox_edit.Add(self.delete_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        self.hbox_edit.Add(self.delete_x_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
         self.edit_row_widget_sizers.append(self.hbox_edit)
 
@@ -1215,7 +1215,9 @@ class EditFrame(wx.Frame):
         sizer.AddSpacer(10)
         sizer.Add(mouse_action, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(10)
-        sizer.Add(wx.StaticText(self.edit, label='at pt. (  '), 0, wx.ALIGN_CENTER_VERTICAL)
+        test_st = wx.StaticText(self.edit, label='at pt. (  ')
+        test_st.Bind(wx.EVT_ERASE_BACKGROUND, lambda _: None)
+        sizer.Add(test_st, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.create_point_input(line, sizer)
 
@@ -1247,10 +1249,12 @@ class EditFrame(wx.Frame):
         sizer.Add(wx.StaticText(self.edit, label=' , '), 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self.y_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self.edit, label='  )'), 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer.AddSpacer(30)
+        sizer.AddSpacer(25)
+        sizer.AddStretchSpacer()
         self.error_display = wx.StaticText(self.edit, label='', name='error_display')
         self.error_display.SetForegroundColour(wx.RED)
         sizer.Add(self.error_display, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddStretchSpacer()
 
     def create_type_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1259,9 +1263,8 @@ class EditFrame(wx.Frame):
 
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
-        text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event))
-        # layout EditFrame when expandotextctrl size changes
-        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())
+        text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
+        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(text_to_type, 1, wx.EXPAND)
 
     def create_wait_row(self, line, sizer=None):
@@ -1697,12 +1700,15 @@ class EditFrame(wx.Frame):
         index = self.edit_row_widget_sizers.index(sizer)
         new_action = event.GetString()
         line_orig = self.lines[index]
-        line = line_orig.lower()
+        line = line_orig.lower().strip()
         line_first_word = line.split(' ')[0]
 
         old_coords = self.default_coords
         old_action = ''
-        if '-mouse' in line_first_word:
+        if line.replace(' ', '')[0] == '#':
+            old_action = 'Comment'
+
+        elif '-mouse' in line_first_word:
             old_action = 'Mouse button'
             old_coords = coords_of(line)
 
@@ -1755,7 +1761,11 @@ class EditFrame(wx.Frame):
             sizer.GetChildren()[ii].Show(False)
             sizer.Remove(ii)
 
-        if new_action == 'Mouse button':
+        if new_action == 'Comment':
+            self.lines[index] = '#'
+            # self.create_mouse_row(self.lines[index].lower(), sizer)
+
+        elif new_action == 'Mouse button':
             self.lines[index] = f'Left-mouse click at {old_coords}'
             self.create_mouse_row(self.lines[index].lower(), sizer)
 
@@ -1826,6 +1836,7 @@ class EditFrame(wx.Frame):
         try:
             if not command_change.isdecimal() and command_change:
                 raise ValueError()
+            line_split_on_comma = self.lines[index].split(',')
             if x:
                 if command_change:
                     x_coord = command_change
@@ -1833,7 +1844,7 @@ class EditFrame(wx.Frame):
                     x_coord = '0'
                 if int(x_coord) > display_size[0]:
                     raise ValueError()
-                self.lines[index] = self.lines[index].replace(str(coords_of(self.lines[index])[0]), x_coord, 1)
+                self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
 
             elif y:
                 if command_change:
@@ -1842,11 +1853,10 @@ class EditFrame(wx.Frame):
                     y_coord = '0'
                 if int(y_coord) > display_size[1]:
                     raise ValueError()
-                self.lines[index] = y_coord.join(self.lines[index].rsplit(str(coords_of(self.lines[index])[1]), 1))  # split line based on old y-coord from the right and re-join with new y-coord
+                self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
 
         except ValueError:
             text_ctrl.SetForegroundColour(wx.RED)
-            event.Skip()
             # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
             if x:
                 error_msg = f'The max X value is {display_size[0]} px.'
@@ -1856,10 +1866,15 @@ class EditFrame(wx.Frame):
                 error_msg = f'The maximum coordinates are {display_size} px.'
             error_static_text.SetLabel(error_msg)
             self.command_row_error = True
+            text_ctrl.GetParent().GetParent().Layout()
+            event.Skip()
 
-    def text_change(self, sizer, event):
+    def text_change(self, sizer, event, command_type):
         index = self.edit_row_widget_sizers.index(sizer)
-        self.lines[index] = f'Type:{event.GetString()}'
+        if command_type == 'type':
+            self.lines[index] = f'Type:{event.GetString()}'
+        elif command_type == 'comment':
+            self.lines[index] = f'#{event.GetString()}'
         event.Skip()
 
     def wait_change(self, sizer, event):
@@ -2703,7 +2718,7 @@ class SelectionFrame(wx.Frame):
                 }
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
                 self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
-                                 'Mouse-move', 'Double-click', 'Triple-click']
+                                 'Mouse-move', 'Double-click', 'Triple-click', 'Comment']
                 self.mouse_buttons = ['Left', 'Right']
                 self.mouse_actions = ['Click', 'Press', 'Release']
                 self.key_actions = ['Tap', 'Press', 'Release']
