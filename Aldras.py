@@ -63,7 +63,15 @@ def coords_of(line):
 
 def float_in(input_string):
     """Returns parsed float from string."""
-    return float(re.findall(r'[-+]?\d*\.\d+|\d+', input_string)[0])
+    floats = re.findall(r'[-+]?\d*\.\d+|\d+', input_string)
+    if not floats:
+        output = float(0)
+    elif len(floats) > 1:
+        output = [float(indiv_float) for indiv_float in floats]
+    else:
+        output = float(floats[0])
+
+    return output
 
 
 def setup_frame(self, status_bar=False):
@@ -1887,7 +1895,7 @@ class EditFrame(wx.Frame):
         index = self.edit_row_widget_sizers.index(sizer)
         command_change = event.GetString()
         text_ctrl = event.GetEventObject()
-        text_ctrl.SetMaxLength(0)
+        text_ctrl.SetMaxLength(0)  # discards previous max length assignment
         text_ctrl.SetForegroundColour(wx.BLACK)
         # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
         error_static_text = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
@@ -1924,13 +1932,14 @@ class EditFrame(wx.Frame):
             elif wait_time > 60:  # more than a day
                 error_static_text.SetLabel(verbalize_time(wait_time))
                 error_static_text.SetForegroundColour(wx.BLACK)
-            self.lines[index] = f'Wait {command_change}'
+            self.lines[index] = f'Wait {float_in(command_change)}'
         except ValueError:
             if command_change:  # if the wait entry is not empty
                 text_ctrl.SetForegroundColour(wx.RED)
                 if not too_long:
                     error_static_text.SetLabel('Invalid number.')
-                text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
+                if text_ctrl.GetValue() != '.':
+                    text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
                 self.command_row_error = True
                 self.lines[index] = f'Wait {float_in(command_change)}'
             else:
