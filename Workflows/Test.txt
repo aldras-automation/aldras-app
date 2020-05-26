@@ -1,4 +1,0 @@
-Mouse-move to (500, 500)
-Wait 0
-Type:This is a test
-Mouse-move to (10, 10)

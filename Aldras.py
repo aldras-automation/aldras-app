@@ -808,8 +808,9 @@ class EditFrame(wx.Frame):
         t0 = time.time()
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
+        self.workflow_name_when_launched = parent.workflow_name
         self.parent = parent
-        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {parent.workflow_name}')
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}')
         setup_frame(self, status_bar=True)
 
         # set parameters
@@ -853,16 +854,18 @@ class EditFrame(wx.Frame):
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------------------------
 
         # add back button
-        self.back_btn = self.create_bitmap_btn(self, self.back_btn_size, self.back_btn_bitmap, 'back_btn', 'Back to workflow selection')
+        self.back_btn = self.create_bitmap_btn(self, self.back_btn_size, self.back_btn_bitmap, 'back_btn', 'Back to workflow selection', focus_change=False)
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.close_window(event, parent, quitall=False))
         self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        self.hbox_top.AddSpacer(10)
+        # self.hbox_top.AddSpacer(10)
 
         # add workflow title
-        self.title = wx.StaticText(self, label=parent.workflow_name)
+        self.title = wx.Button(self, label=self.workflow_name, style=wx.BORDER_NONE | wx.BU_EXACTFIT)
+        self.title.SetBackgroundColour(wx.WHITE)
+        self.title.Bind(wx.EVT_BUTTON, self.rename_workflow)
         change_font(self.title, size=18, color=3 * (60,))
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
 
@@ -873,10 +876,10 @@ class EditFrame(wx.Frame):
 
         # read or create workflow file
         try:
-            with open(parent.workflow_path_name, 'r') as record_file:
+            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'r') as record_file:
                 self.lines = record_file.readlines()
         except FileNotFoundError:  # create file if not found
-            with open(parent.workflow_path_name, 'w'):
+            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'w'):
                 self.lines = []
         self.lines = [line.replace('\n', '') for line in self.lines]
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
@@ -950,16 +953,35 @@ class EditFrame(wx.Frame):
         print(f'Time to open Edit frame: {time.time() - t0:.2f} s')
         print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
 
-    def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip=''):
+    def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
         bitmap_btn = wx.BitmapButton(parent, size=wx.Size(*size), bitmap=bitmap)
         bitmap_btn.SetBackgroundColour(wx.WHITE)
         bitmap_btn.SetWindowStyleFlag(wx.NO_BORDER)
         bitmap_btn.Bind(wx.EVT_ENTER_WINDOW, lambda event: self.button_hover_on(event, hover_keyword))
-        bitmap_btn.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, hover_keyword))
         bitmap_btn.Bind(wx.EVT_LEAVE_WINDOW, lambda event: self.button_hover_off(event, hover_keyword))
-        bitmap_btn.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, hover_keyword))
+        if focus_change:
+            bitmap_btn.Bind(wx.EVT_SET_FOCUS, lambda event: self.button_hover_on(event, hover_keyword))
+            bitmap_btn.Bind(wx.EVT_KILL_FOCUS, lambda event: self.button_hover_off(event, hover_keyword))
         config_status_and_tooltip(self, bitmap_btn, description, tooltip)
         return bitmap_btn
+
+    def rename_workflow(self, event):
+
+        self.char_limit = 35
+
+        rename_dlg = wx.TextEntryDialog(self, 'Enter Your Name', 'Text Entry Dialog')
+        rename_dlg.SetMaxLength(self.char_limit)
+        text_ctrl = rename_dlg.FindWindowById(3000)
+        text_ctrl.Validator = self.CharValidator('file_name', self)
+
+        if rename_dlg.ShowModal() == wx.ID_OK:
+            if rename_dlg.GetValue().strip():
+                self.workflow_name = rename_dlg.GetValue().capitalize()
+                self.title.SetForegroundColour(wx.WHITE)  # hide button manipulation
+                self.title.SetLabel(self.workflow_name)
+                self.title.SetForegroundColour(wx.BLACK)
+                self.Layout()
+                self.SetTitle(f'{self.software_info.name}: Edit - {self.workflow_name}')
 
     def create_edit_panel(self, first_creation=False):
         self.edit_row_container_sizers = []
@@ -1168,20 +1190,61 @@ class EditFrame(wx.Frame):
             """Required Validator method"""
             return self.parent.CharValidator(self.flag, self.parent)
 
+        def TransferToWindow(self):
+            return True
+
+        def TransferFromWindow(self):
+            return True
+
+        def Validate(self, win):  # used when transferred to window
+            print('VALIDATOR')
+            if self.flag == 'file_name':
+                valid = True
+                text_ctrl = self.Window
+                value = text_ctrl.Value.capitalize()
+                proposed_file_name = f'{self.parent.parent.workflow_directory}/{value}.txt'
+
+                if not value.strip():  # if empty string or only spaces
+                    valid = False
+                    wx.MessageDialog(None, f'Enter a file name or cancel',
+                                     'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
+
+                try:
+                    if os.path.exists(proposed_file_name):
+                        valid = False
+                        wx.MessageDialog(None, f'Enter a file name for a file that does not already exist',
+                                         'Taken file name', wx.OK | wx.ICON_WARNING).ShowModal()
+                    else:
+                        with open(proposed_file_name, 'w') as _:  # try to create file to validate file name
+                            pass
+                        os.remove(proposed_file_name)
+                except OSError:
+                    valid = False
+                    wx.MessageDialog(None, f'Enter a valid file name for your operating system',
+                                     'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
+                return valid
+            else:
+                raise ValueError('Validator flag not defined')
+
         def on_char(self, event):
             # process character
             keycode = int(event.GetKeyCode())
-            if keycode < 256 and keycode != 127:  # process keycode 127 for delete key
+            if keycode < 256 and not keycode in [8, 127]:  # don't ignore backspace(8) or delete(127)
                 key = chr(keycode)
-                # return and do not process key if conditions satisfied
+                # return and do not process key if conditions are met
                 if self.flag == 'no_alpha' and key in string.ascii_letters:
                     return
                 if self.flag == 'only_digit' and not (key.isdecimal() or key == '.'):
                     return
                 if self.flag == 'only_integer' and not key.isdecimal():
                     return
+                if self.flag == 'file_name':
+                    invalid_file_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*']
+                    if key in invalid_file_characters:
+                        return
 
             event.Skip()
+            return
 
     def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1386,7 +1449,7 @@ class EditFrame(wx.Frame):
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-                self.SetTitle(f'Delete Commands - {parent.parent.workflow_name}')
+                self.SetTitle(f'Delete Commands - {parent.workflow_name}')
                 self.SetBackgroundColour('white')
 
                 sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1463,7 +1526,7 @@ class EditFrame(wx.Frame):
 
         # TODO replace with wx.RearrangeCtrl or wx.RearrangeList
         reorder_dlg = wx.RearrangeDialog(None, 'The checkboxes do not matter',
-                                         f'Reorder Commands - {self.parent.workflow_name}', order, items)
+                                         f'Reorder Commands - {self.workflow_name}', order, items)
         reorder_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
 
         # center dialog
@@ -2638,7 +2701,7 @@ class EditFrame(wx.Frame):
         pass
 
     def close_window(self, _, parent, quitall=False):
-        if self.lines_when_launched != self.lines:
+        if self.lines_when_launched != self.lines or self.workflow_name_when_launched != self.workflow_name:
             # confirm save intent when closing with changes
             class SaveDialog(wx.Dialog):
                 def __init__(self, parent_win):
@@ -2649,7 +2712,7 @@ class EditFrame(wx.Frame):
 
                     # add save message
                     self.message = wx.StaticText(self, wx.ID_ANY,
-                                                 f'Do you want to save changes to \'{parent.workflow_name}\'?')
+                                                 f'Do you want to save changes to \'{parent_win.workflow_name}\'?')
                     change_font(self.message, size=13, color=(35, 75, 160))
                     self.vbox.Add(self.message, 0, wx.ALL, 10)
 
@@ -2685,14 +2748,28 @@ class EditFrame(wx.Frame):
                 def on_no_save(self, _):
                     self.EndModal(20)  # terminate dialog with exit code 20
 
-            save_dialog = SaveDialog(self).ShowModal()
-            if save_dialog == wx.ID_OK:
+            workflow_path_when_launched = f'{self.parent.workflow_directory}{self.workflow_name_when_launched}.txt'
+
+            save_dlg = SaveDialog(self).ShowModal()
+            if save_dlg == wx.ID_OK:
                 # write to workflow file
-                with open(self.parent.workflow_path_name, 'w') as record_file:
+                with open(workflow_path_when_launched, 'w') as record_file:
                     print(f'LINES: {self.lines}')
                     for line in self.lines:
                         record_file.write(f'{line}\n')
-            elif save_dialog == 20:  # 'don't save' button
+                
+                if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
+                    workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
+                    os.rename(workflow_path_when_launched, workflow_path_new)
+                    self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
+                    self.parent.recent_workflows.remove(workflow_path_when_launched)
+                    self.parent.recent_workflows.insert(0, workflow_path_new)
+                    with open(self.parent.data_directory_recent_workflows,
+                              'w') as record_file:  # add workflow to recent history
+                        for line in self.parent.recent_workflows[0:10]:
+                            record_file.write(f'{line}\n')
+                    self.parent.update_recent_workflows()
+            elif save_dlg == 20:  # 'don't save' button
                 pass
             else:  # cancel button
                 return
@@ -2706,6 +2783,7 @@ class EditFrame(wx.Frame):
             parent.Position = (self.Position[0] + ((self.Size[0] - parent.Size[0]) / 2),
                                self.Position[1] + ((self.Size[1] - parent.Size[1]) / 2))
             parent.Show()
+            parent.Layout()
 
 
 class SelectionFrame(wx.Frame):
@@ -2870,6 +2948,9 @@ class SelectionFrame(wx.Frame):
             self.hbox_recent.Add(self.recent_workflow_btn)
 
         self.hbox_recent.ShowItems(show=True)
+        self.hbox_recent.Layout()
+        self.vbox_recent.Layout()
+        self.Layout()
 
     def on_ok(self, _):
         if self.workflow_name_input.GetValue() == '':
@@ -2915,8 +2996,6 @@ class SelectionFrame(wx.Frame):
 
         # update frame
         self.update_recent_workflows()
-        self.hbox_recent.Layout()
-        self.Layout()
         self.workflow_panel.SetSizerAndFit(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
         self.Fit()
