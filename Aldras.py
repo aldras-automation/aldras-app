@@ -969,13 +969,14 @@ class EditFrame(wx.Frame):
 
         self.char_limit = 35
 
+        # create rename text entry text dialog
         rename_dlg = wx.TextEntryDialog(self, 'Enter Your Name', 'Text Entry Dialog')
         rename_dlg.SetMaxLength(self.char_limit)
         text_ctrl = rename_dlg.FindWindowById(3000)
-        text_ctrl.Validator = self.CharValidator('file_name', self)
+        text_ctrl.Validator = self.CharValidator('file_name', self)  # assign validator for filename
 
         if rename_dlg.ShowModal() == wx.ID_OK:
-            if rename_dlg.GetValue().strip():
+            if rename_dlg.GetValue().strip():  # if the entry is not empty or only spaces
                 self.workflow_name = rename_dlg.GetValue().capitalize()
                 self.title.SetForegroundColour(wx.WHITE)  # hide button manipulation
                 self.title.SetLabel(self.workflow_name)
@@ -1197,7 +1198,6 @@ class EditFrame(wx.Frame):
             return True
 
         def Validate(self, win):  # used when transferred to window
-            print('VALIDATOR')
             if self.flag == 'file_name':
                 valid = True
                 text_ctrl = self.Window
@@ -2764,10 +2764,6 @@ class EditFrame(wx.Frame):
                     self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
                     self.parent.recent_workflows.remove(workflow_path_when_launched)
                     self.parent.recent_workflows.insert(0, workflow_path_new)
-                    with open(self.parent.data_directory_recent_workflows,
-                              'w') as record_file:  # add workflow to recent history
-                        for line in self.parent.recent_workflows[0:10]:
-                            record_file.write(f'{line}\n')
                     self.parent.update_recent_workflows()
             elif save_dlg == 20:  # 'don't save' button
                 pass
@@ -2783,6 +2779,7 @@ class EditFrame(wx.Frame):
             parent.Position = (self.Position[0] + ((self.Size[0] - parent.Size[0]) / 2),
                                self.Position[1] + ((self.Size[1] - parent.Size[1]) / 2))
             parent.Show()
+            parent.Raise()
             parent.Layout()
 
 
@@ -2931,6 +2928,11 @@ class SelectionFrame(wx.Frame):
         self.Show()
 
     def update_recent_workflows(self):
+        self.recent_workflows = eliminate_duplicates(self.recent_workflows)
+        with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
+            for line in self.recent_workflows[0:10]:
+                record_file.write(f'{line}\n')
+
         self.hbox_recent.ShowItems(show=False)
         self.hbox_recent.Clear(delete_windows=True)
 
@@ -2955,9 +2957,7 @@ class SelectionFrame(wx.Frame):
     def on_ok(self, _):
         if self.workflow_name_input.GetValue() == '':
             # error warning if entry is empty
-            confirm_workflow_dlg = wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
-                                                    wx.OK | wx.ICON_EXCLAMATION)
-            confirm_workflow_dlg.ShowModal()
+            wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name', wx.OK | wx.ICON_EXCLAMATION).ShowModal()
 
         else:
             # workflow confirmation if entry is default 'Workflow'
@@ -2972,14 +2972,17 @@ class SelectionFrame(wx.Frame):
 
     def launch_workflow(self, workflow_path_name, recent_launch=False):
         if recent_launch:
-            # when launching recent workflow, make sure it still exists
+            # when launching recent workflow, make sure it still exists and read lines
             try:
                 with open(workflow_path_name, 'r') as record_file:
-                    self.lines = record_file.readlines()
+                    pass
             except FileNotFoundError:
-                print('FileNotFoundError')
-                # TODO implement dialogue informing user of non-existent workflow and prompt to create new. If not, delete record in 'recent_workflows.txt'
-                raise SystemError('FileNotFoundError')
+                wx.MessageDialog(None, f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.', 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
+
+                self.recent_workflows = eliminate_duplicates(self.recent_workflows)
+                self.recent_workflows.remove(workflow_path_name)
+                self.update_recent_workflows()
+                return
 
         self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
         self.workflow_path_name = workflow_path_name
@@ -2987,12 +2990,8 @@ class SelectionFrame(wx.Frame):
         EditFrame(self)
         self.Hide()
 
-        # recently launched workflow to history
+        # add recently launched workflow to history
         self.recent_workflows.insert(0, self.workflow_path_name)
-        self.recent_workflows = eliminate_duplicates(self.recent_workflows)
-        with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
-            for line in self.recent_workflows[0:10]:
-                record_file.write(f'{line}\n')
 
         # update frame
         self.update_recent_workflows()
