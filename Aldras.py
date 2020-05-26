@@ -805,6 +805,13 @@ class EditFrame(wx.Frame):
     """Frame to edit specific workflow."""
 
     def __init__(self, parent):
+        print()
+        print()
+        print()
+        print()
+        print()
+        print()
+        print('EDIT FRAME')
         t0 = time.time()
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
@@ -812,6 +819,9 @@ class EditFrame(wx.Frame):
         self.parent = parent
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}')
         setup_frame(self, status_bar=True)
+
+        print(f'Time of init and setup frame: {time.time() - t0}')
+        t4 = time.time()
 
         # set parameters
         self.margin = 10
@@ -847,6 +857,9 @@ class EditFrame(wx.Frame):
         self.back_btn_size = 2 * (1.2 * self.move_btn_size[0],)
         self.back_btn_bitmap, self.back_btn_bitmap_hover = create_bitmaps('back_arrow', self.back_btn_size)
 
+        print(f'Time of bitmap creation: {time.time() - t4}')
+        t4 = time.time()
+
         # create sizers
         self.vbox_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -854,7 +867,8 @@ class EditFrame(wx.Frame):
         self.hbox_top = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------------------------
 
         # add back button
-        self.back_btn = self.create_bitmap_btn(self, self.back_btn_size, self.back_btn_bitmap, 'back_btn', 'Back to workflow selection', focus_change=False)
+        self.back_btn = self.create_bitmap_btn(self, self.back_btn_size, self.back_btn_bitmap, 'back_btn',
+                                               'Back to workflow selection', focus_change=False)
         self.back_btn.Bind(wx.EVT_BUTTON, lambda event: self.close_window(event, parent, quitall=False))
         self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
@@ -870,6 +884,9 @@ class EditFrame(wx.Frame):
         self.hbox_top.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_outer.Add(self.hbox_top, 0, wx.SOUTH, 10)
+
+        print(f'Time of sizer, back btn, and title creation: {time.time() - t4}')
+        t4 = time.time()
         # --------------------------------------------------------------------------------------------------------------
 
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)  # -------------------------------------------------------------
@@ -883,6 +900,9 @@ class EditFrame(wx.Frame):
                 self.lines = []
         self.lines = [line.replace('\n', '') for line in self.lines]
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
+
+        print(f'Time of file manip: {time.time() - t4}')
+        t4 = time.time()
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)  # sizer for action sidebar
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -936,10 +956,20 @@ class EditFrame(wx.Frame):
         self.fg_bottom.AddGrowableRow(0, 0)
 
         self.vbox_outer.Add(self.fg_bottom, 1, wx.EXPAND | wx.SOUTH, 5)
+        print(f'Time of action widget creation: {time.time() - t4}')
+        t4 = time.time()
         # --------------------------------------------------------------------------------------------------------------
 
         # add margins and inside sizers
         self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margin)
+        print(f'Time of sizer addition: {time.time() - t4}')
+        t4 = time.time()
+
+        print()
+        print()
+        print()
+        print()
+        print('\tEDIT PANEL')
 
         self.create_edit_panel(first_creation=True)
 
@@ -985,6 +1015,7 @@ class EditFrame(wx.Frame):
                 self.SetTitle(f'{self.software_info.name}: Edit - {self.workflow_name}')
 
     def create_edit_panel(self, first_creation=False):
+        t4 = time.time()
         self.edit_row_container_sizers = []
 
         # if self.vbox_edit:
@@ -1006,10 +1037,30 @@ class EditFrame(wx.Frame):
 
         self.edit_row_widget_sizers = []  # for identifying indices later
 
+        print(f'\tTime of sizer and variable creation: {time.time() - t4}')
+        t3 = time.time()
+
+        print()
+        print()
+        print()
+        print()
+        print('\t\tCOMMAND SIZER')
+
         for index, line_orig in enumerate(self.lines):
+            t4 = time.time()
             self.create_command_sizer(index, line_orig)
+            print(f'\t  Time of command creation: {time.time() - t4}')
+            print()
+
+        # for index, line_orig in enumerate(self.lines):
+        #     indiv_thread = threading.Thread(target=self.create_command_sizer, args=(index, line_orig), daemon=True)
+        #     indiv_thread.start()
+        #     indiv_thread.join()
 
         self.line = ''  # reset to empty because used by other functions to determine if they are called from outside loop
+
+        print(f'\tTime of command sizers creation: {time.time() - t3}')
+        t4 = time.time()
 
         for self.edit_row in self.edit_row_container_sizers:
             self.command_row_error = False
@@ -1017,13 +1068,16 @@ class EditFrame(wx.Frame):
             combobox_window = command_widgets[1].GetWindow()
             if combobox_window:
                 text_ctrls = [widget.GetWindow() for widget in command_widgets if (
-                            isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
-                                                                                           wx.lib.expando.ExpandoTextCtrl))]
+                        isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
+                                                                                       wx.lib.expando.ExpandoTextCtrl))]
                 for text_ctrl in text_ctrls:
                     if not self.command_row_error:
                         text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
 
             self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
+
+        print(f'\tTime of text ctrl prevalidation: {time.time() - t4}')
+        t4 = time.time()
 
         self.edit.SetSizer(self.vbox_edit)
 
@@ -1035,15 +1089,24 @@ class EditFrame(wx.Frame):
         self.vbox_edit_container.SetMinSize(wx.Size(650, 300))
         self.vbox_container.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
+        print(f'\tTime of sizer cleanup: {time.time() - t4}')
+
     def create_command_sizer(self, index, line_orig):
+        t4 = time.time()
+
         self.line = line_orig.lower()
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
         self.no_right_spacer = False
+
+        print(f'\t\tTime of sizer and variable creation: {time.time() - t4}')
+        t4 = time.time()
+
         try:
             # add move buttons
             self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
 
-            self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up', 'Move command up')
+            self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up',
+                                                  'Move command up')
             self.move_up.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
             self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
             if index == 0:
@@ -1052,8 +1115,10 @@ class EditFrame(wx.Frame):
             # add spacer to preserve width (mainly for when adding single command)
             self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
 
-            self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down', 'Move command down')
-            self.move_down.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
+            self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down',
+                                                    'Move command down')
+            self.move_down.Bind(wx.EVT_BUTTON,
+                                lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
             self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
             if index == len(self.lines) - 1:
                 self.move_down.Show(False)  # hide move down button if bottommost command
@@ -1062,6 +1127,9 @@ class EditFrame(wx.Frame):
             # ----------------------------------------------------------------------------------------------------------
 
             self.line_first_word = self.line.split(' ')[0]
+
+            print(f'\t\tTime of move_btn creation: {time.time() - t4}')
+            t4 = time.time()
 
             if not self.line:  # if line is empty, insert spacers
                 self.hbox_edit.Insert(0, 0, 50, 1)
@@ -1117,6 +1185,9 @@ class EditFrame(wx.Frame):
             else:
                 raise ValueError
 
+            print(f'\t\tTime of command row creation: {time.time() - t4}')
+            t4 = time.time()
+
         except ValueError:
             # display indecipherable line
             self.hbox_edit.AddSpacer(10)
@@ -1134,6 +1205,8 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.append(edit_row_vbox)
+        print(f'\t\tTime of sizer addition: {time.time() - t4}')
+        print()
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)
@@ -1141,7 +1214,7 @@ class EditFrame(wx.Frame):
             sizer.AddStretchSpacer()
 
         delete_x_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x',
-                                                      'Delete command')
+                                                 'Delete command')
         delete_x_button.Bind(wx.EVT_BUTTON, lambda _: self.delete_command(sizer))
         sizer.Add(delete_x_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
@@ -1326,7 +1399,8 @@ class EditFrame(wx.Frame):
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
-        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
+                          lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1436,7 +1510,8 @@ class EditFrame(wx.Frame):
         comment_value = str(line_orig).replace('#', '').strip()
         comment = wx.lib.expando.ExpandoTextCtrl(self.edit, value=comment_value, style=wx.TE_RIGHT)
         change_font(comment, size=10, style=wx.ITALIC, color=3 * (comment_contrast,))
-        comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
+                     lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         comment.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'comment'))
         sizer.Add(comment, 1, wx.EXPAND)
         self.no_right_spacer = True
@@ -1754,10 +1829,13 @@ class EditFrame(wx.Frame):
             self.Layout()
 
             self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
-            self.edit_row_container_sizers[index - 1], self.edit_row_container_sizers[index] = self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
+            self.edit_row_container_sizers[index - 1], self.edit_row_container_sizers[index] = \
+            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
             # noinspection PyPep8
-            self.edit_row_widget_sizers[index - 1], self.edit_row_widget_sizers[index] = self.edit_row_widget_sizers[index], \
-                                                                             self.edit_row_widget_sizers[index - 1]
+            self.edit_row_widget_sizers[index - 1], self.edit_row_widget_sizers[index] = self.edit_row_widget_sizers[
+                                                                                             index], \
+                                                                                         self.edit_row_widget_sizers[
+                                                                                             index - 1]
 
     def move_command_down(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -1774,10 +1852,13 @@ class EditFrame(wx.Frame):
             self.Layout()
 
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
-            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
+            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = \
+            self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
             # noinspection PyPep8
-            self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[index + 1], \
-                                                                             self.edit_row_widget_sizers[index]
+            self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[
+                                                                                             index + 1], \
+                                                                                         self.edit_row_widget_sizers[
+                                                                                             index]
 
     def command_combobox_change(self, sizer, event):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -1915,7 +1996,8 @@ class EditFrame(wx.Frame):
         text_ctrl = event.GetEventObject()
         text_ctrl.SetForegroundColour(wx.BLACK)
         # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
+        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if
+                             child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
         error_static_text.SetLabel('')
 
         # validate input and display feedback
@@ -1970,7 +2052,8 @@ class EditFrame(wx.Frame):
         text_ctrl.SetMaxLength(0)  # discards previous max length assignment
         text_ctrl.SetForegroundColour(wx.BLACK)
         # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
+        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if
+                             child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
         error_static_text.SetForegroundColour(wx.RED)
         error_static_text.SetLabel('')
         too_long = False
@@ -2757,7 +2840,7 @@ class EditFrame(wx.Frame):
                     print(f'LINES: {self.lines}')
                     for line in self.lines:
                         record_file.write(f'{line}\n')
-                
+
                 if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
                     workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
                     os.rename(workflow_path_when_launched, workflow_path_new)
@@ -2787,6 +2870,8 @@ class SelectionFrame(wx.Frame):
     """Main frame to select workflow."""
 
     def __init__(self, parent):
+        t4 = time.time()
+
         class SoftwareInfo:
             """Object to contain all information about Aldras."""
 
@@ -2841,6 +2926,9 @@ class SelectionFrame(wx.Frame):
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation')
         setup_frame(self)
 
+        print(f'Time of init and setup frame: {time.time()-t4}')
+        t4 = time.time()
+
         # Creates directories if do not exist --------------------------------------------------------------------------
         self.workflow_directory = 'Workflows/'
         if not os.path.exists(self.workflow_directory):
@@ -2858,6 +2946,9 @@ class SelectionFrame(wx.Frame):
                 self.recent_workflows = []
         # --------------------------------------------------------------------------------------------------------------
 
+        print(f'Time of file manip: {time.time()-t4}')
+        t4 = time.time()
+
         # add encompassing panel
         self.workflow_panel = wx.Panel(self)
 
@@ -2868,16 +2959,25 @@ class SelectionFrame(wx.Frame):
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)  # ------------------------------------------------------------------------
 
+        print(f'Time of panel and sizer creation: {time.time() - t4}')
+        t4 = time.time()
+
         # add rescaled logo image
         png = wx.Image(self.software_info.png, wx.BITMAP_TYPE_PNG).Scale(150, 150,
                                                                          quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self.workflow_panel, wx.ID_ANY, wx.Bitmap(png))
         self.vbox.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
+        print(f'Time of png: {time.time() - t4}')
+        t4 = time.time()
+
         # add program name text
         self.program_name = wx.StaticText(self.workflow_panel, label=f'{self.software_info.name} Automation')
         change_font(self.program_name, size=18, color=3 * (60,))
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
+
+        print(f'Time of static text: {time.time() - t4}')
+        t4 = time.time()
 
         # add input field for the workflow name
         self.workflow_name_input = PlaceholderTextCtrl(self.workflow_panel, wx.ID_ANY, placeholder='Workflow',
@@ -2885,6 +2985,9 @@ class SelectionFrame(wx.Frame):
                                                        style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.workflow_name_input)
         self.vbox.Add(self.workflow_name_input, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
+
+        print(f'Time of textctrl: {time.time() - t4}')
+        t4 = time.time()
 
         # add recent workflow title
         self.vbox_recent = wx.BoxSizer(wx.VERTICAL)
@@ -2927,6 +3030,9 @@ class SelectionFrame(wx.Frame):
         self.Center()
         self.Show()
 
+        print(f'Time of rest of selection frame creation: {time.time() - t4}')
+        t4 = time.time()
+
     def update_recent_workflows(self):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
         with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
@@ -2957,7 +3063,8 @@ class SelectionFrame(wx.Frame):
     def on_ok(self, _):
         if self.workflow_name_input.GetValue() == '':
             # error warning if entry is empty
-            wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name', wx.OK | wx.ICON_EXCLAMATION).ShowModal()
+            wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
+                             wx.OK | wx.ICON_EXCLAMATION).ShowModal()
 
         else:
             # workflow confirmation if entry is default 'Workflow'
@@ -2971,13 +3078,16 @@ class SelectionFrame(wx.Frame):
                     workflow_path_name=f'{self.workflow_directory}{self.workflow_name_input.GetValue().capitalize()}.txt')
 
     def launch_workflow(self, workflow_path_name, recent_launch=False):
+        t4 = time.time()
         if recent_launch:
             # when launching recent workflow, make sure it still exists and read lines
             try:
                 with open(workflow_path_name, 'r') as record_file:
                     pass
             except FileNotFoundError:
-                wx.MessageDialog(None, f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.', 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
+                wx.MessageDialog(None,
+                                 f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.',
+                                 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
 
                 self.recent_workflows = eliminate_duplicates(self.recent_workflows)
                 self.recent_workflows.remove(workflow_path_name)
@@ -2986,6 +3096,8 @@ class SelectionFrame(wx.Frame):
 
         self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
         self.workflow_path_name = workflow_path_name
+
+        print(f'Time of workflow launch: {time.time() - t4}')
 
         EditFrame(self)
         self.Hide()
@@ -3037,35 +3149,166 @@ class SelectionFrame(wx.Frame):
 
 
 def main():
-    # get system platform
-    print(f'system_platform: {system_platform()}')
+    def thread_func1():
+        # get system platform
+        print(f'system_platform: {system_platform()}')
 
-    # get unique hardware id
-    import subprocess
-    hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
-    print(f'hardware_id: {hardware_id}')
+    def thread_func2():
+        # get unique hardware id
+        import subprocess
+        hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
+        print(f'hardware_id: {hardware_id}')
 
-    # get number of cores
-    import psutil
-    cpu_num_cores = psutil.cpu_count()
-    print(f'cpu_num_cores: {cpu_num_cores}')
+        # get number of cores
+        import psutil
+        cpu_num_cores = psutil.cpu_count()
+        print(f'cpu_num_cores: {cpu_num_cores}')
 
-    # get capslock status on windows
-    global capslock
-    capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
+        # get capslock status on windows
+        global capslock
+        capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
 
-    # global variable needed for threading event receiving
-    global EVT_RESULT_ID
-    EVT_RESULT_ID = wx.NewIdRef()
+        # global variable needed for threading event receiving
+        global EVT_RESULT_ID
+        EVT_RESULT_ID = wx.NewIdRef()
 
-    # get display size
-    global display_size
-    display_size = (
-        sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
-    print(f'display_size: {display_size}')
+        # get display size
+        global display_size
+        display_size = (
+            sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+        print(f'display_size: {display_size}')
 
-    global mouse_monitor_frame
-    mouse_monitor_frame = None
+        global mouse_monitor_frame
+        mouse_monitor_frame = None
+
+    t4 = time.time()
+    thread_func1()
+    thread_func2()
+    print(f'Time since t4: {time.time() - t4} no threading')
+
+    t4 = time.time()
+    th1 = threading.Thread(target=thread_func1, daemon=True)
+    th1.start()
+    th2 = threading.Thread(target=thread_func2, daemon=True)
+    th2.start()
+
+    th1.join()
+    th2.join()
+    print(f'Time since t4: {time.time() - t4} two threads')
+
+    ################################
+    ################################
+    ################################
+    ################################
+
+    def get_system_platform():
+        # get system platform
+        print(f'system_platform: {system_platform()}')
+
+    def get_hardware_id():
+        # get unique hardware id
+        import subprocess
+        hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
+        print(f'hardware_id: {hardware_id}')
+
+    def get_num_cores():
+        # get number of cores
+        import psutil
+        cpu_num_cores = psutil.cpu_count()
+        print(f'cpu_num_cores: {cpu_num_cores}')
+
+    def get_capslock():
+        # get capslock status on windows
+        global capslock
+        capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
+
+    def create_threading_event_id():
+        # global variable needed for threading event receiving
+        global EVT_RESULT_ID
+        EVT_RESULT_ID = wx.NewIdRef()
+
+    def get_display_id():
+        # get display size
+        global display_size
+        display_size = (
+            sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+        print(f'display_size: {display_size}')
+
+    global heyo
+
+    def create_mouse_monitor_frame():
+        global mouse_monitor_frame
+        mouse_monitor_frame = None
+        global heyo
+        heyo = 123
+
+    t4 = time.time()
+
+    threads = []
+    for thread_func in [get_system_platform, get_hardware_id, get_num_cores, get_capslock, create_threading_event_id, get_display_id, create_mouse_monitor_frame]:
+        indiv_thread = threading.Thread(target=thread_func, daemon=True)
+        indiv_thread.start()
+        threads.append(indiv_thread)
+
+        # indiv_thread.join()
+    for thread in threads:
+        thread.join()
+
+
+        # indiv_thread.join()
+
+
+
+    # th1 = threading.Thread(target=thread_func1, daemon=True)
+    # th1.start()
+    # th2 = threading.Thread(target=thread_func2, daemon=True)
+    # th2.start()
+    #
+    # th1.join()
+    # th2.join()
+    print(f'Time since t4: {time.time() - t4} all threads')
+    print(heyo)
+
+
+    # # get system platform
+    # print(f'system_platform: {system_platform()}')
+    #
+    # # get unique hardware id
+    # import subprocess
+    # hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
+    # print(f'hardware_id: {hardware_id}')
+    #
+    #
+    # # get number of cores
+    # import psutil
+    # cpu_num_cores = psutil.cpu_count()
+    # print(f'cpu_num_cores: {cpu_num_cores}')
+    #
+    #
+    # # get capslock status on windows
+    # global capslock
+    # capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
+    #
+    # # global variable needed for threading event receiving
+    # global EVT_RESULT_ID
+    # EVT_RESULT_ID = wx.NewIdRef()
+    #
+    # # get display size
+    # global display_size
+    # display_size = (
+    #     sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    # print(f'display_size: {display_size}')
+    #
+    # global mouse_monitor_frame
+    # mouse_monitor_frame = None
+
+
+    print()
+    print()
+    print()
+    print()
+    print()
+    print('SELECTION FRAME')
 
     app = wx.App(False)
     SelectionFrame(None)
