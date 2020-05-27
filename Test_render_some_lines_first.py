@@ -1060,7 +1060,8 @@ class EditFrame(wx.Frame):
         self.edit_row_widget_sizers = []  # for identifying indices later
         self.edit_row_container_sizers = []  # contains entire edit row including separating lines
 
-        for index, line_orig in enumerate(self.lines[:num_lines_load_first]):
+        # for index, line_orig in enumerate(self.lines[:num_lines_load_first]):
+        for index, line_orig in enumerate(self.lines):
             t4 = time.time()
             sizer, edit_row_vbox = self.create_command_sizer(index, line_orig, self.edit)
             self.edit_row_widget_sizers.append(sizer)
