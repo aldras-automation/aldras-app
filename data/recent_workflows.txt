@@ -1,2 +1,3 @@
-Workflows/Workflow.txt
+Workflows/Short.txt
 Workflows/Testy.txt
+Workflows/Workflow.txt

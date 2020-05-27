@@ -1047,21 +1047,13 @@ class EditFrame(wx.Frame):
         print()
         print('\t\tCOMMAND SIZER')
 
-        # # with concurrent.futures.ProcessPoolExecutor() as executor:
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     indices = list(range(len(self.lines)))
-        #     results = executor.map(self.create_command_sizer, indices, self.lines, len(self.lines) * [self.edit, ])
-        #
-        # print('DONE', [result for result in results])
 
-
-        num_lines_load_first = 7
+        self.num_lines_load_first = 7
 
         self.edit_row_widget_sizers = []  # for identifying indices later
         self.edit_row_container_sizers = []  # contains entire edit row including separating lines
 
-        # for index, line_orig in enumerate(self.lines[:num_lines_load_first]):
-        for index, line_orig in enumerate(self.lines):
+        for index, line_orig in enumerate(self.lines[:self.num_lines_load_first]):
             t4 = time.time()
             sizer, edit_row_vbox = self.create_command_sizer(index, line_orig, self.edit)
             self.edit_row_widget_sizers.append(sizer)
@@ -3256,13 +3248,9 @@ def main():
             sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
         print(f'display_size: {display_size}')
 
-    global heyo
-
     def create_mouse_monitor_frame():
         global mouse_monitor_frame
         mouse_monitor_frame = None
-        global heyo
-        heyo = 123
 
     t4 = time.time()
 
@@ -3273,11 +3261,8 @@ def main():
         indiv_thread.start()
         threads.append(indiv_thread)
 
-        # indiv_thread.join()
     for thread in threads:
         thread.join()
-
-        # indiv_thread.join()
 
     # th1 = threading.Thread(target=thread_func1, daemon=True)
     # th1.start()
@@ -3288,38 +3273,6 @@ def main():
     # th2.join()
     print(f'Time since t4: {time.time() - t4} all threads')
     print(heyo)
-
-    # # get system platform
-    # print(f'system_platform: {system_platform()}')
-    #
-    # # get unique hardware id
-    # import subprocess
-    # hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
-    # print(f'hardware_id: {hardware_id}')
-    #
-    #
-    # # get number of cores
-    # import psutil
-    # cpu_num_cores = psutil.cpu_count()
-    # print(f'cpu_num_cores: {cpu_num_cores}')
-    #
-    #
-    # # get capslock status on windows
-    # global capslock
-    # capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
-    #
-    # # global variable needed for threading event receiving
-    # global EVT_RESULT_ID
-    # EVT_RESULT_ID = wx.NewIdRef()
-    #
-    # # get display size
-    # global display_size
-    # display_size = (
-    #     sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
-    # print(f'display_size: {display_size}')
-    #
-    # global mouse_monitor_frame
-    # mouse_monitor_frame = None
 
     print()
     print()
