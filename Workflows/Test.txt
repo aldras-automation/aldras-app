@@ -1,0 +1,12 @@
+Left-mouse click at (257, 475)
+Hotkey ctrl + r
+Left-mouse click at (774, 313)
+Type:Doctor
+Key tab tap
+Type:First name
+Key tab tap
+Type:Middle initial
+Key tab tap
+Type:Last name
+Key tab tap
+Type:Full name

@@ -817,7 +817,22 @@ class EditFrame(wx.Frame):
         self.margin = 10
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
-        self.num_lines_load_first = 7
+        # self.num_lines_load_first = 10
+        self.num_lines_load_first = 1000
+
+        # read or create workflow file
+        try:
+            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'r') as record_file:
+                self.lines = record_file.readlines()
+        except FileNotFoundError:  # create file if not found
+            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'w'):
+                self.lines = []
+        self.lines = [line.replace('\n', '') for line in self.lines]
+        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
+
+        if self.num_lines_load_first == 1000:
+            self.loading_dlg = wx.ProgressDialog('Title', 'message', maximum=len(self.lines), parent=self,
+                                                 style=wx.PD_AUTO_HIDE | wx.PD_APP_MODAL)
 
         def create_bitmaps(source_file_name: str, size: tuple, hover_contrast=100, flip=False):
             # manipulate default image
@@ -875,16 +890,6 @@ class EditFrame(wx.Frame):
         # --------------------------------------------------------------------------------------------------------------
 
         self.fg_bottom = wx.FlexGridSizer(1, 2, 10, 10)  # -------------------------------------------------------------
-
-        # read or create workflow file
-        try:
-            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'r') as record_file:
-                self.lines = record_file.readlines()
-        except FileNotFoundError:  # create file if not found
-            with open(f'{self.parent.workflow_directory}{self.workflow_name}.txt', 'w'):
-                self.lines = []
-        self.lines = [line.replace('\n', '') for line in self.lines]
-        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)  # sizer for action sidebar
         self.hbox_line_mods = wx.BoxSizer(wx.HORIZONTAL)
@@ -954,7 +959,44 @@ class EditFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
         print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
         print(f'Time to open entire Edit frame: {time.time() - t0:.2f} s')
-        print(f'Time to open entire Edit frame ({len(self.lines)}) per line: {(time.time() - t0)/len(self.lines):.2f} s/line')
+        print(
+            f'Time to open entire Edit frame ({len(self.lines)}) per line: {(time.time() - t0) / len(self.lines):.2f} s/line')
+
+    def render_lines(self, first_render=False, render_all=False):
+        if render_all:
+            num_lines_render = 1000
+        else:
+            num_lines_render = self.num_lines_load_first
+
+        if first_render:
+            start_index, end_index = 0, num_lines_render
+        else:
+            start_index, end_index = len(self.edit_row_widget_sizers), len(
+                self.edit_row_widget_sizers) + num_lines_render
+
+        if len(self.lines) > num_lines_render:
+            insertion_offset = -1
+        else:
+            insertion_offset = 0
+
+        for index, line_orig in enumerate(self.lines[start_index:end_index]):
+            self.create_command_sizer(index, line_orig)
+            if render_all:
+                self.loading_dlg.Update(index + 1)
+
+        for self.edit_row in self.edit_row_container_sizers[start_index:end_index]:
+            self.command_row_error = False
+            command_widgets = self.edit_row.GetChildren()[0].GetSizer().GetChildren()
+            combobox_window = command_widgets[1].GetWindow()
+            if combobox_window:
+                text_ctrls = [widget.GetWindow() for widget in command_widgets if (
+                        isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
+                                                                                       wx.lib.expando.ExpandoTextCtrl))]
+                for text_ctrl in text_ctrls:
+                    if not self.command_row_error:
+                        text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
+
+            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()) + insertion_offset, self.edit_row, 0, wx.EXPAND)
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
         bitmap_btn = wx.BitmapButton(parent, size=wx.Size(*size), bitmap=bitmap)
@@ -988,7 +1030,8 @@ class EditFrame(wx.Frame):
                 self.SetTitle(f'{self.software_info.name}: Edit - {self.workflow_name}')
 
     def create_edit_panel(self, first_creation=False):
-        self.edit_row_container_sizers = []
+        self.edit_row_container_sizers = []  # for looping and manipulating sizers with staticlines
+        self.edit_row_widget_sizers = []  # for identifying indices later
 
         # if self.vbox_edit:
         if not first_creation:  # if edit panel has been created previously
@@ -1004,43 +1047,13 @@ class EditFrame(wx.Frame):
 
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
+
+        # self.edit.Bind(wx.EVT_SCROLLWIN, scrolled_bottom)
+        self.edit.Bind(wx.EVT_PAINT, self.scrolled_bottom)
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
         self.edit.SetSizer(self.vbox_edit)
 
-        self.edit_row_widget_sizers = []  # for identifying indices later
-
-        # for index, line_orig in enumerate(self.lines):
-        for index, line_orig in enumerate(self.lines[:self.num_lines_load_first]):
-            self.create_command_sizer(index, line_orig)
-
-        self.line = ''  # reset to empty because used by other functions to determine if they are called from outside loop
-
-        for self.edit_row in self.edit_row_container_sizers:
-            self.command_row_error = False
-            command_widgets = self.edit_row.GetChildren()[0].GetSizer().GetChildren()
-            combobox_window = command_widgets[1].GetWindow()
-            if combobox_window:
-                text_ctrls = [widget.GetWindow() for widget in command_widgets if (
-                        isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
-                                                                                       wx.lib.expando.ExpandoTextCtrl))]
-                for text_ctrl in text_ctrls:
-                    if not self.command_row_error:
-                        text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
-
-            self.vbox_edit.Add(self.edit_row, 0, wx.EXPAND)
-
-        # add loading animation if not all lines have been rendered
-        if len(self.lines) > self.num_lines_load_first:
-            loading_anim_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            loading_anim = wx.adv.Animation('data/loading.gif')
-            loading_anim_ctrl = wx.adv.AnimationCtrl(self.edit, wx.ID_ANY, loading_anim)
-            loading_anim_ctrl.Play()
-            loading_anim_ctrl.SetBackgroundColour(wx.WHITE)
-            loading_anim_sizer.AddStretchSpacer()
-            loading_anim_sizer.Add(loading_anim_ctrl, 0, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
-            loading_anim_sizer.AddStretchSpacer()
-
-            self.vbox_edit.Add(loading_anim_sizer, 0, wx.EXPAND)
+        self.render_lines(first_render=True)
 
         self.edit.SetSizer(self.vbox_edit)
 
@@ -1188,6 +1201,22 @@ class EditFrame(wx.Frame):
             btn.SetBitmap(self.delete_x_bitmap)
         elif btn_kind == 'back_btn':
             btn.SetBitmap(self.back_btn_bitmap)
+
+    def scrolled_bottom(self, event):
+        event.Skip()
+        panel = event.GetEventObject()
+
+        scroll_pos = panel.GetScrollPos(0)
+        scroll_size = panel.GetScrollThumb(0)
+        scroll_range = panel.GetScrollRange(0)
+
+        scroll_ratio = (scroll_pos + scroll_size) / scroll_range
+
+        if scroll_ratio > 0.9 and len(self.lines) > len(self.edit_row_widget_sizers):
+            self.Freeze()
+            self.render_lines()
+            self.Layout()
+            self.Thaw()
 
     def add_command_combobox(self, command_value):
         self.command = wx.ComboBox(self.edit, value=command_value, choices=self.software_info.commands,
@@ -1777,7 +1806,7 @@ class EditFrame(wx.Frame):
 
             self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
             self.edit_row_container_sizers[index - 1], self.edit_row_container_sizers[index] = \
-            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
+                self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
             # noinspection PyPep8
             self.edit_row_widget_sizers[index - 1], self.edit_row_widget_sizers[index] = self.edit_row_widget_sizers[
                                                                                              index], \
@@ -1800,7 +1829,7 @@ class EditFrame(wx.Frame):
 
             self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
             self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = \
-            self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
+                self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
             # noinspection PyPep8
             self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[
                                                                                              index + 1], \
