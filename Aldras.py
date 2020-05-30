@@ -830,10 +830,6 @@ class EditFrame(wx.Frame):
         self.lines = [line.replace('\n', '') for line in self.lines]
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
 
-        if self.num_lines_load_first == 1000:
-            self.loading_dlg = wx.ProgressDialog('Title', 'message', maximum=len(self.lines), parent=self,
-                                                 style=wx.PD_AUTO_HIDE | wx.PD_APP_MODAL)
-
         def create_bitmaps(source_file_name: str, size: tuple, hover_contrast=100, flip=False):
             # manipulate default image
             image = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
@@ -876,7 +872,6 @@ class EditFrame(wx.Frame):
         self.back_btn.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.hbox_top.Add(self.back_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-
         # self.hbox_top.AddSpacer(10)
 
         # add workflow title
@@ -947,22 +942,30 @@ class EditFrame(wx.Frame):
 
         # add margins and inside sizers
         self.vbox_container.Add(self.vbox_outer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.margin)
-
         self.create_edit_panel(first_creation=True)
-
-        t1 = time.time()
-
         self.vbox_container.SetSizeHints(self)
         self.SetSizer(self.vbox_container)
         self.Center()
-        self.Show()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(event, parent, quitall=True))
-        print(f'Time to open last part of Edit frame: {time.time() - t1:.2f} s')
-        print(f'Time to open entire Edit frame: {time.time() - t0:.2f} s')
-        print(
-            f'Time to open entire Edit frame ({len(self.lines)}) per line: {(time.time() - t0) / len(self.lines):.2f} s/line')
+        self.Show()
+
+        # add command widgets
+        self.edit.Freeze()
+        self.render_lines()
+        self.edit.Layout()
+        self.edit.Thaw()
+
+        print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
     def render_lines(self, first_render=False, render_all=False):
+        # delete all leading and trailing empty lines
+        try:
+            for index in [0, -1]:
+                while self.lines[index] == '':
+                    del self.lines[index]
+        except IndexError:
+            pass
+
         if render_all:
             num_lines_render = 1000
         else:
@@ -974,15 +977,17 @@ class EditFrame(wx.Frame):
             start_index, end_index = len(self.edit_row_widget_sizers), len(
                 self.edit_row_widget_sizers) + num_lines_render
 
-        if len(self.lines) > num_lines_render:
-            insertion_offset = -1
-        else:
-            insertion_offset = 0
-
         for index, line_orig in enumerate(self.lines[start_index:end_index]):
             self.create_command_sizer(index, line_orig)
-            if render_all:
-                self.loading_dlg.Update(index + 1)
+            if self.num_lines_load_first == 1000:
+                # update loading dialog and return to SelectionFrame if cancelled
+                if not self.loading_dlg.Update(0.98 * (index + 1))[0]:
+                    self.close_window(None, self.parent)
+                    self.loading_dlg.Destroy()
+                    return
+
+        if self.num_lines_load_first == 1000:
+            self.loading_dlg.Destroy()
 
         for self.edit_row in self.edit_row_container_sizers[start_index:end_index]:
             self.command_row_error = False
@@ -996,7 +1001,7 @@ class EditFrame(wx.Frame):
                     if not self.command_row_error:
                         text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
 
-            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()) + insertion_offset, self.edit_row, 0, wx.EXPAND)
+            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()), self.edit_row, 0, wx.EXPAND)
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
         bitmap_btn = wx.BitmapButton(parent, size=wx.Size(*size), bitmap=bitmap)
@@ -1010,12 +1015,12 @@ class EditFrame(wx.Frame):
         config_status_and_tooltip(self, bitmap_btn, description, tooltip)
         return bitmap_btn
 
-    def rename_workflow(self, event):
+    def rename_workflow(self, _):
 
         self.char_limit = 35
 
         # create rename text entry text dialog
-        rename_dlg = wx.TextEntryDialog(self, 'Enter Your Name', 'Text Entry Dialog')
+        rename_dlg = wx.TextEntryDialog(self, f'Enter Your New Name for "{self.workflow_name}"', 'Rename Workflow')
         rename_dlg.SetMaxLength(self.char_limit)
         text_ctrl = rename_dlg.FindWindowById(3000)
         text_ctrl.Validator = self.CharValidator('file_name', self)  # assign validator for filename
@@ -1028,6 +1033,7 @@ class EditFrame(wx.Frame):
                 self.title.SetForegroundColour(wx.BLACK)
                 self.Layout()
                 self.SetTitle(f'{self.software_info.name}: Edit - {self.workflow_name}')
+        rename_dlg.Destroy()
 
     def create_edit_panel(self, first_creation=False):
         self.edit_row_container_sizers = []  # for looping and manipulating sizers with staticlines
@@ -1037,24 +1043,12 @@ class EditFrame(wx.Frame):
         if not first_creation:  # if edit panel has been created previously
             self.edit.Destroy()
 
-        # delete all leading and trailing empty lines
-        try:
-            for index in [0, -1]:
-                while self.lines[index] == '':
-                    del self.lines[index]
-        except IndexError:
-            pass
-
         self.edit = wx.lib.scrolledpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
         self.edit.SetupScrolling()
 
         # self.edit.Bind(wx.EVT_SCROLLWIN, scrolled_bottom)
         self.edit.Bind(wx.EVT_PAINT, self.scrolled_bottom)
         self.vbox_edit = wx.BoxSizer(wx.VERTICAL)
-        self.edit.SetSizer(self.vbox_edit)
-
-        self.render_lines(first_render=True)
-
         self.edit.SetSizer(self.vbox_edit)
 
         self.vbox_edit_container_temp = wx.BoxSizer(wx.VERTICAL)  # temp inserted so can replace later
@@ -1064,6 +1058,13 @@ class EditFrame(wx.Frame):
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
         self.vbox_edit_container.SetMinSize(wx.Size(650, 300))
         self.vbox_container.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
+
+        if self.num_lines_load_first == 1000:
+            self.loading_dlg = wx.ProgressDialog('Aldras Workflow Loading', f'Loading Workflow "{self.workflow_name}"', maximum=len(self.lines), parent=self, style=wx.PD_AUTO_HIDE | wx.PD_APP_MODAL | wx.PD_SMOOTH | wx.PD_CAN_ABORT | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+            self.loading_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # doesn't seem to have effect
+
+        if not first_creation:
+            self.render_lines()
 
     def create_command_sizer(self, index, line_orig):
         self.line = line_orig.lower()
@@ -2851,7 +2852,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self):
                 self.name = 'Aldras'
-                self.version = '2020.1.3 Alpha'
+                self.version = '2020.1.4 Alpha'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -3049,8 +3050,9 @@ class SelectionFrame(wx.Frame):
         self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
         self.workflow_path_name = workflow_path_name
 
-        EditFrame(self)
         self.Hide()
+
+        EditFrame(self)
 
         # add recently launched workflow to history
         self.recent_workflows.insert(0, self.workflow_path_name)
