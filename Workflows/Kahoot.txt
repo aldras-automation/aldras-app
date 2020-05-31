@@ -1,0 +1,50 @@
+Hotkey ctrl + t
+Type:kahoot.it
+Key enter tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (951, 604)
+Type:Name
+Left-mouse click at (1002, 655)
+Type:kahoot.it
+Key enter tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (1002, 655)
+Hotkey ctrl + t
+Type:kahoot.it
+Key enter tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (1002, 655)
+Hotkey ctrl + t
+Type:kahoot.it
+Key enter tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (1002, 655)
+Hotkey ctrl + t
+Type:kahoot.it
+Key enter tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (951, 604)
+Type:Name
+Left-mouse click at (1002, 655)
+Hotkey ctrl + t
+Type:kahoot.it
+Key enter tap
+Type:6997861
+Left-mouse click at (1001, 653)
+Left-mouse click at (951, 604)
+Type:Name
+Key PlayPause Tap
+Left-mouse click at (1003, 592)
+Type:6997861
+Left-mouse click at (951, 604)
+Left-mouse click at (1002, 655)
