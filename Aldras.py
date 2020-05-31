@@ -70,6 +70,19 @@ def float_in(input_string):
     return output
 
 
+def variable_name_in(input_string):
+    """Return variable in string between {{~ and ~}} syntax"""
+    variables = re.findall(r'(?<={{~)(.*?)(?=~}})', input_string)
+    if len(variables) == 1:
+        return variables[0]
+    else:
+        raise ValueError
+
+
+def variable_value_in(input_string):
+    return '='.join(input_string.split('=')[1:])
+
+
 def setup_frame(self, status_bar=False):
     """Setup standardized frame characteristics including file menu and status bar."""
 
@@ -381,17 +394,17 @@ def setup_frame(self, status_bar=False):
     self.SetBackgroundColour('white')  # set background color
 
 
-def change_font(static_text, size=None, family=None, style=None, weight=None, color=None):
+def change_font(widget, size=None, family=None, style=None, weight=None, color=None):
     # set default parameters
     size = size if size is not None else 9
     family = family if family is not None else wx.DEFAULT
     style = style if style is not None else wx.NORMAL
     weight = weight if weight is not None else wx.NORMAL
 
-    static_text.SetFont(wx.Font(size, family, style, weight))
+    widget.SetFont(wx.Font(size, family, style, weight))
 
     if color is not None:
-        static_text.SetForegroundColour(color)
+        widget.SetForegroundColour(color)
 
 
 def non_flickering_static_text(parent, label):
@@ -808,6 +821,7 @@ class EditFrame(wx.Frame):
         self.parent = parent
         self.lines = lines
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
+        self.variables = dict()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}')
         setup_frame(self, status_bar=True)
 
@@ -916,7 +930,9 @@ class EditFrame(wx.Frame):
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.AddStretchSpacer()
 
-        fg_sizer.AddMany([(self.hbox_top, 1, wx.EXPAND), (wx.BoxSizer(wx.HORIZONTAL)), (self.vbox_edit_container, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+        fg_sizer.AddMany(
+            [(self.hbox_top, 1, wx.EXPAND), (wx.BoxSizer(wx.HORIZONTAL)), (self.vbox_edit_container, 1, wx.EXPAND),
+             (self.vbox_action, 1, wx.EXPAND)])
         fg_sizer.AddGrowableCol(0, 0)
         fg_sizer.AddGrowableRow(1, 0)
         # --------------------------------------------------------------------------------------------------------------
@@ -1015,7 +1031,8 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
+                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[
+                    0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()
@@ -1121,6 +1138,10 @@ class EditFrame(wx.Frame):
             elif ('triple' in self.line) and ('click' in self.line):
                 self.add_command_combobox('Triple-click')
                 self.create_multi_click_row(self.line)
+
+            elif ('assign' in self.line_first_word) and ('{{~' in self.line) and ('~}}' in self.line):
+                self.add_command_combobox('Assign')
+                self.create_assign_var_row(line_orig)
 
             else:
                 raise ValueError
@@ -1249,6 +1270,10 @@ class EditFrame(wx.Frame):
                 if self.flag == 'file_name':
                     invalid_file_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*']
                     if key in invalid_file_characters:
+                        return
+                if self.flag == 'variable_name':
+                    invalid_variable_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*', '.']
+                    if key in invalid_variable_characters:
                         return
 
             event.Skip()
@@ -1449,6 +1474,28 @@ class EditFrame(wx.Frame):
                      lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         comment.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'comment'))
         sizer.Add(comment, 1, wx.EXPAND)
+        self.no_right_spacer = True
+
+    def create_assign_var_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
+
+        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT, validator=self.CharValidator('variable_name', self))
+        change_font(variable_name_entry, weight=wx.BOLD)
+        variable_name_entry.SetMaxLength(15)
+        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_name'))
+        variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        equals_text = non_flickering_static_text(self.edit, '  =  ')
+        change_font(equals_text, size=14)
+        sizer.Add(equals_text, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=variable_value_in(line))
+        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_value'))
+        variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
     def open_delete_command_dialog(self):
@@ -1843,6 +1890,9 @@ class EditFrame(wx.Frame):
             old_action = 'Triple-click'
             old_coords = coords_of(line)
 
+        elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+            old_action = 'Assign'
+
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
 
@@ -1978,6 +2028,25 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Type:{event.GetString()}'
         elif command_type == 'comment':
             self.lines[index] = f'#{event.GetString()}'
+        elif command_type == 'variable_name':
+            old_variable_name = variable_name_in(self.lines[index])
+            new_variable_name = event.GetString()
+            variable_value = variable_value_in(self.lines[index])
+
+            self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
+
+            self.variables.pop(old_variable_name, None)  # remove old variable
+            self.variables[new_variable_name] = variable_value  # add new variable
+
+            print(self.variables)
+        elif command_type == 'variable_value':
+            variable_name = variable_name_in(self.lines[index])
+            new_variable_value = event.GetString()
+
+            self.lines[index] = f'Assign {{{{~{variable_name}~}}}}={new_variable_value}'
+
+            self.variables[variable_name] = new_variable_value
+            print(self.variables)
         event.Skip()
 
     def wait_change(self, sizer, event):
@@ -2795,7 +2864,7 @@ class EditFrame(wx.Frame):
         else:
             # center workflow frame where edit frame is now
             self.parent.Position = (self.Position[0] + ((self.Size[0] - self.parent.Size[0]) / 2),
-                               self.Position[1] + ((self.Size[1] - self.parent.Size[1]) / 2))
+                                    self.Position[1] + ((self.Size[1] - self.parent.Size[1]) / 2))
             self.parent.Show()
             self.parent.Raise()
             self.parent.Layout()
@@ -2819,23 +2888,29 @@ class SelectionFrame(wx.Frame):
                 self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.start_stop_directions = ': Press the right control key 3 times'
                 self.advanced_edit_guide_description = f'{self.name} is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
-                self.advanced_edit_guide_command_description = 'Replace the values in the curly brackets { }.'
+                self.advanced_edit_guide_command_description = 'Replace the values in the double quotes " ".'
                 self.advanced_edit_guide_commands = {
-                    '{Left/Right}-mouse {click/press/release} at ({x}, {y})': ['Left-mouse click at (284, 531)',
+                    '"Left/Right"-mouse "click/press/release" at ("x", "y")': ['Left-mouse click at (284, 531)',
                                                                                'Simulates mouse click, press, or release'],
-                    'Type: {text}': ['Type: This report is initiated by John Smith.', 'Simulates text keyboard output'],
-                    'Wait {time (seconds)}': ['Wait 0.5', 'Wait for a specified number of seconds'],
-                    'Key {key} {tap/press/release} at ({x}, {y})': ['Key Enter Tap',
-                                                                    'Simulates keyboard key tap, press, or release'],
-                    'Hotkey {key 1} + {key 2} + {key 3}': [['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
+                    'Type:"text"': ['Type:This report is initiated by John Smith.', 'Simulates text keyboard output'],
+                    'Wait "time (seconds)"': ['Wait 0.5', 'Wait for a specified number of seconds'],
+                    'Key "key" "tap/press/release"': ['Key Enter Tap',
+                                                      'Simulates keyboard key tap, press, or release'],
+                    'Hotkey "key 1" + "key 2" + "key 3"': [['Hotkey Ctrl + S', 'Hotkey Ctrl + Shift + Left'],
                                                            'Simulates simultaneous keyboard key presses then releases'],
-                    'Mouse-move to ({x}, {y})': ['Mouse-move to (284, 531)', 'Simulates mouse movement'],
-                    'Double-click at ({x}, {y})': ['Double-click at (284, 531)', 'Simulates double left click'],
-                    'Triple-click at ({x}, {y})': ['Triple-click at (284, 531)', 'Simulates triple left click']
+                    'Mouse-move to ("x", "y")': ['Mouse-move to (284, 531)', 'Simulates mouse movement'],
+                    'Double-click at ("x", "y")': ['Double-click at (284, 531)', 'Simulates double left click'],
+                    'Triple-click at ("x", "y")': ['Triple-click at (284, 531)', 'Simulates triple left click']
                 }
+                self.advanced_edit_guide_commands_pro = {
+                    'Assign {{~"Variable"~}}="value"': ['Assign {{~Name~}}=John Smith',
+                                                        'Assigns value to variable that can be referenced later'],
+                }
+                self.advanced_edit_guide_commands.update(self.advanced_edit_guide_commands_pro)
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
                 self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
-                                 'Mouse-move', 'Double-click', 'Triple-click', 'Comment']
+                                 'Mouse-move', 'Double-click', 'Triple-click', 'Comment', 'Assign', 'Conditional',
+                                 'Loop']
                 self.mouse_buttons = ['Left', 'Right']
                 self.mouse_actions = ['Click', 'Press', 'Release']
                 self.key_actions = ['Tap', 'Press', 'Release']
@@ -2996,7 +3071,9 @@ class SelectionFrame(wx.Frame):
                 with open(workflow_path_name, 'r') as record_file:
                     pass
             except FileNotFoundError:
-                wx.MessageDialog(self, f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.', 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
+                wx.MessageDialog(self,
+                                 f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.',
+                                 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
 
                 self.recent_workflows = eliminate_duplicates(self.recent_workflows)
                 self.recent_workflows.remove(workflow_path_name)
@@ -3016,7 +3093,10 @@ class SelectionFrame(wx.Frame):
         lines = [line.replace('\n', '') for line in lines]
 
         if len(lines) > 100:
-            confirm_long_workflow_dlg = wx.MessageDialog(None, f'"{self.workflow_name}" has {len(lines)} lines.\n\nWe recommend using loops and other tools to optimize workflows to less than 100 lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?', 'Long Workflow Warning', wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+            confirm_long_workflow_dlg = wx.MessageDialog(None,
+                                                         f'"{self.workflow_name}" has {len(lines)} lines.\n\nWe recommend using loops and other tools to optimize workflows to less than 100 lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
+                                                         'Long Workflow Warning',
+                                                         wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
 
             if confirm_long_workflow_dlg.ShowModal() == wx.ID_NO:
                 return
