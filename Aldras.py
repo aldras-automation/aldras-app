@@ -1956,6 +1956,11 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Triple-click at {old_coords}'
             self.create_multi_click_row(self.lines[index].lower(), sizer)
 
+        elif new_action == 'Assign':
+            self.lines[index] = 'Assign {{~Var~}}=value'
+            self.variables['Var'] = 'value'
+            self.create_assign_var_row(self.lines[index], sizer)
+
         self.create_delete_x_btn(sizer)
         self.Layout()
 
@@ -2572,6 +2577,7 @@ class EditFrame(wx.Frame):
                             mouse_duration = self.parent.parent.execution_mouse_dur
 
                             mouse_down_coords = [0, 0]
+                            variables = dict()
                             pyauto.PAUSE = self.parent.parent.execution_pause
                             self.keep_running = True
 
@@ -2655,6 +2661,10 @@ class EditFrame(wx.Frame):
                                         elif 'tripleclick' in line:
                                             coords = coords_of(line)
                                             pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+
+                                        elif ('assign' in line) and ('{{~' in line) and ('~}}' in line):
+                                            variables[variable_name_in(line)] = variable_value_in(line)
+                                            print(variables)
 
                             except pyauto.FailSafeException:
                                 self.keep_running = False
