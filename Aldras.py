@@ -80,7 +80,23 @@ def variable_name_in(input_string):
 
 
 def variable_value_in(input_string):
+    """Return string after equals sign"""
     return '='.join(input_string.split('=')[1:])
+
+
+def conditional_operation_in(input_string, operations):
+    """Return matching operation between ~}} and ~ syntax"""
+    operation_in = input_string.split('~')[2].replace('}}', '')
+    matching_operations_in = [element for element in operations if element in operation_in]
+    if len(matching_operations_in) != 1:
+        raise ValueError
+
+    return matching_operations_in[0]
+
+
+def conditional_comparison_in(input_string):
+    """Return matching operation between ~ and ~ syntax after variable {{~var~}}"""
+    return input_string.replace('{{~', '').replace('~}}', '').split('~')[1]
 
 
 def setup_frame(self, status_bar=False):
@@ -830,17 +846,20 @@ class EditFrame(wx.Frame):
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 15
+        self.conditional_operations = ['equals', 'contains', 'is in', '>', '<', '≥', '≤']
 
-        def create_bitmaps(source_file_name: str, size: tuple, hover_contrast=100, flip=False):
+        def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
             image = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
-            image.Replace(*3 * (0,), *3 * (hover_contrast,))  # change color from native black to lighter grey
+            image.Replace(*3 * (0,), *3 * (default_contrast,))  # change color from native black to lighter grey
             image = image.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
             if flip:
                 image = image.Mirror(horizontally=False)  # flip image about x-axis
 
             # manipulate hover image
             image_hover = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
+            if hover_red:
+                image_hover.Replace(*3 * (0,), *(120, 8, 0))  # change color from native black to lighter grey
             image_hover = image_hover.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
             if flip:
                 image_hover = image_hover.Mirror(horizontally=False)  # flip image about x-axis
@@ -854,7 +873,7 @@ class EditFrame(wx.Frame):
 
         # create delete X bitmaps
         self.delete_x_size = 2 * (0.7 * self.move_btn_size[0],)
-        self.delete_x_bitmap, self.delete_x_bitmap_hover = create_bitmaps('delete_x', self.delete_x_size)
+        self.delete_x_bitmap, self.delete_x_bitmap_hover = create_bitmaps('delete_x', self.delete_x_size, hover_red=True)
 
         # create back btn bitmaps
         self.back_btn_size = 2 * (1.2 * self.move_btn_size[0],)
@@ -1019,6 +1038,10 @@ class EditFrame(wx.Frame):
         except IndexError:
             pass
 
+        # clear indent pattern
+        self.indents = []
+        self.current_indent = 0
+
         if len(self.lines) > self.loading_dlg_line_thresh:
             self.loading_dlg = wx.ProgressDialog(f'Aldras Loading "{self.workflow_name}"',
                                                  'Loading...',
@@ -1031,8 +1054,7 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[
-                    0]:
+                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()
@@ -1044,14 +1066,17 @@ class EditFrame(wx.Frame):
         for self.edit_row in self.edit_row_container_sizers:
             self.command_row_error = False
             command_widgets = self.edit_row.GetChildren()[0].GetSizer().GetChildren()
-            combobox_window = command_widgets[1].GetWindow()
-            if combobox_window:
-                text_ctrls = [widget.GetWindow() for widget in command_widgets if (
-                        isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
-                                                                                       wx.lib.expando.ExpandoTextCtrl))]
-                for text_ctrl in text_ctrls:
-                    if not self.command_row_error:
-                        text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
+            try:
+                combobox_window = command_widgets[1].GetWindow()
+                if combobox_window:
+                    text_ctrls = [widget.GetWindow() for widget in command_widgets if (
+                            isinstance(widget.GetWindow(), wx.TextCtrl) and not isinstance(widget.GetWindow(),
+                                                                                           wx.lib.expando.ExpandoTextCtrl))]
+                    for text_ctrl in text_ctrls:
+                        if not self.command_row_error:
+                            text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
+            except IndexError:
+                pass
 
             self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()), self.edit_row, 0, wx.EXPAND)
 
@@ -1061,99 +1086,125 @@ class EditFrame(wx.Frame):
         self.line = line_orig.lower()
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
         self.no_right_spacer = False
-        try:
-            # add move buttons
-            self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
 
-            self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up',
-                                                  'Move command up')
-            self.move_up.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
-            self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
-            if index == 0:
-                self.move_up.Show(False)  # hide move up button if topmost command
+        # add spacer for commands are within conditional
+        indent_static_text = wx.StaticText(self.edit, label='', name='indent_text')
+        change_font(indent_static_text, size=1)
+        self.hbox_edit.Add(indent_static_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
-            # add spacer to preserve width (mainly for when adding single command)
-            self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
+        if self.line.strip() == '}':  # do not add row for end of conditional
+            self.current_indent -= 1
+            if self.current_indent < 0:
+                self.current_indent = 0
 
-            self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down',
-                                                    'Move command down')
-            self.move_down.Bind(wx.EVT_BUTTON,
-                                lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
-            self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
-            if index == len(self.lines) - 1:
-                self.move_down.Show(False)  # hide move down button if bottommost command
+        else:
+            try:
+                # add move buttons
+                self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
 
-            self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
-            # ----------------------------------------------------------------------------------------------------------
+                self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up',
+                                                      'Move command up')
+                self.move_up.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
+                self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
+                if index == 0:
+                    self.move_up.Show(False)  # hide move up button if topmost command
 
-            self.line_first_word = self.line.split(' ')[0]
+                # add spacer to preserve width (mainly for when adding single command)
+                self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
 
-            if not self.line:  # if line is empty, insert spacers
-                self.hbox_edit.Insert(0, 0, 50, 1)
-                self.hbox_edit.Insert(0, 0, 0, 1)
+                self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down',
+                                                        'Move command down')
+                self.move_down.Bind(wx.EVT_BUTTON,
+                                    lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
+                self.vbox_move.Add(self.move_down, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                if index == len(self.lines) - 1:
+                    self.move_down.Show(False)  # hide move down button if bottommost command
 
-            elif self.line.replace(' ', '')[0] == '#':  # workflow comment
-                self.add_command_combobox('Comment')
-                self.create_comment_row(self.line, line_orig)
+                self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
+                # ----------------------------------------------------------------------------------------------------------
 
-            elif '-mouse' in self.line_first_word:
-                self.add_command_combobox('Mouse button')
-                self.create_mouse_row(self.line)
+                self.line_first_word = self.line.split(' ')[0]
 
-            elif 'type:' in self.line_first_word:
-                self.add_command_combobox('Type')
-                self.create_type_row(line_orig)
+                if not self.line:  # if line is empty, insert spacers
+                    self.hbox_edit.Insert(0, 0, 50, 1)
+                    self.hbox_edit.Insert(0, 0, 0, 1)
 
-            elif 'wait' in self.line_first_word:
-                self.add_command_combobox('Wait')
-                self.create_wait_row(self.line)
+                elif self.line.replace(' ', '')[0] == '#':  # workflow comment
+                    self.add_command_combobox('Comment')
+                    self.create_comment_row(self.line, line_orig)
 
-            elif 'hotkey' in self.line_first_word:
-                self.add_command_combobox('Hotkey')
-                self.create_hotkey_row(self.line)
+                elif '-mouse' in self.line_first_word:
+                    self.add_command_combobox('Mouse button')
+                    self.create_mouse_row(self.line)
 
-            elif 'key' in self.line_first_word:
-                self.key_in = self.line.split(' ')[1]
+                elif 'type:' in self.line_first_word:
+                    self.add_command_combobox('Type')
+                    self.create_type_row(line_orig)
 
-                if self.key_in in [x.lower() for x in self.software_info.special_keys]:
-                    key_type = 'Special key'
-                elif self.key_in in [x.lower() for x in self.software_info.function_keys]:
-                    key_type = 'Function key'
-                elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
-                    key_type = 'Media key'
+                elif 'wait' in self.line_first_word:
+                    self.add_command_combobox('Wait')
+                    self.create_wait_row(self.line)
+
+                elif 'hotkey' in self.line_first_word:
+                    self.add_command_combobox('Hotkey')
+                    self.create_hotkey_row(self.line)
+
+                elif 'key' in self.line_first_word:
+                    self.key_in = self.line.split(' ')[1]
+
+                    if self.key_in in [x.lower() for x in self.software_info.special_keys]:
+                        key_type = 'Special key'
+                    elif self.key_in in [x.lower() for x in self.software_info.function_keys]:
+                        key_type = 'Function key'
+                    elif self.key_in in [x.lower() for x in self.software_info.media_keys]:
+                        key_type = 'Media key'
+                    else:
+                        raise ValueError
+
+                    self.add_command_combobox(key_type)
+                    self.create_key_row(self.line)
+
+                elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
+                    self.add_command_combobox('Mouse-move')
+                    self.create_mousemove_row(self.line)
+
+                elif ('double' in self.line) and ('click' in self.line):
+                    self.add_command_combobox('Double-click')
+                    self.create_multi_click_row(self.line)
+
+                elif ('triple' in self.line) and ('click' in self.line):
+                    self.add_command_combobox('Triple-click')
+                    self.create_multi_click_row(self.line)
+
+                elif ('assign' in self.line_first_word) and ('{{~' in self.line) and ('~}}' in self.line):
+                    self.add_command_combobox('Assign')
+                    self.create_assign_var_row(line_orig)
+
+                elif ('if' in self.line_first_word) and ('{' in self.line):
+                    self.current_indent += 1
+                    self.add_command_combobox('Conditional')
+                    self.create_conditional_row(line_orig)
+
                 else:
                     raise ValueError
 
-                self.add_command_combobox(key_type)
-                self.create_key_row(self.line)
+            except ValueError:
+                # display indecipherable line
+                self.hbox_edit.AddSpacer(10)
+                self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
+                change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
+                self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
-            elif ('mouse' in self.line_first_word) and ('move' in self.line_first_word):
-                self.add_command_combobox('Mouse-move')
-                self.create_mousemove_row(self.line)
+            self.create_delete_x_btn(self.hbox_edit)
 
-            elif ('double' in self.line) and ('click' in self.line):
-                self.add_command_combobox('Double-click')
-                self.create_multi_click_row(self.line)
+        self.indents.append(self.current_indent)
+        # indent_static_texts = [child.GetWindow() for child in self.hbox_edit.GetChildren() if
+        #                        isinstance(child.GetWindow(),
+        #                                   wx.StaticText) and child.GetWindow().GetName() == 'indent_text']
+        # if indent_static_texts:
+        #     indent_static_texts[0].SetLabel(self.current_indent * 12 * ' ')
 
-            elif ('triple' in self.line) and ('click' in self.line):
-                self.add_command_combobox('Triple-click')
-                self.create_multi_click_row(self.line)
-
-            elif ('assign' in self.line_first_word) and ('{{~' in self.line) and ('~}}' in self.line):
-                self.add_command_combobox('Assign')
-                self.create_assign_var_row(line_orig)
-
-            else:
-                raise ValueError
-
-        except ValueError:
-            # display indecipherable line
-            self.hbox_edit.AddSpacer(10)
-            self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
-            change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
-            self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        self.create_delete_x_btn(self.hbox_edit)
+        indent_static_text.SetLabel(self.current_indent * 12 * ' ')
 
         self.edit_row_widget_sizers.append(self.hbox_edit)
 
@@ -1163,6 +1214,8 @@ class EditFrame(wx.Frame):
         edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.append(edit_row_vbox)
+        print(line_orig, self.indents)
+        print()
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)
@@ -1484,7 +1537,7 @@ class EditFrame(wx.Frame):
         variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT, validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
-        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_name'))
+        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1493,9 +1546,38 @@ class EditFrame(wx.Frame):
         sizer.Add(equals_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
         variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=variable_value_in(line))
-        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_value'))
+        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
+        self.no_right_spacer = True
+
+    def create_conditional_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
+
+        if_text = non_flickering_static_text(self.edit, 'If')
+        change_font(if_text, size=11)
+        sizer.Add(if_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 8)
+
+        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT,
+                                          validator=self.CharValidator('variable_name', self))
+        change_font(variable_name_entry, weight=wx.BOLD)
+        variable_name_entry.SetMaxLength(15)
+        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_var_name'))
+        variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
+
+        operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations), choices=self.conditional_operations, style=wx.CB_READONLY)
+        operation.Bind(wx.EVT_COMBOBOX, lambda event: self.key_change(sizer, event))
+        operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
+
+        comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
+        # comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_value'))
+        comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
+                                  lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
     def open_delete_command_dialog(self):
@@ -1821,6 +1903,10 @@ class EditFrame(wx.Frame):
 
     def move_command_down(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
+
+        print(index)
+        return
+
         if index < len(self.lines):
             if index == 0:  # moving down top-most command
                 self.show_move_button(self.edit_row_container_sizers[index], 'up', True)
@@ -2033,7 +2119,7 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Type:{event.GetString()}'
         elif command_type == 'comment':
             self.lines[index] = f'#{event.GetString()}'
-        elif command_type == 'variable_name':
+        elif command_type == 'assign_var_name':
             old_variable_name = variable_name_in(self.lines[index])
             new_variable_name = event.GetString()
             variable_value = variable_value_in(self.lines[index])
@@ -2042,16 +2128,22 @@ class EditFrame(wx.Frame):
 
             self.variables.pop(old_variable_name, None)  # remove old variable
             self.variables[new_variable_name] = variable_value  # add new variable
-
-            print(self.variables)
-        elif command_type == 'variable_value':
+        elif command_type == 'assign_var_value':
             variable_name = variable_name_in(self.lines[index])
             new_variable_value = event.GetString()
 
             self.lines[index] = f'Assign {{{{~{variable_name}~}}}}={new_variable_value}'
 
             self.variables[variable_name] = new_variable_value
-            print(self.variables)
+        elif command_type == 'conditional_var_name':
+            variable_name = event.GetString()
+            self.lines[index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
+            print(self.lines[index])
+        elif command_type == 'conditional_name':
+            variable_name = event.GetString()
+            self.lines[index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
+            print(self.lines[index])
+
         event.Skip()
 
     def wait_change(self, sizer, event):

@@ -2,12 +2,11 @@ Left-mouse click at (257, 475)
 Hotkey ctrl + r
 Assign {{~Name~}}=John Smith
 Left-mouse click at (774, 313)
+If < > ~Conatins~ {
+Type:The circle is too small.
+If {{~center~}} contains ~3~ {
+Type:The center is prime.
+}
+}
 Type:Doctor
-Key tab tap
-Type:First name
-Key tab tap
-Type:Middle initial
-Key tab tap
-Type:Last name
-Key tab tap
 Type:Full name
