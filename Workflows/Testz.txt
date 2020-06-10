@@ -1,0 +1,11 @@
+Type:
+Mouse-move to (10, 10)
+Assign {{~Var~}}=val
+Hotkey Ctrl + C
+If {{~var~}} > ~50~ {
+Type:
+Left-mouse click at (10, 10)
+}
+Wait
+Double-click at (10, 10)
+Type:

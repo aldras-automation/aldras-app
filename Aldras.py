@@ -99,6 +99,17 @@ def conditional_comparison_in(input_string):
     return input_string.replace('{{~', '').replace('~}}', '').split('~')[1]
 
 
+def matching_widget_in_edit_row(sizer, name):
+    matching_widgets = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == name]
+
+    if not matching_widgets:
+        return ValueError(f'No matching widgets with name \'{name}\'')
+    elif len(matching_widgets) == 1:
+        return matching_widgets[0]
+    else:
+        raise ValueError(f'Multiple matching widgets with name \'{name}\'')
+
+
 def setup_frame(self, status_bar=False):
     """Setup standardized frame characteristics including file menu and status bar."""
 
@@ -1039,8 +1050,8 @@ class EditFrame(wx.Frame):
             pass
 
         # clear indent pattern
-        self.indents = []
-        self.current_indent = 0
+        self.indents = [0]
+        self.next_indent = 0
 
         if len(self.lines) > self.loading_dlg_line_thresh:
             self.loading_dlg = wx.ProgressDialog(f'Aldras Loading "{self.workflow_name}"',
@@ -1086,6 +1097,7 @@ class EditFrame(wx.Frame):
         self.line = line_orig.lower()
         self.hbox_edit = wx.BoxSizer(wx.HORIZONTAL)
         self.no_right_spacer = False
+        end_indent = False
 
         # add spacer for commands are within conditional
         indent_static_text = wx.StaticText(self.edit, label='', name='indent_text')
@@ -1093,9 +1105,10 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(indent_static_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
         if self.line.strip() == '}':  # do not add row for end of conditional
-            self.current_indent -= 1
-            if self.current_indent < 0:
-                self.current_indent = 0
+            self.next_indent -= 1
+            if self.next_indent < 0:
+                self.next_indent = 0
+            end_indent = True
 
         else:
             try:
@@ -1181,7 +1194,7 @@ class EditFrame(wx.Frame):
                     self.create_assign_var_row(line_orig)
 
                 elif ('if' in self.line_first_word) and ('{' in self.line):
-                    self.current_indent += 1
+                    self.next_indent += 1
                     self.add_command_combobox('Conditional')
                     self.create_conditional_row(line_orig)
 
@@ -1197,21 +1210,17 @@ class EditFrame(wx.Frame):
 
             self.create_delete_x_btn(self.hbox_edit)
 
-        self.indents.append(self.current_indent)
-        # indent_static_texts = [child.GetWindow() for child in self.hbox_edit.GetChildren() if
-        #                        isinstance(child.GetWindow(),
-        #                                   wx.StaticText) and child.GetWindow().GetName() == 'indent_text']
-        # if indent_static_texts:
-        #     indent_static_texts[0].SetLabel(self.current_indent * 12 * ' ')
-
-        indent_static_text.SetLabel(self.current_indent * 12 * ' ')
+        indent_static_text.SetLabel(self.indents[-1] * 12 * ' ')
+        self.indents.append(self.next_indent)
 
         self.edit_row_widget_sizers.append(self.hbox_edit)
 
         # add bottom static line below command
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
-        edit_row_vbox.Add(self.hbox_edit, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, 5)
-        edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
+        vertical_padding = 5 if not end_indent else 0
+        edit_row_vbox.Add(self.hbox_edit, 0, wx.EXPAND | wx.NORTH | wx.SOUTH, vertical_padding)
+        if not end_indent:
+            edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.append(edit_row_vbox)
         print(line_orig, self.indents)
@@ -1651,6 +1660,7 @@ class EditFrame(wx.Frame):
         except IndexError:
             pass
 
+        self.vbox_edit.Layout()
         self.Layout()
 
         self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
@@ -1675,15 +1685,10 @@ class EditFrame(wx.Frame):
 
         if reorder_dlg.ShowModal() == wx.ID_OK:
             order = reorder_dlg.GetOrder()
+            print(f'reordered indices: {order}')
             if order != list(range(len(order))):  # only perform operations if order changes
                 self.lines = [self.lines[index] for index in order]
-                self.edit_row_container_sizers = [self.edit_row_container_sizers[index] for index in order]
-                self.edit_row_widget_sizers = [self.edit_row_widget_sizers[index] for index in order]
-                for index in range(len(self.edit_row_container_sizers)):
-                    if index != order[index]:  # only perform costly GUI operations if indices are different
-                        self.vbox_edit.Detach(index)
-                        self.vbox_edit.Insert(index, self.edit_row_container_sizers[index], 0, wx.EXPAND)
-                self.Layout()
+                self.create_edit_panel()
 
     def open_advanced_edit_frame(self):
 
@@ -1880,6 +1885,9 @@ class EditFrame(wx.Frame):
 
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
+
+        print(f'index: {index}')
+
         if index > 0:
             if index == 1:  # moving up second top-most command
                 self.show_move_button(self.edit_row_container_sizers[index], 'up', False)
@@ -1888,24 +1896,49 @@ class EditFrame(wx.Frame):
                 self.show_move_button(self.edit_row_container_sizers[index], 'down', True)
                 self.show_move_button(self.edit_row_container_sizers[index - 1], 'down', False)
 
+            row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
+            command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            insertion_index = index
+
+            print(f'self.indents: {self.indents}')
+            print(f'index: {index}')
+
+            if command_value in ['Conditional']:  # move entire indented block
+                # find index of last element of indented block
+                next_same_indent_offset = self.indents[index+1:].index(self.indents[index])  # distance between indent start and end
+                insertion_index = index + next_same_indent_offset
+
+                print(self.indents[index], self.indents[index - 1])
+                if self.indents[index] > self.indents[index-1]:
+                    for ii in range(index, insertion_index+1):
+                        self.indents[ii] -= 1
+                elif self.indents[index] < self.indents[index-1]:
+                    for ii in range(index, insertion_index+1):
+                        self.indents[ii] += 1
+                print('Moving indent blocks around each other!')
+                print(f'self.indents: {self.indents}')
+                for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:insertion_index], self.indents[index:insertion_index]):
+                    self.set_indent(indiv_indent_sizer, indiv_indent)
+
+            else:  # not moving indented block so just move single command row
+                if self.indents[index] != self.indents[index-1]:
+                    self.indents[index] = self.indents[index-1]  # set indent to preceding
+                    self.set_indent(sizer, self.indents[index-1])
+
             self.vbox_edit.Detach(index - 1)
-            self.vbox_edit.Insert(index, self.edit_row_container_sizers[index - 1], 0, wx.EXPAND)
+            self.vbox_edit.Insert(insertion_index, self.edit_row_container_sizers[index - 1], 0, wx.EXPAND)
             self.Layout()
 
-            self.lines[index - 1], self.lines[index] = self.lines[index], self.lines[index - 1]
-            self.edit_row_container_sizers[index - 1], self.edit_row_container_sizers[index] = \
-                self.edit_row_container_sizers[index], self.edit_row_container_sizers[index - 1]
-            # noinspection PyPep8
-            self.edit_row_widget_sizers[index - 1], self.edit_row_widget_sizers[index] = self.edit_row_widget_sizers[
-                                                                                             index], \
-                                                                                         self.edit_row_widget_sizers[
-                                                                                             index - 1]
+            print(f'self.indents: {self.indents}')
+
+            for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
+                list_to_reorder.insert(insertion_index, list_to_reorder.pop(index - 1))
+
+            print(f'self.indents: {self.indents}')
+            print()
 
     def move_command_down(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
-
-        print(index)
-        return
 
         if index < len(self.lines):
             if index == 0:  # moving down top-most command
@@ -1915,18 +1948,71 @@ class EditFrame(wx.Frame):
                 self.show_move_button(self.edit_row_container_sizers[index], 'down', False)
                 self.show_move_button(self.edit_row_container_sizers[index + 1], 'down', True)
 
-            self.vbox_edit.Detach(index)
-            self.vbox_edit.Insert(index + 1, self.edit_row_container_sizers[index], 0, wx.EXPAND)
+            row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
+            command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            detachment_index = index
+
+            print(f'self.indents: {self.indents}')
+            print(f'self.lines: {self.lines}')
+            print(f'index: {index}')
+
+            if command_value in ['Conditional']:  # move entire indented block
+                # find index of last element of indented block
+                next_same_indent_offset = self.indents[index + 1:].index(self.indents[index])  # distance between indent start and end
+                detachment_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before
+
+                print(self.indents[index], self.indents[detachment_index + 2])
+
+                if self.indents[index] > self.indents[detachment_index + 2]:
+                    for ii in range(index, detachment_index + 1):
+                        self.indents[ii] -= 1
+                elif self.indents[index] < self.indents[detachment_index + 2]:
+                    for ii in range(index, detachment_index + 1):
+                        self.indents[ii] += 1
+                print('Moving indent blocks around each other!')
+                print(f'self.indents: {self.indents}')
+                for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:detachment_index],
+                                                            self.indents[index:detachment_index]):
+                    self.set_indent(indiv_indent_sizer, indiv_indent)
+
+            else:  # not moving indented block so just move single command row
+                if self.indents[index] != self.indents[index - 1]:
+                    self.indents[index] = self.indents[index - 1]  # set indent to preceding
+                    self.set_indent(sizer, self.indents[index - 1])
+
+            self.vbox_edit.Detach(detachment_index + 1)
+            self.vbox_edit.Insert(index, self.edit_row_container_sizers[detachment_index + 1], 0, wx.EXPAND)
             self.Layout()
 
-            self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
-            self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = \
-                self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
-            # noinspection PyPep8
-            self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[
-                                                                                             index + 1], \
-                                                                                         self.edit_row_widget_sizers[
-                                                                                             index]
+            # self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
+            # self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = \
+            #     self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
+            # # noinspection PyPep8
+            # self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[
+            #                                                                                  index + 1], \
+            #                                                                              self.edit_row_widget_sizers[
+            #                                                                                  index]
+            #
+            # self.indents[index], self.indents[index + 1] = self.indents[index + 1], self.indents[index]
+
+            print(f'self.lines: {self.lines}')
+
+            for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
+                list_to_reorder.insert(index, list_to_reorder.pop(detachment_index + 1))
+
+            print(f'self.lines: {self.lines}')
+
+            # new_index = index + 1
+            # current_indent = self.indents[new_index]
+            # proceeding_indent = self.indents[new_index+1]
+
+            # if current_indent != proceeding_indent:
+            #     self.indents[new_index] = self.indents[new_index+1]  # set indent to proceeding indent
+            #     self.set_indent(sizer, proceeding_indent)
+
+    def set_indent(self, sizer, indent_val):
+        matching_widget_in_edit_row(sizer, 'indent_text').SetLabel(indent_val * 12 * ' ')
+        self.Layout()
 
     def command_combobox_change(self, sizer, event):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -2072,8 +2158,7 @@ class EditFrame(wx.Frame):
         text_ctrl = event.GetEventObject()
         text_ctrl.SetForegroundColour(wx.BLACK)
         # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if
-                             child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
+        error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
         error_static_text.SetLabel('')
 
         # validate input and display feedback
@@ -2153,8 +2238,7 @@ class EditFrame(wx.Frame):
         text_ctrl.SetMaxLength(0)  # discards previous max length assignment
         text_ctrl.SetForegroundColour(wx.BLACK)
         # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = [child.GetWindow() for child in sizer.GetChildren() if
-                             child.GetWindow() and child.GetWindow().GetName() == 'error_display'][0]
+        error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
         error_static_text.SetForegroundColour(wx.RED)
         error_static_text.SetLabel('')
         too_long = False
@@ -2880,7 +2964,7 @@ class EditFrame(wx.Frame):
         else:
             raise ValueError('The up_down parameter passed did not match \'up\' nor \'down\'.')
 
-        return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[0].GetSizer().GetChildren()[
+        return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
             up_down_index].GetWindow().Show(show)
 
     # do_nothing = lambda: None
