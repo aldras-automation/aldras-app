@@ -870,7 +870,7 @@ class EditFrame(wx.Frame):
             # manipulate hover image
             image_hover = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
             if hover_red:
-                image_hover.Replace(*3 * (0,), *(120, 8, 0))  # change color from native black to lighter grey
+                image_hover.Replace(*3 * (0,), *(150, 0, 0))  # change color from native black to lighter grey
             image_hover = image_hover.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
             if flip:
                 image_hover = image_hover.Mirror(horizontally=False)  # flip image about x-axis
@@ -1886,132 +1886,105 @@ class EditFrame(wx.Frame):
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
 
-        print(f'index: {index}')
-
-        if index > 0:
-            if index == 1:  # moving up second top-most command
-                self.show_move_button(self.edit_row_container_sizers[index], 'up', False)
-                self.show_move_button(self.edit_row_container_sizers[index - 1], 'up', True)
-            if index == len(self.lines) - 1:  # moving up bottom-most command
-                self.show_move_button(self.edit_row_container_sizers[index], 'down', True)
-                self.show_move_button(self.edit_row_container_sizers[index - 1], 'down', False)
-
+        if index > 0:  # cannot move up top-most command
             row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
             command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
-            insertion_index = index
+            insertion_index = index  # location at which line that is 'in the way' will be inserted
 
-            print(f'self.indents: {self.indents}')
-            print(f'index: {index}')
+            self.edit.Freeze()
 
             if command_value in ['Conditional']:  # move entire indented block
+
                 # find index of last element of indented block
                 next_same_indent_offset = self.indents[index+1:].index(self.indents[index])  # distance between indent start and end
-                insertion_index = index + next_same_indent_offset
+                insertion_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before this value
 
-                print(self.indents[index], self.indents[index - 1])
-                if self.indents[index] > self.indents[index-1]:
+                if self.indents[index] > self.indents[index-1]:  # if moving out of surrounding indent block
                     for ii in range(index, insertion_index+1):
-                        self.indents[ii] -= 1
-                elif self.indents[index] < self.indents[index-1]:
+                        self.indents[ii] -= 1  # decrease indent of entire indent block
+                elif self.indents[index] < self.indents[index-1]:  # if moving into surrounding indent block
                     for ii in range(index, insertion_index+1):
-                        self.indents[ii] += 1
-                print('Moving indent blocks around each other!')
-                print(f'self.indents: {self.indents}')
+                        self.indents[ii] += 1  # increase indent of entire indent block
                 for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:insertion_index], self.indents[index:insertion_index]):
-                    self.set_indent(indiv_indent_sizer, indiv_indent)
+                    self.set_indent(indiv_indent_sizer, indiv_indent)  # reset indents of indent block
 
-            else:  # not moving indented block so just move single command row
+            else:  # move single command row
                 if self.indents[index] != self.indents[index-1]:
                     self.indents[index] = self.indents[index-1]  # set indent to preceding
                     self.set_indent(sizer, self.indents[index-1])
 
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(insertion_index, self.edit_row_container_sizers[index - 1], 0, wx.EXPAND)
-            self.Layout()
-
-            print(f'self.indents: {self.indents}')
 
             for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
                 list_to_reorder.insert(insertion_index, list_to_reorder.pop(index - 1))
 
-            print(f'self.indents: {self.indents}')
-            print()
+            self.refresh_move_buttons()
+            self.edit.Thaw()
 
     def move_command_down(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
 
-        if index < len(self.lines):
-            if index == 0:  # moving down top-most command
-                self.show_move_button(self.edit_row_container_sizers[index], 'up', True)
-                self.show_move_button(self.edit_row_container_sizers[index + 1], 'up', False)
-            if index == len(self.lines) - 2:  # moving down second to bottom-most command
-                self.show_move_button(self.edit_row_container_sizers[index], 'down', False)
-                self.show_move_button(self.edit_row_container_sizers[index + 1], 'down', True)
-
+        if index < len(self.lines):  # cannot move up bottom-most command
             row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
             command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
-            detachment_index = index
+            detachment_index = index  # location at which line that is 'in the way' will be detached
 
-            print(f'self.indents: {self.indents}')
-            print(f'self.lines: {self.lines}')
-            print(f'index: {index}')
+            self.edit.Freeze()
 
             if command_value in ['Conditional']:  # move entire indented block
+
                 # find index of last element of indented block
                 next_same_indent_offset = self.indents[index + 1:].index(self.indents[index])  # distance between indent start and end
-                detachment_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before
+                detachment_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before this value
 
-                print(self.indents[index], self.indents[detachment_index + 2])
-
-                if self.indents[index] > self.indents[detachment_index + 2]:
+                if self.indents[index] > self.indents[detachment_index + 2]:  # if moving out of surrounding indent block
                     for ii in range(index, detachment_index + 1):
-                        self.indents[ii] -= 1
-                elif self.indents[index] < self.indents[detachment_index + 2]:
+                        self.indents[ii] -= 1  # decrease indent of entire indent block
+                elif self.indents[index] < self.indents[detachment_index + 2]:  # if moving into surrounding indent block
                     for ii in range(index, detachment_index + 1):
-                        self.indents[ii] += 1
-                print('Moving indent blocks around each other!')
-                print(f'self.indents: {self.indents}')
+                        self.indents[ii] += 1  # increase indent of entire indent block
                 for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:detachment_index],
                                                             self.indents[index:detachment_index]):
                     self.set_indent(indiv_indent_sizer, indiv_indent)
 
-            else:  # not moving indented block so just move single command row
-                if self.indents[index] != self.indents[index - 1]:
-                    self.indents[index] = self.indents[index - 1]  # set indent to preceding
-                    self.set_indent(sizer, self.indents[index - 1])
+            else:  # move single command row
+                if self.indents[index] != self.indents[index + 2]:
+                    self.indents[index] = self.indents[index + 2]  # set indent to proceeding
+                    self.set_indent(sizer, self.indents[index + 2])
 
             self.vbox_edit.Detach(detachment_index + 1)
             self.vbox_edit.Insert(index, self.edit_row_container_sizers[detachment_index + 1], 0, wx.EXPAND)
-            self.Layout()
-
-            # self.lines[index], self.lines[index + 1] = self.lines[index + 1], self.lines[index]
-            # self.edit_row_container_sizers[index], self.edit_row_container_sizers[index + 1] = \
-            #     self.edit_row_container_sizers[index + 1], self.edit_row_container_sizers[index]
-            # # noinspection PyPep8
-            # self.edit_row_widget_sizers[index], self.edit_row_widget_sizers[index + 1] = self.edit_row_widget_sizers[
-            #                                                                                  index + 1], \
-            #                                                                              self.edit_row_widget_sizers[
-            #                                                                                  index]
-            #
-            # self.indents[index], self.indents[index + 1] = self.indents[index + 1], self.indents[index]
-
-            print(f'self.lines: {self.lines}')
 
             for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
                 list_to_reorder.insert(index, list_to_reorder.pop(detachment_index + 1))
 
-            print(f'self.lines: {self.lines}')
-
-            # new_index = index + 1
-            # current_indent = self.indents[new_index]
-            # proceeding_indent = self.indents[new_index+1]
-
-            # if current_indent != proceeding_indent:
-            #     self.indents[new_index] = self.indents[new_index+1]  # set indent to proceeding indent
-            #     self.set_indent(sizer, proceeding_indent)
+            self.refresh_move_buttons()
+            self.edit.Thaw()
 
     def set_indent(self, sizer, indent_val):
         matching_widget_in_edit_row(sizer, 'indent_text').SetLabel(indent_val * 12 * ' ')
+        self.Layout()
+
+    def refresh_move_buttons(self):
+        for sizer_index, sizer_indiv in enumerate(self.edit_row_container_sizers):
+            if sizer_index == 0:  # top-most command
+                self.show_move_button(sizer_indiv, 'up', False)
+                self.show_move_button(sizer_indiv, 'down', True)
+
+            elif sizer_index == len(self.lines) - 1:  # bottom-most command
+                self.show_move_button(sizer_indiv, 'up', True)
+                self.show_move_button(sizer_indiv, 'down', False)
+
+            else:
+                self.show_move_button(sizer_indiv, 'up', True)
+                self.show_move_button(sizer_indiv, 'down', True)
+
+        # hide move down button of indent block start if nothing below indent block
+        if self.indents[-2:] != [0, 0]:
+            indent_block_start_index = len(self.indents[:-2]) - 1 - self.indents[:-2][::-1].index(0)  # index of last zero before indent block
+            self.show_move_button(self.edit_row_container_sizers[indent_block_start_index], 'down', False)
+
         self.Layout()
 
     def command_combobox_change(self, sizer, event):
@@ -2964,8 +2937,11 @@ class EditFrame(wx.Frame):
         else:
             raise ValueError('The up_down parameter passed did not match \'up\' nor \'down\'.')
 
-        return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
-            up_down_index].GetWindow().Show(show)
+        if len(command_row_sizeritem.GetChildren()) == 1:
+            # attempting to show move button of command row of line concluding indent block ("}") but not valid so do nothing
+            return
+        else:
+            return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[up_down_index].GetWindow().Show(show)
 
     # do_nothing = lambda: None
     @staticmethod
