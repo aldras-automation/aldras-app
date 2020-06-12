@@ -89,7 +89,7 @@ def conditional_operation_in(input_string, operations):
     operation_in = input_string.split('~')[2].replace('}}', '')
     matching_operations_in = [element for element in operations if element in operation_in]
     if len(matching_operations_in) != 1:
-        raise ValueError
+        raise ValueError('Invalid conditional operation')
 
     return matching_operations_in[0]
 
@@ -981,6 +981,9 @@ class EditFrame(wx.Frame):
         self.render_lines()
         self.edit.Thaw()
 
+        # all tracker lists must be modified when altering command order or adding/deleting
+        self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
+
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
@@ -1089,7 +1092,7 @@ class EditFrame(wx.Frame):
             except IndexError:
                 pass
 
-            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()), self.edit_row, 0, wx.EXPAND)
+            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()), self.edit_row, 0, wx.EXPAND)  # TODO maybe move this into create_command_sizer() function
 
         self.Layout()
 
@@ -1211,9 +1214,9 @@ class EditFrame(wx.Frame):
             self.create_delete_x_btn(self.hbox_edit)
 
         indent_static_text.SetLabel(self.indents[-1] * 12 * ' ')
-        self.indents.append(self.next_indent)
+        self.indents.insert(index+1, self.next_indent)
 
-        self.edit_row_widget_sizers.append(self.hbox_edit)
+        self.edit_row_widget_sizers.insert(index, self.hbox_edit)
 
         # add bottom static line below command
         edit_row_vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1222,9 +1225,7 @@ class EditFrame(wx.Frame):
         if not end_indent:
             edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
-        self.edit_row_container_sizers.append(edit_row_vbox)
-        print(line_orig, self.indents)
-        print()
+        self.edit_row_container_sizers.insert(index, edit_row_vbox)
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)
@@ -1875,9 +1876,10 @@ class EditFrame(wx.Frame):
 
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
-        del (self.lines[index])
-        del (self.edit_row_container_sizers[index])
-        del (self.edit_row_widget_sizers[index])
+
+        for list_to_change in self.tracker_lists:
+            del (list_to_change[index])
+
         self.vbox_edit.Show(index, False)
         self.vbox_edit.Remove(index)
         self.vbox_edit.Layout()
@@ -1905,18 +1907,18 @@ class EditFrame(wx.Frame):
                 elif self.indents[index] < self.indents[index-1]:  # if moving into surrounding indent block
                     for ii in range(index, insertion_index+1):
                         self.indents[ii] += 1  # increase indent of entire indent block
-                for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:insertion_index], self.indents[index:insertion_index]):
-                    self.set_indent(indiv_indent_sizer, indiv_indent)  # reset indents of indent block
+                for indent_index in range(index, insertion_index):
+                    self.set_indent(indent_index)  # reset indents of indent block
 
             else:  # move single command row
                 if self.indents[index] != self.indents[index-1]:
                     self.indents[index] = self.indents[index-1]  # set indent to preceding
-                    self.set_indent(sizer, self.indents[index-1])
+                    self.set_indent(index)
 
             self.vbox_edit.Detach(index - 1)
             self.vbox_edit.Insert(insertion_index, self.edit_row_container_sizers[index - 1], 0, wx.EXPAND)
 
-            for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
+            for list_to_reorder in self.tracker_lists:
                 list_to_reorder.insert(insertion_index, list_to_reorder.pop(index - 1))
 
             self.refresh_move_buttons()
@@ -1944,26 +1946,25 @@ class EditFrame(wx.Frame):
                 elif self.indents[index] < self.indents[detachment_index + 2]:  # if moving into surrounding indent block
                     for ii in range(index, detachment_index + 1):
                         self.indents[ii] += 1  # increase indent of entire indent block
-                for indiv_indent_sizer, indiv_indent in zip(self.edit_row_widget_sizers[index:detachment_index],
-                                                            self.indents[index:detachment_index]):
-                    self.set_indent(indiv_indent_sizer, indiv_indent)
+                for indent_index in range(index, detachment_index):
+                    self.set_indent(indent_index)  # reset indents of indent block
 
             else:  # move single command row
                 if self.indents[index] != self.indents[index + 2]:
                     self.indents[index] = self.indents[index + 2]  # set indent to proceeding
-                    self.set_indent(sizer, self.indents[index + 2])
+                    self.set_indent(index)
 
             self.vbox_edit.Detach(detachment_index + 1)
             self.vbox_edit.Insert(index, self.edit_row_container_sizers[detachment_index + 1], 0, wx.EXPAND)
 
-            for list_to_reorder in [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]:
+            for list_to_reorder in self.tracker_lists:
                 list_to_reorder.insert(index, list_to_reorder.pop(detachment_index + 1))
 
             self.refresh_move_buttons()
             self.edit.Thaw()
 
-    def set_indent(self, sizer, indent_val):
-        matching_widget_in_edit_row(sizer, 'indent_text').SetLabel(indent_val * 12 * ' ')
+    def set_indent(self, indent_index):
+        matching_widget_in_edit_row(self.edit_row_widget_sizers[indent_index], 'indent_text').SetLabel(self.indents[indent_index] * 12 * ' ')
         self.Layout()
 
     def refresh_move_buttons(self):
@@ -2038,6 +2039,9 @@ class EditFrame(wx.Frame):
         elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
             old_action = 'Assign'
 
+        elif ('if' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+            old_action = 'Conditional'
+
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
 
@@ -2106,7 +2110,29 @@ class EditFrame(wx.Frame):
             self.variables['Var'] = 'value'
             self.create_assign_var_row(self.lines[index], sizer)
 
+        elif new_action == 'Conditional':
+            self.lines[index] = 'If {{~Var~}} equals ~value~ {'
+            self.create_conditional_row(self.lines[index], sizer)
+            self.indents[index+1] += 1
+
+            # add end of indent block
+            self.lines.insert(index+1, '}')
+            self.create_command_sizer(index+1, self.lines[index+1])
+            self.vbox_edit.Insert(index+1, self.edit_row_container_sizers[index+1], 0, wx.EXPAND)
+            self.vbox_edit.Layout()
+
         self.create_delete_x_btn(sizer)
+
+        if old_action in ['Conditional']:
+            # delete end bracket for associated block
+            index_of_end_bracket = index + [line.strip() for line in self.lines[index:]].index('}')  # index of start in list plus index of end in sublist
+            self.delete_command(self.edit_row_widget_sizers[index_of_end_bracket])
+
+            # decrease indents for associated block
+            for indent_index in range(index+1, index_of_end_bracket):
+                self.indents[indent_index] -= 1
+                self.set_indent(indent_index)
+
         self.Layout()
 
     def mouse_command_change(self, sizer, event):
