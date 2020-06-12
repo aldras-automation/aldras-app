@@ -1091,9 +1091,6 @@ class EditFrame(wx.Frame):
                             text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
             except IndexError:
                 pass
-
-            self.vbox_edit.Insert(len(self.vbox_edit.GetChildren()), self.edit_row, 0, wx.EXPAND)  # TODO maybe move this into create_command_sizer() function
-
         self.Layout()
 
     def create_command_sizer(self, index, line_orig):
@@ -1226,6 +1223,7 @@ class EditFrame(wx.Frame):
             edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.insert(index, edit_row_vbox)
+        self.vbox_edit.Insert(index, edit_row_vbox, 0, wx.EXPAND)
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)
@@ -1652,8 +1650,6 @@ class EditFrame(wx.Frame):
         new_line_index = len(self.lines) - 1
 
         self.create_command_sizer(new_line_index, self.lines[-1])
-
-        self.vbox_edit.Add(self.edit_row_container_sizers[new_line_index], 0, wx.EXPAND)
 
         # show move-down button of previously bottom-most command
         try:
@@ -2118,7 +2114,6 @@ class EditFrame(wx.Frame):
             # add end of indent block
             self.lines.insert(index+1, '}')
             self.create_command_sizer(index+1, self.lines[index+1])
-            self.vbox_edit.Insert(index+1, self.edit_row_container_sizers[index+1], 0, wx.EXPAND)
             self.vbox_edit.Layout()
 
         self.create_delete_x_btn(sizer)
