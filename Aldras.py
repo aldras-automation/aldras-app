@@ -79,7 +79,7 @@ def variable_name_in(input_string):
         raise ValueError
 
 
-def variable_value_in(input_string):
+def assignment_variable_value_in(input_string):
     """Return string after equals sign"""
     return '='.join(input_string.split('=')[1:])
 
@@ -870,7 +870,7 @@ class EditFrame(wx.Frame):
             # manipulate hover image
             image_hover = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
             if hover_red:
-                image_hover.Replace(*3 * (0,), *(150, 0, 0))  # change color from native black to lighter grey
+                image_hover.Replace(*3 * (0,), *(180, 0, 0))  # change color from native black to lighter grey
             image_hover = image_hover.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
             if flip:
                 image_hover = image_hover.Mirror(horizontally=False)  # flip image about x-axis
@@ -1420,8 +1420,6 @@ class EditFrame(wx.Frame):
         text_value = str(line).replace('type:', '').replace('Type:', '')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
-        text_to_type.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
-                          lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1553,7 +1551,7 @@ class EditFrame(wx.Frame):
         change_font(equals_text, size=14)
         sizer.Add(equals_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=variable_value_in(line))
+        variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=assignment_variable_value_in(line))
         variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -1577,12 +1575,13 @@ class EditFrame(wx.Frame):
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations), choices=self.conditional_operations, style=wx.CB_READONLY)
-        operation.Bind(wx.EVT_COMBOBOX, lambda event: self.key_change(sizer, event))
+        operation.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_operator'))
+
         operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
-        # comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'variable_value'))
+        comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -1985,6 +1984,7 @@ class EditFrame(wx.Frame):
         self.Layout()
 
     def command_combobox_change(self, sizer, event):
+        self.Freeze()
         index = self.edit_row_widget_sizers.index(sizer)
         new_action = event.GetString()
         line_orig = self.lines[index]
@@ -2129,6 +2129,7 @@ class EditFrame(wx.Frame):
                 self.set_indent(indent_index)
 
         self.Layout()
+        self.Thaw()
 
     def mouse_command_change(self, sizer, event):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -2189,7 +2190,6 @@ class EditFrame(wx.Frame):
                 error_msg = f'The maximum coordinates are {display_size} px.'
             error_static_text.SetLabel(error_msg)
             self.command_row_error = True
-            text_ctrl.GetParent().GetParent().Layout()
             event.Skip()
 
     def text_change(self, sizer, event, command_type):
@@ -2201,7 +2201,7 @@ class EditFrame(wx.Frame):
         elif command_type == 'assign_var_name':
             old_variable_name = variable_name_in(self.lines[index])
             new_variable_name = event.GetString()
-            variable_value = variable_value_in(self.lines[index])
+            variable_value = assignment_variable_value_in(self.lines[index])
 
             self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
 
@@ -2218,9 +2218,13 @@ class EditFrame(wx.Frame):
             variable_name = event.GetString()
             self.lines[index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
             print(self.lines[index])
-        elif command_type == 'conditional_name':
-            variable_name = event.GetString()
-            self.lines[index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
+        elif command_type == 'conditional_comparison_operator':
+            comparison_operator = event.GetString()
+            self.lines[index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {comparison_operator} ~{conditional_comparison_in(self.lines[index])}~ {{'
+            print(self.lines[index])
+        elif command_type == 'conditional_comparison_value':
+            comparison_value = event.GetString()
+            self.lines[index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
             print(self.lines[index])
 
         event.Skip()
@@ -2833,7 +2837,7 @@ class EditFrame(wx.Frame):
                                             pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
 
                                         elif ('assign' in line) and ('{{~' in line) and ('~}}' in line):
-                                            variables[variable_name_in(line)] = variable_value_in(line)
+                                            variables[variable_name_in(line)] = assignment_variable_value_in(line)
                                             print(variables)
 
                             except pyauto.FailSafeException:
