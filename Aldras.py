@@ -13,6 +13,7 @@ import wx
 import wx.adv
 import wx.lib.expando
 import wx.lib.scrolledpanel
+import wx.grid
 from pynput import keyboard, mouse
 from platform import system as system_platform
 
@@ -86,11 +87,10 @@ def assignment_variable_value_in(input_string):
 
 def conditional_operation_in(input_string, operations):
     """Return matching operation between ~}} and ~ syntax"""
-    operation_in = input_string.split('~')[2].replace('}}', '')
-    matching_operations_in = [element for element in operations if element in operation_in]
-    if len(matching_operations_in) != 1:
+    operation_in = input_string.split('~')[2].replace('}}', '').lower()
+    matching_operations_in = [element for element in operations if element.lower() in operation_in]
+    if len(matching_operations_in) == 0:
         raise ValueError('Invalid conditional operation')
-
     return matching_operations_in[0]
 
 
@@ -857,7 +857,8 @@ class EditFrame(wx.Frame):
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 15
-        self.conditional_operations = ['equals', 'contains', 'is in', '>', '<', '≥', '≤']
+        self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
+        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list', 'For each row in table', 'For each column in table']
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
@@ -1104,14 +1105,14 @@ class EditFrame(wx.Frame):
         change_font(indent_static_text, size=1)
         self.hbox_edit.Add(indent_static_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        if self.line.strip() == '}':  # do not add row for end of conditional
-            self.next_indent -= 1
-            if self.next_indent < 0:
-                self.next_indent = 0
-            end_indent = True
-
-        else:
-            try:
+        try:
+            if self.line.strip() == '}':  # do not add row for end of conditional
+                self.next_indent -= 1
+                if self.next_indent < 0:
+                    self.next_indent = 0
+                    raise ValueError
+                end_indent = True
+            else:
                 # add move buttons
                 self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
 
@@ -1198,17 +1199,22 @@ class EditFrame(wx.Frame):
                     self.add_command_combobox('Conditional')
                     self.create_conditional_row(line_orig)
 
+                elif ('loop' in self.line_first_word) and ('{' in self.line):
+                    # self.next_indent += 1
+                    self.add_command_combobox('Loop')
+                    self.create_loop_row(line_orig)
+
                 else:
                     raise ValueError
 
-            except ValueError:
-                # display indecipherable line
-                self.hbox_edit.AddSpacer(10)
-                self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
-                change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
-                self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
+        except ValueError:
+            # display indecipherable line
+            self.hbox_edit.AddSpacer(10)
+            self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
+            change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
+            self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
-            self.create_delete_x_btn(self.hbox_edit)
+        self.create_delete_x_btn(self.hbox_edit)
 
         indent_static_text.SetLabel(self.indents[-1] * 12 * ' ')
         self.indents.insert(index+1, self.next_indent)
@@ -1587,6 +1593,48 @@ class EditFrame(wx.Frame):
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
+    def create_loop_row(self, line, sizer=None):
+        # sizer only passed to update, otherwise, function is called during initial panel creation
+        if not sizer:
+            sizer = self.hbox_edit
+
+        try:
+            behavior_value = [element for element in self.loop_behaviors if element.lower() in line.lower()][0]
+        except IndexError:
+            raise ValueError
+
+        behavior_cb = wx.ComboBox(self.edit, value=behavior_value, choices=self.loop_behaviors, style=wx.CB_READONLY)
+        # behavior_cb.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
+        behavior_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        sizer.Add(behavior_cb, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+
+        if behavior_value == 'Forever':
+            return
+        elif behavior_value == 'Multiple times':
+            loop_iteration_number = wx.TextCtrl(self.edit, value=re.search(r'\d+', line).group(), size=wx.Size(self.software_info.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
+            loop_iteration_number.SetMaxLength(4)
+            # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
+            loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+            sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
+        elif behavior_value == 'For each element in list':
+            loop_list_text = line[line.find('[')+1:line.rfind(']')]  # find text between first '[' and last ']'
+            loop_list = loop_list_text.split('```')  # split based on '```' delimeter
+            print('loop_list', loop_list)
+
+            list_btn = wx.Button(self.edit, label='List')#, style=wx.BORDER_NONE | wx.BU_EXACTFIT)
+            # list_btn.SetBackgroundColour(wx.WHITE)
+            list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid())
+            sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+
+
+
+
+        # comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
+        # comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
+        # comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
+        #                           lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        # sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
+
     def open_delete_command_dialog(self):
 
         class DeleteCommandsDialog(wx.Dialog):
@@ -1869,6 +1917,56 @@ class EditFrame(wx.Frame):
                 self.create_edit_panel()
                 self.Layout()
 
+    def open_loop_list_grid(self):
+
+        class LoopListGrid(wx.Dialog):
+            """Dialog to edit loop list elements"""
+
+            def __init__(self, parent):
+                wx.Dialog.__init__(self, parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+                # print('icon', parent.parent.software_info.icon)
+                self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+                self.SetTitle(f'Loop List: - {parent.workflow_name}')
+                self.SetBackgroundColour('white')
+
+                vbox = wx.BoxSizer(wx.VERTICAL)
+
+                # Create a wxGrid object
+                grid = wx.grid.Grid(self)
+                grid.CreateGrid(100, 1)
+
+                # grid.SetRowSize(0, 60)
+                # grid.SetColSize(0, 120)
+
+                # And set grid cell contents as strings
+                grid.SetCellValue(0, 0, 'Element 1')
+                grid.SetCellValue(1, 0, 'Element 2')
+                grid.SetCellValue(2, 0, '...')
+
+                vbox.Add(grid, 1, wx.EXPAND | wx.WEST | wx.EAST, 10)
+
+                self.SetSizer(vbox)
+                # print('vbox sizer:', vbox.GetMinSize())
+                # self.SetSize(wx.Size(vbox.GetMinSize()[0]+20, -1))
+                vbox.SetSizeHints(self)
+                self.Center()
+                self.Show()
+
+        loop_list_dlg = LoopListGrid(self)
+
+        if loop_list_dlg.ShowModal() == wx.ID_OK:
+            pass
+            # indices_to_delete = loop_list_dlg.get_selections()
+            # if indices_to_delete:  # if indices_to_delete is not empty
+            #     for index in sorted(indices_to_delete, reverse=True):
+            #         del (self.lines[index])
+            #         del (self.edit_row_container_sizers[index])
+            #         del (self.edit_row_widget_sizers[index])
+            #         self.vbox_edit.Show(index, False)
+            #         self.vbox_edit.Remove(index)
+            #     self.vbox_edit.Layout()
+            #     self.Layout()
+
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
 
@@ -1924,7 +2022,10 @@ class EditFrame(wx.Frame):
 
         if index < len(self.lines):  # cannot move up bottom-most command
             row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
-            command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            try:
+                command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            except AttributeError:  # unknown command row (no command combobox)
+                command_value = ''
             detachment_index = index  # location at which line that is 'in the way' will be detached
 
             self.edit.Freeze()
@@ -3364,6 +3465,7 @@ def main():
     display_size = (
         sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
+    print()
 
     global mouse_monitor_frame
     mouse_monitor_frame = None
