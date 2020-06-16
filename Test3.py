@@ -17,6 +17,8 @@ class GridFrame(wx.Frame):
         grid.SetRowSize(0, 60)
         grid.SetColSize(0, 120)
 
+        grid.HideRowLabels()
+
         # And set grid cell contents as strings
         grid.SetCellValue(0, 0, 'wxGrid is good')
 

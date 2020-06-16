@@ -16,6 +16,8 @@ import wx.lib.scrolledpanel
 import wx.grid
 from pynput import keyboard, mouse
 from platform import system as system_platform
+import numpy as np
+import clipboard
 
 
 # TODO comments
@@ -838,13 +840,17 @@ class PlaceholderTextCtrl(wx.TextCtrl):
 
 
 class CustomGrid(wx.grid.Grid):
-    def __init__(self, parent, table_size, style=wx.WANTS_CHARS):
+    def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True):
         wx.grid.Grid.__init__(self, parent, style=style)
         self.parent = parent
         self.CreateGrid(*table_size)
         self.editor = wx.grid.GridCellAutoWrapStringEditor()
         self.SetDefaultEditor(self.editor)
         self.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
+
+        self.can_change_num_rows=can_change_num_rows
+        self.can_change_num_cols=can_change_num_cols
+
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
         self.Bind(wx.EVT_CHAR_HOOK, self.on_frame_char_hook)  # when key is pressed
 
@@ -856,32 +862,78 @@ class CustomGrid(wx.grid.Grid):
         """Process key presses"""
 
         if event.ControlDown() and (event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_DELETE):
-            """
-            Clear selected cells if CTRL+Backspace or CTRL+Del are 
-            
-            There are three ways cells can be selected:
-            1. Multiple cells were click-selected (GetSelectedCells)
-            2. Multiple cells were drag or arrow-key selected (GetSelectionBlocks)
-            3. A single cell only is selected (CursorRow/Col)
-            """
+            self.clear_cells()
 
-            if self.GetSelectedCells():  # multiple cells click selected
-                for cell_coords in self.GetSelectedCells():
-                    self.SetCellValue(cell_coords[0], cell_coords[1], '')
-
-            else:
-                try:  # multiple cells drag or arrow-key selected
-                    selection_coords = next(self.GetSelectedBlocks().__iter__()).Get()  # get (row1, col1, row2, col2) of cells selection
-
-                    for row_index in range(selection_coords[0], selection_coords[2] + 1):
-                        for col_index in range(selection_coords[1], selection_coords[3] + 1):
-                            self.SetCellValue(row_index, col_index, '')
-
-                except StopIteration:  # single cell selected
-                    self.SetCellValue(self.GetGridCursorRow(), self.GetGridCursorCol(), '')
+        elif event.ControlDown() and event.GetKeyCode() == 86:
+            self.paste_clipboard()
 
         else:
             event.Skip()
+
+    def clear_cells(self):
+        """
+        Clear selected cells if CTRL+Backspace or CTRL+Del are
+
+        There are three ways cells can be selected:
+        1. Multiple cells were click-selected (GetSelectedCells)
+        2. Multiple cells were drag or arrow-key selected (GetSelectionBlocks)
+        3. A single cell only is selected (CursorRow/Col)
+        """
+
+        if self.GetSelectedCells():  # multiple cells click selected
+            for cell_coords in self.GetSelectedCells():
+                self.SetCellValue(cell_coords[0], cell_coords[1], '')
+
+        else:
+            try:  # multiple cells drag or arrow-key selected
+                selection_coords = next(
+                    self.GetSelectedBlocks().__iter__()).Get()  # get (row1, col1, row2, col2) of cells selection
+
+                for row_index in range(selection_coords[0], selection_coords[2] + 1):
+                    for col_index in range(selection_coords[1], selection_coords[3] + 1):
+                        self.SetCellValue(row_index, col_index, '')
+
+            except StopIteration:  # single cell selected
+                self.SetCellValue(self.GetGridCursorRow(), self.GetGridCursorCol(), '')
+
+        self.resize_rows()
+
+    def clear_all_cells(self):
+        self.ClearGrid()
+        self.resize_rows()
+
+    def paste_clipboard(self):
+        clipboard_text = clipboard.paste()
+        excel_list = clipboard_text.split('\r\n')  # split rows
+        excel_list = [row.split('\t') for row in excel_list]  # split columns
+        try:
+            excel_list.remove([''])  # appears sometimes when dealing with copied excel text
+        except ValueError:
+            pass
+        excel_array = np.array(excel_list)
+
+        # get location of currently selected cell to paste at that location
+        row_selection = self.GetGridCursorRow()
+        col_selection = self.GetGridCursorCol()
+
+        # loop through grid indices as determined by the clipboard excel array size
+        for row_index in range(row_selection, row_selection+excel_array.shape[0]):
+            if row_index >= self.GetNumberRows():
+                if not self.can_change_num_rows:
+                    break  # stop if cannot change the number of rows
+                else:
+                    self.AppendRows()
+
+            for column_index in range(col_selection, col_selection+excel_array.shape[1]):
+                if column_index >= self.GetNumberCols():
+                    if not self.can_change_num_cols:
+                        break  # stop if cannot change the number of rows
+                    else:
+                        self.AppendCols()
+
+                self.SetCellValue(row_index, column_index, excel_array[row_index-row_selection, column_index-col_selection])
+
+        self.resize_rows()
 
 
 class EditFrame(wx.Frame):
@@ -1970,15 +2022,15 @@ class EditFrame(wx.Frame):
                 self.SetTitle(f'Loop List: - {parent.workflow_name}')
                 self.SetBackgroundColour('white')
 
-                fg_sizer = wx.FlexGridSizer(1, 2, 10, 10)
+                spacing_between_fg_sizers = 10
+                fg_sizer = wx.FlexGridSizer(1, 2, spacing_between_fg_sizers, spacing_between_fg_sizers)
 
                 # create sizer for grid
                 self.vbox_table = wx.BoxSizer(wx.VERTICAL)
 
-                self.grid = CustomGrid(self, table_size=(100, 1))
+                self.grid = CustomGrid(self, table_size=(100, 1), can_change_num_cols=False)
+                self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
                 self.grid.DisableColResize(0)
-                # self.grid.SetRowSize(0, 60)
-                # self.grid.SetColSize(0, 120)
 
                 # set grid cell values
                 for index, loop_var_value in enumerate(list_values):
@@ -1989,25 +2041,35 @@ class EditFrame(wx.Frame):
                 # add action widgets
                 self.vbox_action = wx.BoxSizer(wx.VERTICAL)
 
-                clear_btn = wx.Button(self, label='Clear')
-                self.vbox_action.Add(clear_btn)
+                clear_btn = wx.Button(self, label='Clear Cell')
+                clear_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_cells())
+                self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 5)
 
-                self.vbox_action.AddStretchSpacer()
+                clear_all_btn = wx.Button(self, label='Clear All')
+                clear_all_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_all_cells())
+                self.vbox_action.Add(clear_all_btn, 0, wx.EXPAND)
+
+                self.vbox_action.AddStretchSpacer(1)
+
+                # excel_import_btn = wx.Button(self, label='Paste')
+                # excel_import_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.paste_clipboard())
+                # self.vbox_action.Add(excel_import_btn, 0, wx.EXPAND)
+
+                self.vbox_action.AddStretchSpacer(2)
 
                 ok_btn = wx.Button(self, wx.ID_OK, label='OK')
-                self.vbox_action.Add(ok_btn, 0, wx.SOUTH, 5)
+                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 5)
 
                 cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-                self.vbox_action.Add(cancel_btn)
+                self.vbox_action.Add(cancel_btn, 0, wx.EXPAND)
 
                 fg_sizer.AddMany([(self.vbox_table, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
                 fg_sizer.AddGrowableCol(0, 0)
                 fg_sizer.AddGrowableRow(0, 0)
 
-                self.vbox_action_width = int(self.vbox_action.GetMinSize()[0])
-
+                margins = 10
                 vbox_container = wx.BoxSizer(wx.HORIZONTAL)
-                vbox_container.Add(fg_sizer, 1, wx.EXPAND | wx.ALL, 10)
+                vbox_container.Add(fg_sizer, 1, wx.EXPAND | wx.ALL, margins)
 
                 self.SetSizer(vbox_container)
                 vbox_container.SetSizeHints(self)
@@ -2016,10 +2078,13 @@ class EditFrame(wx.Frame):
                 self.Center()
                 self.Bind(wx.EVT_SIZE, self.resize_window)
 
+                # set offset to autosize list column
+                self.list_column_width_offset = self.vbox_action.GetMinSize()[0] + self.grid.GetRowLabelSize() + 2*margins + spacing_between_fg_sizers + 34
+
             def resize_window(self, event):
                 """On window resize, resize column of list grid as well"""
                 event.Skip()
-                self.grid.SetColSize(0, self.GetSize()[0]-225)
+                self.grid.SetColSize(0, self.GetSize()[0]-self.list_column_width_offset)
                 self.grid.resize_rows()
                 self.Refresh()
 
