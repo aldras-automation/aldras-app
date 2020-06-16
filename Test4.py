@@ -1,90 +1,88 @@
 import wx
-from wx import EVT_CLOSE
-import wx.grid as gridlib
+import wx.grid
+from wx.lib import wordwrap
 
-EVEN_ROW_COLOUR = '#CCE6FF'
-GRID_LINE_COLOUR = '#ccc'
 
-class PandasTable(wx.Frame):
-    def __init__(self, parent, title, df):
-        super(PandasTable, self).__init__(parent, title=title)
-        panel = wx.Panel(self, -1)
-        self.data = df
-        grid = self.create_grid(panel, self.data)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(grid, 1, wx.ALL|wx.EXPAND)
-        panel.SetSizer(sizer)
+class CutomGridCellAutoWrapStringRenderer(wx.grid.PyGridCellRenderer):
+    def __init__(self):
+        wx.grid.PyGridCellRenderer.__init__(self)
 
-        # Bind Close Event
-        EVT_CLOSE(self, self.exit)
-        self.Center()
-        self.Show()
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        text = grid.GetCellValue(row, col)
+        dc.SetFont( attr.GetFont() )
+        text = wordwrap.wordwrap(text, grid.GetColSize(col), dc, breakLongWords = False)
+        hAlign, vAlign = attr.GetAlignment()
+        if isSelected:
+            bg = grid.GetSelectionBackground()
+            fg = grid.GetSelectionForeground()
+        else:
+            bg = attr.GetBackgroundColour()
+            fg = attr.GetTextColour()
+        dc.SetTextBackground(bg)
+        dc.SetTextForeground(fg)
+        dc.SetBrush(wx.Brush(bg, wx.SOLID))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.DrawRectangle(rect)
+        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
 
-    def exit(self, event):
-        self.Destroy()
+    def GetBestSize(self, grid, attr, dc, row, col):
+        text = grid.GetCellValue(row, col)
+        dc.SetFont(attr.GetFont())
+        text = wordwrap.wordwrap(text, grid.GetColSize(col), dc, breakLongWords = False)
+        w, h, lineHeight = dc.GetMultiLineTextExtent(text)
+        return wx.Size(w, h)
 
-    def create_grid(self, panel, data):
-        table = DataTable(data)
-        grid = DataGrid(panel)
-        grid.CreateGrid(len(data), len(data.columns))
-        grid.SetTable(table)
-        grid.AutoSize()
-        grid.AutoSizeColumns(True)
-        return grid
+    def Clone(self):
+        return CutomGridCellAutoWrapStringRenderer()
 
-class DataTable(gridlib.PyGridTableBase):
-    def __init__(self, data=None):
-        gridlib.PyGridTableBase.__init__(self)
-        self.headerRows = 0
-        self.data = data
 
-    def GetNumberRows(self):
-        return len(self.data)
+class MyGrid(wx.grid.Grid):
+    def __init__(self, parent, table_size, style=wx.WANTS_CHARS):
+        wx.grid.Grid.__init__(self, parent, style=style)
+        self.CreateGrid(*table_size)
+        self.editor = wx.grid.GridCellAutoWrapStringEditor()
+        # self.editor = CutomGridCellAutoWrapStringRenderer()
+        self.SetDefaultEditor(self.editor)
+        self.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
+        self.SetCellValue(0, 0, "Line1\nLine2\nLine3")
+        self.SetRowSize(0, 100)
+        # self.SetDefaultRenderer(CutomGridCellAutoWrapStringRenderer())
 
-    def GetNumberCols(self):
-        return len(self.data.columns) + 1
+        # self.Bind(wx.EVT_CHAR_HOOK, self.text_entered)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.autoresize)
+        # self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.AutoSizeRows())
 
-    def GetValue(self, row, col):
-        if col == 0:
-            return self.data.index[row]
-        return self.data.ix[row, col-1]
+    def autoresize(self, event):
+        print(event.GetRow())
+        self.AutoSizeRow(event.GetRow())
 
-    def SetValue(self, row, col, value):
-        pass
+class MyFrame(wx.Frame):
 
-    def GetColLabelValue(self, col):
-        if col == 0:
-            return 'Index' if self.data.index.name is None else self.data.index.name
-        return self.data.columns[col-1]
+    def __init__(self, parent = None, title = "Multiline"):
+        wx.Frame.__init__(self, parent, -1, title)
+        # self.Bind(wx.EVT_CHAR_HOOK, self.on_frame_char_hook)
+        panel = wx.Panel(self)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        panel.SetSizer(vbox)
+        grid = MyGrid(panel, table_size=(100,20))
+        vbox.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        self.grid = grid
+        btn_exit = wx.Button(panel, -1, "Exit")
+        vbox.Add(btn_exit, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 10)
 
-    def GetTypeName(self, row, col):
-        return gridlib.GRID_VALUE_STRING
+    # #Proceed CTRL+ENTER as newline in the cell editor
+    # def on_frame_char_hook(self, event):
+    #     if event.CmdDown() and event.GetKeyCode() == wx.WXK_RETURN:
+    #         if self.grid.editor.IsCreated():
+    #             self.grid.editor.StartingKey(event)
+    #         else:
+    #             event.Skip
+    #     else:
+    #         event.Skip()
 
-    def GetAttr(self, row, col, prop):
-        attr = gridlib.GridCellAttr()
-        if row % 2 == 1:
-            attr.SetBackgroundColour(EVEN_ROW_COLOUR)
-        return attr
-
-class DataGrid(gridlib.Grid):
-    def __init__(self, parent, size=wx.Size(1000, 500)):
-        self.parent = parent
-        gridlib.Grid.__init__(self, self.parent, -1)
-        self.SetGridLineColour(GRID_LINE_COLOUR)
-        self.SetRowLabelSize(0)
-        self.SetColLabelSize(30)
-        self.table = DataTable()
-
-def display(df):
-    app = wx.App()
-    frame = PandasTable(None, 'test', df)
+if __name__ == "__main__":
+    app = wx.PySimpleApp()
+    f = MyFrame()
+    f.Center()
+    f.Show()
     app.MainLoop()
-
-def main():
-    import pandas as pd
-    import numpy as np
-    df = pd.DataFrame({'a' : np.random.randn(100), 'b' : np.random.randn(10000), 'c' : np.random.randn(10000)})
-    display(df)
-
-if __name__ == '__main__':
-    main()

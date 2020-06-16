@@ -837,6 +837,21 @@ class PlaceholderTextCtrl(wx.TextCtrl):
             self.SetForegroundColour(3 * (120,))
 
 
+class CustomGrid(wx.grid.Grid):
+    def __init__(self, parent, table_size, style=wx.WANTS_CHARS):
+        wx.grid.Grid.__init__(self, parent, style=style)
+        self.parent = parent
+        self.CreateGrid(*table_size)
+        self.editor = wx.grid.GridCellAutoWrapStringEditor()
+        self.SetDefaultEditor(self.editor)
+        self.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
+
+    def resize_rows(self):
+        self.AutoSizeRows()
+        self.parent.GetParent().Layout()
+
+
 class EditFrame(wx.Frame):
     """Frame to edit specific workflow."""
 
@@ -856,7 +871,7 @@ class EditFrame(wx.Frame):
         self.margin = 10
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
-        self.loading_dlg_line_thresh = 15
+        self.loading_dlg_line_thresh = 25
         self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
         self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list', 'For each row in table', 'For each column in table']
 
@@ -1239,7 +1254,7 @@ class EditFrame(wx.Frame):
         delete_x_button = self.create_bitmap_btn(self.edit, self.delete_x_size, self.delete_x_bitmap, 'delete_x',
                                                  'Delete command')
         delete_x_button.Bind(wx.EVT_BUTTON, lambda _: self.delete_command(sizer))
-        sizer.Add(delete_x_button, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        sizer.Add(delete_x_button, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
     def button_hover_on(self, event, btn_kind):
         btn = event.GetEventObject()
@@ -1924,48 +1939,70 @@ class EditFrame(wx.Frame):
 
             def __init__(self, parent):
                 wx.Dialog.__init__(self, parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-                # print('icon', parent.parent.software_info.icon)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetTitle(f'Loop List: - {parent.workflow_name}')
                 self.SetBackgroundColour('white')
 
-                vbox = wx.BoxSizer(wx.VERTICAL)
+                fg_sizer = wx.FlexGridSizer(1, 2, 10, 10)
 
-                # Create a wxGrid object
-                grid = wx.grid.Grid(self)
-                grid.CreateGrid(100, 1)
+                # create sizer for grid
+                self.vbox_table = wx.BoxSizer(wx.VERTICAL)
 
-                # grid.SetRowSize(0, 60)
-                # grid.SetColSize(0, 120)
+                self.grid = CustomGrid(self, table_size=(100, 1))
+                self.grid.DisableColResize(0)
+                # self.grid.SetRowSize(0, 60)
+                # self.grid.SetColSize(0, 120)
 
                 # And set grid cell contents as strings
-                grid.SetCellValue(0, 0, 'Element 1')
-                grid.SetCellValue(1, 0, 'Element 2')
-                grid.SetCellValue(2, 0, '...')
+                self.grid.SetCellValue(0, 0, 10*'Element 1')
+                self.grid.SetCellValue(1, 0, 'Element 2')
+                self.grid.SetCellValue(2, 0, '...')
 
-                vbox.Add(grid, 1, wx.EXPAND | wx.WEST | wx.EAST, 10)
+                self.vbox_table.Add(self.grid, 1, wx.EXPAND)
 
-                self.SetSizer(vbox)
-                # print('vbox sizer:', vbox.GetMinSize())
-                # self.SetSize(wx.Size(vbox.GetMinSize()[0]+20, -1))
-                vbox.SetSizeHints(self)
+                # add action widgets
+                self.vbox_action = wx.BoxSizer(wx.VERTICAL)
+
+                # add action buttons
+                clear_btn = wx.Button(self, label='Clear')
+                self.vbox_action.Add(clear_btn)
+
+                self.vbox_action.AddStretchSpacer()
+
+                ok_btn = wx.Button(self, wx.ID_OK, label='OK')
+                self.vbox_action.Add(ok_btn, 0, wx.SOUTH, 5)
+
+                cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+                self.vbox_action.Add(cancel_btn)
+
+                fg_sizer.AddMany([(self.vbox_table, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
+                fg_sizer.AddGrowableCol(0, 0)
+                fg_sizer.AddGrowableRow(0, 0)
+
+                # print(f'vbox_action.GetSize(): {vbox_action.GetMinSize()}')
+                self.vbox_action_width = int(self.vbox_action.GetMinSize()[0])
+
+                vbox_container = wx.BoxSizer(wx.HORIZONTAL)
+                vbox_container.Add(fg_sizer, 1, wx.EXPAND | wx.ALL, 10)
+
+                self.SetSizer(vbox_container)
+                vbox_container.SetSizeHints(self)
+                self.SetMinSize(wx.Size(vbox_container.GetSize()[0]+60, vbox_container.GetSize()[1]/2))
+                self.SetSize(self.GetMinSize())
                 self.Center()
-                self.Show()
+                self.Bind(wx.EVT_SIZE, self.resize_window)
+
+            def resize_window(self, event):
+                """On window resize, resize column of list grid as well"""
+                event.Skip()
+                self.grid.SetColSize(0, self.GetSize()[0]-225)
+                self.grid.resize_rows()
+                self.Refresh()
 
         loop_list_dlg = LoopListGrid(self)
 
         if loop_list_dlg.ShowModal() == wx.ID_OK:
             pass
-            # indices_to_delete = loop_list_dlg.get_selections()
-            # if indices_to_delete:  # if indices_to_delete is not empty
-            #     for index in sorted(indices_to_delete, reverse=True):
-            #         del (self.lines[index])
-            #         del (self.edit_row_container_sizers[index])
-            #         del (self.edit_row_widget_sizers[index])
-            #         self.vbox_edit.Show(index, False)
-            #         self.vbox_edit.Remove(index)
-            #     self.vbox_edit.Layout()
-            #     self.Layout()
 
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
