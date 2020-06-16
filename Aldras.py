@@ -848,8 +848,8 @@ class CustomGrid(wx.grid.Grid):
         self.SetDefaultEditor(self.editor)
         self.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
 
-        self.can_change_num_rows=can_change_num_rows
-        self.can_change_num_cols=can_change_num_cols
+        self.can_change_num_rows = can_change_num_rows
+        self.can_change_num_cols = can_change_num_cols
 
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
         self.Bind(wx.EVT_CHAR_HOOK, self.on_frame_char_hook)  # when key is pressed
@@ -864,8 +864,12 @@ class CustomGrid(wx.grid.Grid):
         if event.ControlDown() and (event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_DELETE):
             self.clear_cells()
 
-        elif event.ControlDown() and event.GetKeyCode() == 86:
+        elif event.ControlDown() and event.GetKeyCode() == 86:  # if CTRL+v
             self.paste_clipboard()
+
+        elif event.ControlDown() and event.GetKeyCode() == 67:  # if CTRL+c
+            # TODO process copy events
+            pass
 
         else:
             event.Skip()
@@ -2028,7 +2032,7 @@ class EditFrame(wx.Frame):
                 # create sizer for grid
                 self.vbox_table = wx.BoxSizer(wx.VERTICAL)
 
-                self.grid = CustomGrid(self, table_size=(100, 1), can_change_num_cols=False)
+                self.grid = CustomGrid(self, table_size=(40, 1), can_change_num_cols=False)
                 self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
                 self.grid.DisableColResize(0)
 
@@ -2043,22 +2047,22 @@ class EditFrame(wx.Frame):
 
                 clear_btn = wx.Button(self, label='Clear Cell')
                 clear_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_cells())
-                self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 5)
+                self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
                 clear_all_btn = wx.Button(self, label='Clear All')
                 clear_all_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_all_cells())
-                self.vbox_action.Add(clear_all_btn, 0, wx.EXPAND)
+                self.vbox_action.Add(clear_all_btn, 0, wx.EXPAND | wx.SOUTH, 50)
 
-                self.vbox_action.AddStretchSpacer(1)
+                add_rows_btn = wx.Button(self, label='Add Rows')
+                add_rows_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.AppendRows(10))
+                self.vbox_action.Add(add_rows_btn, 0, wx.EXPAND)
 
-                # excel_import_btn = wx.Button(self, label='Paste')
-                # excel_import_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.paste_clipboard())
-                # self.vbox_action.Add(excel_import_btn, 0, wx.EXPAND)
+                # TODO add link to spreadsheet
 
-                self.vbox_action.AddStretchSpacer(2)
+                self.vbox_action.AddStretchSpacer()
 
                 ok_btn = wx.Button(self, wx.ID_OK, label='OK')
-                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 5)
+                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
                 cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
                 self.vbox_action.Add(cancel_btn, 0, wx.EXPAND)
@@ -2073,7 +2077,7 @@ class EditFrame(wx.Frame):
 
                 self.SetSizer(vbox_container)
                 vbox_container.SetSizeHints(self)
-                self.SetMinSize(wx.Size(vbox_container.GetSize()[0]+60, vbox_container.GetSize()[1]/2))
+                self.SetMinSize(wx.Size(vbox_container.GetSize()[0]+120, wx.GetDisplaySize()[1]/2))
                 self.SetSize(self.GetMinSize())
                 self.Center()
                 self.Bind(wx.EVT_SIZE, self.resize_window)
