@@ -846,10 +846,42 @@ class CustomGrid(wx.grid.Grid):
         self.SetDefaultEditor(self.editor)
         self.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_frame_char_hook)  # when key is pressed
 
     def resize_rows(self):
         self.AutoSizeRows()
         self.parent.GetParent().Layout()
+
+    def on_frame_char_hook(self, event):
+        """Process key presses"""
+
+        if event.ControlDown() and (event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_DELETE):
+            """
+            Clear selected cells if CTRL+Backspace or CTRL+Del are 
+            
+            There are three ways cells can be selected:
+            1. Multiple cells were click-selected (GetSelectedCells)
+            2. Multiple cells were drag or arrow-key selected (GetSelectionBlocks)
+            3. A single cell only is selected (CursorRow/Col)
+            """
+
+            if self.GetSelectedCells():  # multiple cells click selected
+                for cell_coords in self.GetSelectedCells():
+                    self.SetCellValue(cell_coords[0], cell_coords[1], '')
+
+            else:
+                try:  # multiple cells drag or arrow-key selected
+                    selection_coords = next(self.GetSelectedBlocks().__iter__()).Get()  # get (row1, col1, row2, col2) of cells selection
+
+                    for row_index in range(selection_coords[0], selection_coords[2] + 1):
+                        for col_index in range(selection_coords[1], selection_coords[3] + 1):
+                            self.SetCellValue(row_index, col_index, '')
+
+                except StopIteration:  # single cell selected
+                    self.SetCellValue(self.GetGridCursorRow(), self.GetGridCursorCol(), '')
+
+        else:
+            event.Skip()
 
 
 class EditFrame(wx.Frame):
@@ -1632,13 +1664,8 @@ class EditFrame(wx.Frame):
             loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
             sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
         elif behavior_value == 'For each element in list':
-            loop_list_text = line[line.find('[')+1:line.rfind(']')]  # find text between first '[' and last ']'
-            loop_list = loop_list_text.split('```')  # split based on '```' delimeter
-            print('loop_list', loop_list)
-
             list_btn = wx.Button(self.edit, label='List')#, style=wx.BORDER_NONE | wx.BU_EXACTFIT)
-            # list_btn.SetBackgroundColour(wx.WHITE)
-            list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid())
+            list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(line))
             sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
 
@@ -1932,12 +1959,12 @@ class EditFrame(wx.Frame):
                 self.create_edit_panel()
                 self.Layout()
 
-    def open_loop_list_grid(self):
+    def open_loop_list_grid(self, line):
 
         class LoopListGrid(wx.Dialog):
             """Dialog to edit loop list elements"""
 
-            def __init__(self, parent):
+            def __init__(self, parent, list_values):
                 wx.Dialog.__init__(self, parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetTitle(f'Loop List: - {parent.workflow_name}')
@@ -1953,17 +1980,15 @@ class EditFrame(wx.Frame):
                 # self.grid.SetRowSize(0, 60)
                 # self.grid.SetColSize(0, 120)
 
-                # And set grid cell contents as strings
-                self.grid.SetCellValue(0, 0, 10*'Element 1')
-                self.grid.SetCellValue(1, 0, 'Element 2')
-                self.grid.SetCellValue(2, 0, '...')
+                # set grid cell values
+                for index, loop_var_value in enumerate(list_values):
+                    self.grid.SetCellValue(index, 0, loop_var_value)
 
                 self.vbox_table.Add(self.grid, 1, wx.EXPAND)
 
                 # add action widgets
                 self.vbox_action = wx.BoxSizer(wx.VERTICAL)
 
-                # add action buttons
                 clear_btn = wx.Button(self, label='Clear')
                 self.vbox_action.Add(clear_btn)
 
@@ -1979,7 +2004,6 @@ class EditFrame(wx.Frame):
                 fg_sizer.AddGrowableCol(0, 0)
                 fg_sizer.AddGrowableRow(0, 0)
 
-                # print(f'vbox_action.GetSize(): {vbox_action.GetMinSize()}')
                 self.vbox_action_width = int(self.vbox_action.GetMinSize()[0])
 
                 vbox_container = wx.BoxSizer(wx.HORIZONTAL)
@@ -1999,7 +2023,10 @@ class EditFrame(wx.Frame):
                 self.grid.resize_rows()
                 self.Refresh()
 
-        loop_list_dlg = LoopListGrid(self)
+        loop_list_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
+        loop_list_values = loop_list_text.split('```')  # split based on '```' delimiter
+
+        loop_list_dlg = LoopListGrid(self, loop_list_values)
 
         if loop_list_dlg.ShowModal() == wx.ID_OK:
             pass
