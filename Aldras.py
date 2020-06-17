@@ -2,22 +2,23 @@ import ctypes
 import math
 import os
 import re
+import string
 import threading
 import time
 import webbrowser
-import string
-from screeninfo import get_monitors
+from platform import system as system_platform
+
+import clipboard
+import numpy as np
 import pandas as pd
 import pyautogui as pyauto
 import wx
 import wx.adv
+import wx.grid
 import wx.lib.expando
 import wx.lib.scrolledpanel
-import wx.grid
 from pynput import keyboard, mouse
-from platform import system as system_platform
-import numpy as np
-import clipboard
+from screeninfo import get_monitors
 
 
 # TODO comments
@@ -102,7 +103,8 @@ def conditional_comparison_in(input_string):
 
 
 def matching_widget_in_edit_row(sizer, name):
-    matching_widgets = [child.GetWindow() for child in sizer.GetChildren() if child.GetWindow() and child.GetWindow().GetName() == name]
+    matching_widgets = [child.GetWindow() for child in sizer.GetChildren() if
+                        child.GetWindow() and child.GetWindow().GetName() == name]
 
     if not matching_widgets:
         return ValueError(f'No matching widgets with name \'{name}\'')
@@ -851,7 +853,8 @@ class CustomGrid(wx.grid.Grid):
         self.can_change_num_rows = can_change_num_rows
         self.can_change_num_cols = can_change_num_cols
 
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda
+            event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
         self.Bind(wx.EVT_CHAR_HOOK, self.on_frame_char_hook)  # when key is pressed
 
     def resize_rows(self):
@@ -869,6 +872,10 @@ class CustomGrid(wx.grid.Grid):
 
         elif event.ControlDown() and event.GetKeyCode() == 67:  # if CTRL+c
             # TODO process copy events
+            pass
+
+        elif event.ControlDown() and event.GetKeyCode() == 90:  # if CTRL+z
+            # TODO process undo events
             pass
 
         else:
@@ -921,21 +928,22 @@ class CustomGrid(wx.grid.Grid):
         col_selection = self.GetGridCursorCol()
 
         # loop through grid indices as determined by the clipboard excel array size
-        for row_index in range(row_selection, row_selection+excel_array.shape[0]):
+        for row_index in range(row_selection, row_selection + excel_array.shape[0]):
             if row_index >= self.GetNumberRows():
                 if not self.can_change_num_rows:
                     break  # stop if cannot change the number of rows
                 else:
                     self.AppendRows()
 
-            for column_index in range(col_selection, col_selection+excel_array.shape[1]):
+            for column_index in range(col_selection, col_selection + excel_array.shape[1]):
                 if column_index >= self.GetNumberCols():
                     if not self.can_change_num_cols:
                         break  # stop if cannot change the number of rows
                     else:
                         self.AppendCols()
 
-                self.SetCellValue(row_index, column_index, excel_array[row_index-row_selection, column_index-col_selection])
+                self.SetCellValue(row_index, column_index,
+                                  excel_array[row_index - row_selection, column_index - col_selection])
 
         self.resize_rows()
 
@@ -961,7 +969,8 @@ class EditFrame(wx.Frame):
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 25
         self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
-        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list', 'For each row in table', 'For each column in table']
+        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list', 'For each row in table',
+                               'For each column in table']
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
@@ -988,7 +997,8 @@ class EditFrame(wx.Frame):
 
         # create delete X bitmaps
         self.delete_x_size = 2 * (0.7 * self.move_btn_size[0],)
-        self.delete_x_bitmap, self.delete_x_bitmap_hover = create_bitmaps('delete_x', self.delete_x_size, hover_red=True)
+        self.delete_x_bitmap, self.delete_x_bitmap_hover = create_bitmaps('delete_x', self.delete_x_size,
+                                                                          hover_red=True)
 
         # create back btn bitmaps
         self.back_btn_size = 2 * (1.2 * self.move_btn_size[0],)
@@ -1172,7 +1182,8 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
+                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[
+                    0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()
@@ -1217,11 +1228,13 @@ class EditFrame(wx.Frame):
                 end_indent = True
             else:
                 # add move buttons
-                self.vbox_move = wx.BoxSizer(wx.VERTICAL)  # ---------------------------------------------------------------
+                self.vbox_move = wx.BoxSizer(
+                    wx.VERTICAL)  # ---------------------------------------------------------------
 
                 self.move_up = self.create_bitmap_btn(self.edit, self.move_btn_size, self.up_arrow_bitmap, 'move_up',
                                                       'Move command up')
-                self.move_up.Bind(wx.EVT_BUTTON, lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
+                self.move_up.Bind(wx.EVT_BUTTON,
+                                  lambda event, sizer_trap=self.hbox_edit: self.move_command_up(sizer_trap))
                 self.vbox_move.Add(self.move_up, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
                 if index == 0:
                     self.move_up.Show(False)  # hide move up button if topmost command
@@ -1229,7 +1242,8 @@ class EditFrame(wx.Frame):
                 # add spacer to preserve width (mainly for when adding single command)
                 self.vbox_move.Add(self.vbox_move.GetSize()[0], -1, 0)
 
-                self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap, 'move_down',
+                self.move_down = self.create_bitmap_btn(self.edit, self.move_btn_size, self.down_arrow_bitmap,
+                                                        'move_down',
                                                         'Move command down')
                 self.move_down.Bind(wx.EVT_BUTTON,
                                     lambda event, sizer_trap=self.hbox_edit: self.move_command_down(sizer_trap))
@@ -1320,7 +1334,7 @@ class EditFrame(wx.Frame):
             self.create_delete_x_btn(self.hbox_edit)
 
         indent_static_text.SetLabel(self.indents[-1] * 20 * ' ')
-        self.indents.insert(index+1, self.next_indent)
+        self.indents.insert(index + 1, self.next_indent)
 
         self.edit_row_widget_sizers.insert(index, self.hbox_edit)
 
@@ -1526,7 +1540,7 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        text_value = str(line).replace('type:', '').replace('Type:', '')
+        text_value = str(line).replace('type:', '').replace('Type:', '').replace('``nl``', '\n')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
         sizer.Add(text_to_type, 1, wx.EXPAND)
@@ -1649,7 +1663,8 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT, validator=self.CharValidator('variable_name', self))
+        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT,
+                                          validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
         variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_name'))
@@ -1660,9 +1675,12 @@ class EditFrame(wx.Frame):
         change_font(equals_text, size=14)
         sizer.Add(equals_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=assignment_variable_value_in(line))
+        variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
+                                                              value=assignment_variable_value_in(line).replace('``nl``',
+                                                                                                               '\n'))
         variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_value'))
-        variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED, lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
+                                  lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
@@ -1683,16 +1701,18 @@ class EditFrame(wx.Frame):
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
-        operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations), choices=self.conditional_operations, style=wx.CB_READONLY)
+        operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations),
+                                choices=self.conditional_operations, style=wx.CB_READONLY)
         operation.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_operator'))
 
         operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
-        comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
+        comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
+                                                          value=conditional_comparison_in(line).replace('``nl``', '\n'))
         comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
-                                  lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+                              lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
         self.next_indent += 1
@@ -1738,15 +1758,17 @@ class EditFrame(wx.Frame):
                 self.create_delete_x_btn(loop_sizer)
                 self.Layout()
 
-        behavior_cb = wx.ComboBox(self.edit, value=behavior_value, choices=self.loop_behaviors, style=wx.CB_READONLY, name='loop_behavior')
-        behavior_cb.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=sizer: add_loop_details(sizer_trap, event.GetString(), modification=True))
+        behavior_cb = wx.ComboBox(self.edit, value=behavior_value, choices=self.loop_behaviors, style=wx.CB_READONLY,
+                                  name='loop_behavior')
+        behavior_cb.Bind(wx.EVT_COMBOBOX,
+                         lambda event, sizer_trap=sizer: add_loop_details(sizer_trap, event.GetString(),
+                                                                          modification=True))
         behavior_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(behavior_cb, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
         add_loop_details(sizer, behavior_value, modification=False)
 
         self.next_indent += 1
-
 
     def open_delete_command_dialog(self):
 
@@ -2092,18 +2114,19 @@ class EditFrame(wx.Frame):
 
                 self.SetSizer(vbox_container)
                 vbox_container.SetSizeHints(self)
-                self.SetMinSize(wx.Size(vbox_container.GetSize()[0]+120, wx.GetDisplaySize()[1]/2))
+                self.SetMinSize(wx.Size(vbox_container.GetSize()[0] + 120, wx.GetDisplaySize()[1] / 2))
                 self.SetSize(self.GetMinSize())
                 self.Center()
                 self.Bind(wx.EVT_SIZE, self.resize_window)
 
                 # set offset to autosize list column
-                self.list_column_width_offset = self.vbox_action.GetMinSize()[0] + self.grid.GetRowLabelSize() + 2*margins + spacing_between_fg_sizers + 34
+                self.list_column_width_offset = self.vbox_action.GetMinSize()[
+                                                    0] + self.grid.GetRowLabelSize() + 2 * margins + spacing_between_fg_sizers + 34
 
             def resize_window(self, event):
                 """On window resize, resize column of list grid as well"""
                 event.Skip()
-                self.grid.SetColSize(0, self.GetSize()[0]-self.list_column_width_offset)
+                self.grid.SetColSize(0, self.GetSize()[0] - self.list_column_width_offset)
                 self.grid.resize_rows()
                 self.Refresh()
 
@@ -2139,21 +2162,22 @@ class EditFrame(wx.Frame):
             if command_value in ['Conditional', 'Loop']:  # move entire indented block
 
                 # find index of last element of indented block
-                next_same_indent_offset = self.indents[index+1:].index(self.indents[index])  # distance between indent start and end
+                next_same_indent_offset = self.indents[index + 1:].index(
+                    self.indents[index])  # distance between indent start and end
                 insertion_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before this value
 
-                if self.indents[index] > self.indents[index-1]:  # if moving out of surrounding indent block
-                    for ii in range(index, insertion_index+1):
+                if self.indents[index] > self.indents[index - 1]:  # if moving out of surrounding indent block
+                    for ii in range(index, insertion_index + 1):
                         self.indents[ii] -= 1  # decrease indent of entire indent block
-                elif self.indents[index] < self.indents[index-1]:  # if moving into surrounding indent block
-                    for ii in range(index, insertion_index+1):
+                elif self.indents[index] < self.indents[index - 1]:  # if moving into surrounding indent block
+                    for ii in range(index, insertion_index + 1):
                         self.indents[ii] += 1  # increase indent of entire indent block
                 for indent_index in range(index, insertion_index):
                     self.set_indent(indent_index)  # reset indents of indent block
 
             else:  # move single command row
-                if self.indents[index] != self.indents[index-1]:
-                    self.indents[index] = self.indents[index-1]  # set indent to preceding
+                if self.indents[index] != self.indents[index - 1]:
+                    self.indents[index] = self.indents[index - 1]  # set indent to preceding
                     self.set_indent(index)
 
             self.vbox_edit.Detach(index - 1)
@@ -2181,13 +2205,16 @@ class EditFrame(wx.Frame):
             if command_value in ['Conditional', 'Loop']:  # move entire indented block
 
                 # find index of last element of indented block
-                next_same_indent_offset = self.indents[index + 1:].index(self.indents[index])  # distance between indent start and end
+                next_same_indent_offset = self.indents[index + 1:].index(
+                    self.indents[index])  # distance between indent start and end
                 detachment_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before this value
 
-                if self.indents[index] > self.indents[detachment_index + 2]:  # if moving out of surrounding indent block
+                if self.indents[index] > self.indents[
+                    detachment_index + 2]:  # if moving out of surrounding indent block
                     for ii in range(index, detachment_index + 1):
                         self.indents[ii] -= 1  # decrease indent of entire indent block
-                elif self.indents[index] < self.indents[detachment_index + 2]:  # if moving into surrounding indent block
+                elif self.indents[index] < self.indents[
+                    detachment_index + 2]:  # if moving into surrounding indent block
                     for ii in range(index, detachment_index + 1):
                         self.indents[ii] += 1  # increase indent of entire indent block
                 for indent_index in range(index, detachment_index):
@@ -2208,7 +2235,8 @@ class EditFrame(wx.Frame):
             self.edit.Thaw()
 
     def set_indent(self, indent_index):
-        matching_widget_in_edit_row(self.edit_row_widget_sizers[indent_index], 'indent_text').SetLabel(self.indents[indent_index] * 20 * ' ')
+        matching_widget_in_edit_row(self.edit_row_widget_sizers[indent_index], 'indent_text').SetLabel(
+            self.indents[indent_index] * 20 * ' ')
         self.Layout()
 
     def refresh_move_buttons(self):
@@ -2227,7 +2255,8 @@ class EditFrame(wx.Frame):
 
         # hide move down button of indent block start if nothing below indent block
         if self.indents[-2:] != [0, 0]:
-            indent_block_start_index = len(self.indents[:-2]) - 1 - self.indents[:-2][::-1].index(0)  # index of last zero before indent block
+            indent_block_start_index = len(self.indents[:-2]) - 1 - self.indents[:-2][::-1].index(
+                0)  # index of last zero before indent block
             self.show_move_button(self.edit_row_container_sizers[indent_block_start_index], 'down', False)
 
         self.Layout()
@@ -2358,32 +2387,33 @@ class EditFrame(wx.Frame):
         elif new_action == 'Conditional':
             self.lines[index] = 'If {{~Var~}} equals ~value~ {'
             self.create_conditional_row(self.lines[index], sizer)
-            self.indents[index+1] += 1
+            self.indents[index + 1] += 1
 
             # add end of indent block
-            self.lines.insert(index+1, '}')
-            self.create_command_sizer(index+1, self.lines[index+1])
+            self.lines.insert(index + 1, '}')
+            self.create_command_sizer(index + 1, self.lines[index + 1])
             self.vbox_edit.Layout()
 
         elif new_action == 'Loop':
             self.lines[index] = 'Loop multiple times 5 {'
             self.create_loop_sizer(self.lines[index], sizer)
-            self.indents[index+1] += 1
+            self.indents[index + 1] += 1
 
             # add end of indent block
-            self.lines.insert(index+1, '}')
-            self.create_command_sizer(index+1, self.lines[index+1])
+            self.lines.insert(index + 1, '}')
+            self.create_command_sizer(index + 1, self.lines[index + 1])
             self.vbox_edit.Layout()
 
         self.create_delete_x_btn(sizer)
 
         if old_action in ['Conditional', 'Loop']:
             # delete end bracket for associated block
-            index_of_end_bracket = index + [line.strip() for line in self.lines[index:]].index('}')  # index of start in list plus index of end in sublist
+            index_of_end_bracket = index + [line.strip() for line in self.lines[index:]].index(
+                '}')  # index of start in list plus index of end in sublist
             self.delete_command(self.edit_row_widget_sizers[index_of_end_bracket])
 
             # decrease indents for associated block
-            for indent_index in range(index+1, index_of_end_bracket):
+            for indent_index in range(index + 1, index_of_end_bracket):
                 self.indents[indent_index] -= 1
                 self.set_indent(indent_index)
 
@@ -2453,10 +2483,11 @@ class EditFrame(wx.Frame):
 
     def text_change(self, sizer, event, command_type):
         index = self.edit_row_widget_sizers.index(sizer)
+        input_one_lined = event.GetString().replace('\n', '``nl``')
         if command_type == 'type':
-            self.lines[index] = f'Type:{event.GetString()}'
+            self.lines[index] = f'Type:{input_one_lined}'
         elif command_type == 'comment':
-            self.lines[index] = f'#{event.GetString()}'
+            self.lines[index] = f'#{input_one_lined}'
         elif command_type == 'assign_var_name':
             old_variable_name = variable_name_in(self.lines[index])
             new_variable_name = event.GetString()
@@ -2468,23 +2499,21 @@ class EditFrame(wx.Frame):
             self.variables[new_variable_name] = variable_value  # add new variable
         elif command_type == 'assign_var_value':
             variable_name = variable_name_in(self.lines[index])
-            new_variable_value = event.GetString()
-
+            new_variable_value = input_one_lined
             self.lines[index] = f'Assign {{{{~{variable_name}~}}}}={new_variable_value}'
-
             self.variables[variable_name] = new_variable_value
         elif command_type == 'conditional_var_name':
             variable_name = event.GetString()
-            self.lines[index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
-            print(self.lines[index])
+            self.lines[
+                index] = f'If {{{{~{variable_name}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{conditional_comparison_in(self.lines[index])}~ {{'
         elif command_type == 'conditional_comparison_operator':
             comparison_operator = event.GetString()
-            self.lines[index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {comparison_operator} ~{conditional_comparison_in(self.lines[index])}~ {{'
-            print(self.lines[index])
+            self.lines[
+                index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {comparison_operator} ~{conditional_comparison_in(self.lines[index])}~ {{'
         elif command_type == 'conditional_comparison_value':
-            comparison_value = event.GetString()
-            self.lines[index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
-            print(self.lines[index])
+            comparison_value = input_one_lined
+            self.lines[
+                index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
 
         event.Skip()
 
@@ -3225,7 +3254,8 @@ class EditFrame(wx.Frame):
             # attempting to show move button of command row of line concluding indent block ("}") but not valid so do nothing
             return
         else:
-            return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[up_down_index].GetWindow().Show(show)
+            return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
+                up_down_index].GetWindow().Show(show)
 
     # do_nothing = lambda: None
     @staticmethod
