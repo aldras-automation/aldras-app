@@ -114,7 +114,7 @@ def matching_widget_in_edit_row(sizer, name):
         raise ValueError(f'Multiple matching widgets with name \'{name}\'')
 
 
-def setup_frame(self, status_bar=False):
+def setup_frame(self, status_bar=False, edit_frame=False):
     """Setup standardized frame characteristics including file menu and status bar."""
 
     def on_about(_):
@@ -401,27 +401,83 @@ def setup_frame(self, status_bar=False):
     if status_bar:
         self.CreateStatusBar()
 
-    # setting up the file menu
+    # create menu bar
+    menu_bar = wx.MenuBar()
+
+    ############
+    # set up the file menu
     file_menu = wx.Menu()
+
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f' Information about {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_about, menu_about)
-    menu_mouse_monitor = file_menu.Append(wx.ID_ANY, 'Mouse monitor',
-                                          f' {self.software_info.name} mouse monitoring tool')
-    self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
+
+    menu_new = file_menu.Append(wx.ID_ANY, 'New...', f' Create new {self.software_info.name} workflow')
+    # self.Bind(wx.EVT_MENU, ???, menu_new)
+
+    menu_open = file_menu.Append(wx.ID_ANY, 'Open...', f' Open existing {self.software_info.name} workflow')
+    # self.Bind(wx.EVT_MENU, ???, menu_open)
+
+    menu_save = file_menu.Append(wx.ID_ANY, 'Save', f' Save {self.software_info.name} workflow')
+    # self.Bind(wx.EVT_MENU, ???, menu_save)
+    if not edit_frame:
+        menu_save.Enable(False)
+
+    menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f' Save {self.software_info.name} workflow as...')
+    # self.Bind(wx.EVT_MENU, ???, menu_save_as)
+    if not edit_frame:
+        menu_save_as.Enable(False)
+
+    menu_preferences = file_menu.Append(wx.ID_ANY, 'Preferences', f' {self.software_info.name} settings')
+    # self.Bind(wx.EVT_MENU, ???, menu_preferences)
+
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f' Exit {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
 
-    # Menu for open option (future)
-    # menu_open = file_menu.Append(wx.ID_OPEN, 'Open', ' Open a file to edit')
-    # self.Bind(wx.EVT_MENU, self.OnOpen, menu_open)
+    menu_bar.Append(file_menu, 'File')  # add the file menu to the menu bar
 
-    # create menu bar
-    menu_bar = wx.MenuBar()
-    menu_bar.Append(file_menu, 'File')  # Adding the file menu to the menu bar
+    ############
+    # set up the insert menu
+    if edit_frame:
+        insert_menu = wx.Menu()
+        variables_menu = wx.Menu()
+        builtin_variables_menu = wx.Menu()
+
+        internet_connection = builtin_variables_menu.Append(wx.ID_ANY, 'internet.connection', f'Boolean value evaluating if connected to internet.')
+        # self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
+
+        variables_menu.AppendSubMenu(builtin_variables_menu, 'Built-In')
+        insert_menu.AppendSubMenu(variables_menu, 'Variables')
+
+        menu_bar.Append(insert_menu, 'Insert')  # add the insert menu to the menu bar
+
+    ############
+    # set up the tools menu
+    tools_menu = wx.Menu()
+
+    menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor', f' {self.software_info.name} mouse monitoring tool')
+    self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
+
+    menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
+
+    ############
+    # set up the help menu
+    help_menu = wx.Menu()
+
+    menu_tutorial = help_menu.Append(wx.ID_ANY, 'Tutorial', f' {self.software_info.name} tutorial')
+    # self.Bind(wx.EVT_MENU, ???, menu_tutorial)
+
+    menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f' {self.software_info.name} edit guide')
+    # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
+
+    menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback', f' Submit feedback to the {self.software_info.name} team')
+    # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
+
+    menu_bar.Append(help_menu, 'Help')  # add the insert menu to the menu bar
+
+    ############
+    # finalize setup
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
-
     self.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
-
     self.SetBackgroundColour('white')  # set background color
 
 
@@ -961,7 +1017,7 @@ class EditFrame(wx.Frame):
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
         self.variables = dict()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}')
-        setup_frame(self, status_bar=True)
+        setup_frame(self, status_bar=True, edit_frame=True)
 
         # set parameters
         self.margin = 10
