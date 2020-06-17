@@ -1303,7 +1303,7 @@ class EditFrame(wx.Frame):
 
                 elif ('loop' in self.line_first_word) and ('{' in self.line):
                     self.add_command_combobox('Loop')
-                    self.create_loop_row(line_orig)
+                    self.create_loop_sizer(line_orig)
 
                 else:
                     raise ValueError
@@ -1697,7 +1697,7 @@ class EditFrame(wx.Frame):
         self.no_right_spacer = True
         self.next_indent += 1
 
-    def create_loop_row(self, line, sizer=None):
+    def create_loop_sizer(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if not sizer:
             sizer = self.hbox_edit
@@ -1707,31 +1707,46 @@ class EditFrame(wx.Frame):
         except IndexError:
             raise ValueError
 
-        behavior_cb = wx.ComboBox(self.edit, value=behavior_value, choices=self.loop_behaviors, style=wx.CB_READONLY)
-        # behavior_cb.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
+        def add_loop_details(loop_sizer, action, modification):
+
+            # TODO change line
+            for child in reversed(loop_sizer.GetChildren()):
+                if child.GetWindow() == matching_widget_in_edit_row(loop_sizer, 'loop_behavior'):
+                    break
+                else:
+                    child.Show(False)
+                    loop_sizer.Remove(loop_sizer.GetChildren().index(child))
+
+            if action == 'Forever':
+                return
+            elif action == 'Multiple times':
+                loop_iteration_number = wx.TextCtrl(self.edit, value=re.search(r'\d+', line).group(),
+                                                    size=wx.Size(self.software_info.coord_width, -1),
+                                                    style=wx.TE_RICH | wx.TE_CENTRE,
+                                                    validator=self.CharValidator('only_integer', self))
+                loop_iteration_number.SetMaxLength(4)
+                # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
+                loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+                loop_sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
+
+            elif action == 'For each element in list':
+                list_btn = wx.Button(self.edit, label='List')
+                list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(line))
+                loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+
+            if modification:
+                self.create_delete_x_btn(loop_sizer)
+                self.Layout()
+
+        behavior_cb = wx.ComboBox(self.edit, value=behavior_value, choices=self.loop_behaviors, style=wx.CB_READONLY, name='loop_behavior')
+        behavior_cb.Bind(wx.EVT_COMBOBOX, lambda event, sizer_trap=sizer: add_loop_details(sizer_trap, event.GetString(), modification=True))
         behavior_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(behavior_cb, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
-        if behavior_value == 'Forever':
-            return
-        elif behavior_value == 'Multiple times':
-            loop_iteration_number = wx.TextCtrl(self.edit, value=re.search(r'\d+', line).group(), size=wx.Size(self.software_info.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
-            loop_iteration_number.SetMaxLength(4)
-            # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
-            loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
-            sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
-        elif behavior_value == 'For each element in list':
-            list_btn = wx.Button(self.edit, label='List')
-            list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(line))
-            sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        # comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
-        # comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
-        # comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
-        #                           lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
-        # sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
+        add_loop_details(sizer, behavior_value, modification=False)
 
         self.next_indent += 1
+
 
     def open_delete_command_dialog(self):
 
@@ -2343,6 +2358,16 @@ class EditFrame(wx.Frame):
         elif new_action == 'Conditional':
             self.lines[index] = 'If {{~Var~}} equals ~value~ {'
             self.create_conditional_row(self.lines[index], sizer)
+            self.indents[index+1] += 1
+
+            # add end of indent block
+            self.lines.insert(index+1, '}')
+            self.create_command_sizer(index+1, self.lines[index+1])
+            self.vbox_edit.Layout()
+
+        elif new_action == 'Loop':
+            self.lines[index] = 'Loop multiple times 5 {'
+            self.create_loop_sizer(self.lines[index], sizer)
             self.indents[index+1] += 1
 
             # add end of indent block
