@@ -285,7 +285,7 @@ def setup_frame(self, status_bar=False):
                     self.flex_grid.AddGrowableCol(1, 1)
 
                     self.vbox_outer.AddStretchSpacer()
-                    self.vbox_outer.Add(self.flex_grid, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, self.margin)
+                    self.vbox_outer.Add(self.flex_grid, 0, wx.EXPAND | wx.ALL, self.margin)
                     self.vbox_outer.AddStretchSpacer()
 
                     self.SetSizerAndFit(self.vbox_outer)
@@ -333,7 +333,7 @@ def setup_frame(self, status_bar=False):
 
                                     freeze_type = wx.StaticText(self.parent.freeze_panel, label=freeze)
                                     change_font(freeze_type, size=11, style=wx.ITALIC, color=3 * (60,))
-                                    hbox_freeze.Add(freeze_type, 0, wx.ALIGN_RIGHT | wx.EAST, 5)
+                                    hbox_freeze.Add(freeze_type, 0, wx.EAST, 5)
 
                                     self.parent.vbox_freeze.Insert(0, hbox_freeze, 0, wx.EXPAND | wx.NORTH | wx.SOUTH,
                                                                    5)
@@ -1209,7 +1209,7 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(indent_static_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
         try:
-            if self.line.strip() == '}':  # do not add row for end of conditional
+            if self.line.strip() == '}':  # do not add row for ending indent bracket
                 self.next_indent -= 1
                 if self.next_indent < 0:
                     self.next_indent = 0
@@ -1240,15 +1240,15 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
                 # ----------------------------------------------------------------------------------------------------------
 
-                self.line_first_word = self.line.split(' ')[0]
+                self.line_first_word = self.line.strip().split(' ')[0]
 
                 if not self.line:  # if line is empty, insert spacers
                     self.hbox_edit.Insert(0, 0, 50, 1)
                     self.hbox_edit.Insert(0, 0, 0, 1)
 
-                elif self.line.replace(' ', '')[0] == '#':  # workflow comment
+                elif '#' in self.line_first_word:  # workflow comment
                     self.add_command_combobox('Comment')
-                    self.create_comment_row(self.line, line_orig)
+                    self.create_comment_row(line_orig)
 
                 elif '-mouse' in self.line_first_word:
                     self.add_command_combobox('Mouse button')
@@ -1298,12 +1298,10 @@ class EditFrame(wx.Frame):
                     self.create_assign_var_row(line_orig)
 
                 elif ('if' in self.line_first_word) and ('{' in self.line):
-                    self.next_indent += 1
                     self.add_command_combobox('Conditional')
                     self.create_conditional_row(line_orig)
 
                 elif ('loop' in self.line_first_word) and ('{' in self.line):
-                    # self.next_indent += 1
                     self.add_command_combobox('Loop')
                     self.create_loop_row(line_orig)
 
@@ -1312,14 +1310,16 @@ class EditFrame(wx.Frame):
 
         except ValueError:
             # display indecipherable line
+            self.add_command_combobox('')
             self.hbox_edit.AddSpacer(10)
             self.unknown_cmd_msg = non_flickering_static_text(self.edit, f'**Unknown command from line: "{self.line}"')
             change_font(self.unknown_cmd_msg, size=9, style=wx.ITALIC, color=3 * (70,))
             self.hbox_edit.Add(self.unknown_cmd_msg, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        self.create_delete_x_btn(self.hbox_edit)
+        if not end_indent:
+            self.create_delete_x_btn(self.hbox_edit)
 
-        indent_static_text.SetLabel(self.indents[-1] * 12 * ' ')
+        indent_static_text.SetLabel(self.indents[-1] * 20 * ' ')
         self.indents.insert(index+1, self.next_indent)
 
         self.edit_row_widget_sizers.insert(index, self.hbox_edit)
@@ -1624,11 +1624,11 @@ class EditFrame(wx.Frame):
 
         self.create_point_input(line, sizer)
 
-    def create_comment_row(self, line, line_orig, sizer=None):
+    def create_comment_row(self, line_orig, sizer=None):
         if not sizer:
             sizer = self.hbox_edit
 
-        sizer.AddStretchSpacer(2)
+        sizer.AddStretchSpacer()
 
         comment_label = non_flickering_static_text(self.edit, '#')
         comment_contrast = 100
@@ -1641,7 +1641,7 @@ class EditFrame(wx.Frame):
         comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                      lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         comment.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'comment'))
-        sizer.Add(comment, 1, wx.EXPAND)
+        sizer.Add(comment, 2, wx.EXPAND)
         self.no_right_spacer = True
 
     def create_assign_var_row(self, line, sizer=None):
@@ -1695,6 +1695,7 @@ class EditFrame(wx.Frame):
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
+        self.next_indent += 1
 
     def create_loop_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1720,18 +1721,17 @@ class EditFrame(wx.Frame):
             loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
             sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
         elif behavior_value == 'For each element in list':
-            list_btn = wx.Button(self.edit, label='List')#, style=wx.BORDER_NONE | wx.BU_EXACTFIT)
+            list_btn = wx.Button(self.edit, label='List')
             list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(line))
             sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-
-
-
 
         # comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit, value=conditional_comparison_in(line))
         # comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
         # comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
         #                           lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         # sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
+
+        self.next_indent += 1
 
     def open_delete_command_dialog(self):
 
@@ -1880,12 +1880,12 @@ class EditFrame(wx.Frame):
                 self.button_array.AddSpacer(5)
                 self.cancel_btn = wx.Button(self.adv_edit_panel, wx.ID_CANCEL, label='Cancel')
                 self.button_array.Add(self.cancel_btn)
-                self.hbox_bottom_btns.Add(self.button_array, 0, wx.ALIGN_RIGHT)
+                self.hbox_bottom_btns.Add(self.button_array)
 
                 self.vbox_inner.Add(self.hbox_bottom_btns, 0, wx.EXPAND)
                 # ------------------------------------------------------------------------------------------------------
 
-                self.vbox_outer.Add(self.vbox_inner, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.ALL, 10)
+                self.vbox_outer.Add(self.vbox_inner, 1, wx.EXPAND | wx.ALL, 10)
 
                 self.adv_edit_panel.SetSizer(self.vbox_outer)
                 self.vbox_outer.SetSizeHints(self)
@@ -2121,7 +2121,7 @@ class EditFrame(wx.Frame):
 
             self.edit.Freeze()
 
-            if command_value in ['Conditional']:  # move entire indented block
+            if command_value in ['Conditional', 'Loop']:  # move entire indented block
 
                 # find index of last element of indented block
                 next_same_indent_offset = self.indents[index+1:].index(self.indents[index])  # distance between indent start and end
@@ -2163,7 +2163,7 @@ class EditFrame(wx.Frame):
 
             self.edit.Freeze()
 
-            if command_value in ['Conditional']:  # move entire indented block
+            if command_value in ['Conditional', 'Loop']:  # move entire indented block
 
                 # find index of last element of indented block
                 next_same_indent_offset = self.indents[index + 1:].index(self.indents[index])  # distance between indent start and end
@@ -2193,7 +2193,7 @@ class EditFrame(wx.Frame):
             self.edit.Thaw()
 
     def set_indent(self, indent_index):
-        matching_widget_in_edit_row(self.edit_row_widget_sizers[indent_index], 'indent_text').SetLabel(self.indents[indent_index] * 12 * ' ')
+        matching_widget_in_edit_row(self.edit_row_widget_sizers[indent_index], 'indent_text').SetLabel(self.indents[indent_index] * 20 * ' ')
         self.Layout()
 
     def refresh_move_buttons(self):
@@ -2293,7 +2293,7 @@ class EditFrame(wx.Frame):
 
         if new_action == 'Comment':
             self.lines[index] = '#'
-            self.create_comment_row(self.lines[index].lower(), self.lines[index], sizer)
+            self.create_comment_row(self.lines[index], sizer)
 
         elif new_action == 'Mouse button':
             self.lines[index] = f'Left-mouse click at {old_coords}'
@@ -2352,7 +2352,7 @@ class EditFrame(wx.Frame):
 
         self.create_delete_x_btn(sizer)
 
-        if old_action in ['Conditional']:
+        if old_action in ['Conditional', 'Loop']:
             # delete end bracket for associated block
             index_of_end_bracket = index + [line.strip() for line in self.lines[index:]].index('}')  # index of start in list plus index of end in sublist
             self.delete_command(self.edit_row_widget_sizers[index_of_end_bracket])
