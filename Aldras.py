@@ -66,10 +66,10 @@ def assignment_variable_value_in(input_string):
 
 def conditional_operation_in(input_string, operations):
     """Return matching operation between ~}} and ~ syntax"""
-    operation_in = input_string.split('~')[2].replace('}}', '').lower()
+    operation_in = re.search(r'(?<=~}})(.*?)(?=~)', input_string).group().lower()
     matching_operations_in = [element for element in operations if element.lower() in operation_in]
     if len(matching_operations_in) == 0:
-        raise ValueError('Invalid conditional operation')
+        return ''
     return matching_operations_in[0]
 
 

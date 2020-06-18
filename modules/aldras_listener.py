@@ -353,4 +353,3 @@ if __name__ == '__main__':  # debugging capability by running module file as mai
     listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
     listener_thread.start()
     listener_thread.join()
-
