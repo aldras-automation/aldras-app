@@ -3334,13 +3334,6 @@ def main():
     cpu_num_cores = psutil.cpu_count()
     print(f'cpu_num_cores: {cpu_num_cores}')
 
-    # get display size
-    global display_size
-    display_size = (
-        sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
-    print(f'display_size: {display_size}')
-    print()
-
     global mouse_monitor_frame
     mouse_monitor_frame = None
 
@@ -3350,7 +3343,11 @@ def main():
 
 
 if __name__ == '__main__':
-    global capslock
-    global display_size
     global mouse_monitor_frame
+
+    # get display size
+    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    print(f'display_size: {display_size}')
+
     main()
+

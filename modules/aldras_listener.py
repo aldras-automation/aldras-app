@@ -112,7 +112,8 @@ class ListenerThread(threading.Thread):
                             elif self.ctrls == 3:
                                 event_message = 'Completed!'
 
-                        wx.PostEvent(self.parent, ResultEvent(event_message, self.parent.thread_event_id))
+                        if __name__ != '__main__':
+                            wx.PostEvent(self.parent, ResultEvent(event_message, self.parent.thread_event_id))
 
                         if self.ctrls >= 3:
                             self.ctrls = 0
@@ -328,19 +329,17 @@ class ResultEvent(wx.PyEvent):
 
 def coords_of(line):
     """Returns tuple of parsed coordinates from string."""
-    coords = line.split('(')[1].replace(' ', '').replace(')', '').split(',')
-    try:
-        x_coord = int(coords[0])
-    except ValueError:  # usually occurs when string is empty
-        x_coord = 0
 
     try:
-        y_coord = int(coords[1])
-    except ValueError:  # usually occurs when string is empty
+        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[0]  # find first integer between '(' and','
+    except IndexError:
+        x_coord = 0
+    try:
+        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[0]  # find first integer between ',' and')'
+    except IndexError:
         y_coord = 0
 
-    coords = (x_coord, y_coord)
-    return coords
+    return x_coord, y_coord
 
 
 def eliminate_duplicates(list_with_duplicates):
@@ -354,3 +353,4 @@ if __name__ == '__main__':  # debugging capability by running module file as mai
     listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
     listener_thread.start()
     listener_thread.join()
+
