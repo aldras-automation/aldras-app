@@ -3332,10 +3332,6 @@ def main():
     cpu_num_cores = psutil.cpu_count()
     print(f'cpu_num_cores: {cpu_num_cores}')
 
-    # get capslock status on windows
-    global capslock
-    capslock = bool(ctypes.WinDLL("User32.dll").GetKeyState(0x14))  # TODO test on other platforms
-
     # global variable needed for threading event receiving
     global EVT_RESULT_ID
     EVT_RESULT_ID = wx.NewIdRef()

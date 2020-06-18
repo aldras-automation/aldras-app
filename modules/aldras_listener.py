@@ -5,7 +5,7 @@ from pynput import keyboard, mouse
 import wx
 import re
 import pyautogui as pyauto
-import time
+from ctypes import WinDLL
 
 
 class ListenerThread(threading.Thread):
@@ -19,7 +19,6 @@ class ListenerThread(threading.Thread):
         self.record = record
         self.debug = debug
         self.in_action = False
-        self.capslock = False
         if self.record:
             self.recording_lines = []
         try:
@@ -68,14 +67,10 @@ class ListenerThread(threading.Thread):
                 """
                 output = str(key).strip('\'').lower()  # strip single quotes and lower
 
-                if 'caps_lock' in output:  # if self.capslock pressed, swap self.capslock state
-                    if key_action == 'press':
-                        self.capslock = not self.capslock
-                    return
-
                 if self.in_action:
                     if not output.startswith('key'):  # change case if output is alphanumeric and capslock is active
-                        if self.capslock:
+                        # get capslock status on windows
+                        if WinDLL("User32.dll").GetKeyState(0x14):  # TODO test on other platforms
                             output = output.swapcase()
 
                     if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
