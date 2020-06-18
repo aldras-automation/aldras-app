@@ -352,8 +352,7 @@ def coords_of(line):
 def eliminate_duplicates(list_with_duplicates):
     """Eliminates duplicates from list"""
     seen = set()
-    seen_add = seen.add
-    return [x for x in list_with_duplicates if not (x in seen or seen_add(x))]
+    return [x for x in list_with_duplicates if not (x in seen or seen.add(x))]
 
 
 if __name__ == '__main__':  # debugging capability by running module file as main
