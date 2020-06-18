@@ -2441,9 +2441,10 @@ class EditFrame(wx.Frame):
                     self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
                                      parent_dialog.Position[1])
 
-                    self.Connect(-1, -1, int(EVT_RESULT_ID),
+                    self.thread_event_id = wx.NewIdRef()
+                    self.Connect(-1, -1, int(self.thread_event_id),
                                  self.read_thread_event_input)  # Process message events from threads
-                    self.listener_thread = ListenerThread(self, EVT_RESULT_ID, record=True)
+                    self.listener_thread = ListenerThread(self, record=True)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
 
@@ -2705,8 +2706,9 @@ class EditFrame(wx.Frame):
                                      parent_dialog.Position[1])
 
                     # Process message events from threads
-                    self.Connect(-1, -1, int(EVT_RESULT_ID), self.read_thread_event_input)
-                    self.listener_thread = ListenerThread(self, EVT_RESULT_ID, listen_to_key=True, listen_to_mouse=False)
+                    self.thread_event_id = wx.NewIdRef()
+                    self.Connect(-1, -1, int(self.thread_event_id), self.read_thread_event_input)
+                    self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
 
@@ -2825,9 +2827,9 @@ class EditFrame(wx.Frame):
 
                             try:
                                 if not self.keep_running:
-                                    wx.PostEvent(self.parent, ResultEvent('Failsafe triggered', EVT_RESULT_ID))
+                                    wx.PostEvent(self.parent, ResultEvent('Failsafe triggered', self.parent.thread_event_id))
                                 else:
-                                    wx.PostEvent(self.parent, ResultEvent('Completed!', EVT_RESULT_ID))
+                                    wx.PostEvent(self.parent, ResultEvent('Completed!', self.parent.thread_event_id))
                             except RuntimeError:
                                 print('Runtime error code kTPbmaAW66')
                                 raise SystemError('Runtime error code kTPbmaAW66')
@@ -3332,10 +3334,6 @@ def main():
     cpu_num_cores = psutil.cpu_count()
     print(f'cpu_num_cores: {cpu_num_cores}')
 
-    # global variable needed for threading event receiving
-    global EVT_RESULT_ID
-    EVT_RESULT_ID = wx.NewIdRef()
-
     # get display size
     global display_size
     display_size = (
@@ -3353,7 +3351,6 @@ def main():
 
 if __name__ == '__main__':
     global capslock
-    global EVT_RESULT_ID
     global display_size
     global mouse_monitor_frame
     main()

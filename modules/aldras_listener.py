@@ -9,11 +9,10 @@ from ctypes import WinDLL
 
 
 class ListenerThread(threading.Thread):
-    def __init__(self, parent, event_id, listen_to_key=True, listen_to_mouse=True, record=False, debug=False):
+    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         self.parent = parent
-        self.event_id = event_id
         self.listen_to_key = listen_to_key
         self.listen_to_mouse = listen_to_mouse
         self.record = record
@@ -113,7 +112,7 @@ class ListenerThread(threading.Thread):
                             elif self.ctrls == 3:
                                 event_message = 'Completed!'
 
-                        wx.PostEvent(self.parent, ResultEvent(event_message, self.event_id))
+                        wx.PostEvent(self.parent, ResultEvent(event_message, self.parent.thread_event_id))
 
                         if self.ctrls >= 3:
                             self.ctrls = 0
