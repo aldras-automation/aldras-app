@@ -57,105 +57,84 @@ class ListenerThread(threading.Thread):
             # print(output, end='')
 
         if self.listen_to_key:
-            def on_press_recording(key):
-                """Process keystroke press for keyboard listener for ListenerThread instances."""
-                output = str(key).strip('\'').lower()
-                coords = None
-                if self.in_action:
-                    if output == 'key.caps_lock':  # if self.capslock pressed, swap self.capslock state
+            def process_keystroke(key, key_action):
+                """
+                Process keystroke press or release for keyboard listener for ListenerThread instances.
+
+                key: parameter passed by pynput listener identifying the key
+                key_pressed: parameter passed to determine if key pressed or released
+                    True: key is pressed
+                    False: key is released
+                """
+                output = str(key).strip('\'').lower()  # strip single quotes and lower
+
+                if 'caps_lock' in output:  # if self.capslock pressed, swap self.capslock state
+                    if key_action == 'press':
                         self.capslock = not self.capslock
-                    if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
-                        coords = tuple(pyauto.position())
-                    if not output.startswith('key'):  # i.e., if output is alphanumeric
-                        if self.capslock:
-                            output = output.swapcase()
-                    if (output.startswith('\\') and output != '\\\\') or (
-                            output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-                        print('ctrl stuff')
-                        output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
-                    if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
-                        output_to_file_bkup('Key \\ press')
-                        output = ''
-                    if output == '\"\'\"':
-                        output = '\''
-                    if (not output.startswith('key.ctrl_r')) and (
-                            not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
-                        if 'key.' in output:
-                            output = output.replace('key.', '')
-                        output = f'Key {output} press'
-                        if coords:
-                            output = f'{output} at {coords}'
-                        output_to_file_bkup(output)
-                if 'key.ctrl_r' in output:
-                    self.ctrls += 1
-                    print(f'{self.ctrls}  ', end='')
-                    event_message = 'Error!'
-                    if not self.in_action:
-                        if self.ctrls == 1:
-                            event_message = 'Action in 3'
-                        elif self.ctrls == 2:
-                            event_message = 'Action in 3 2'
-                        elif self.ctrls == 3:
-                            event_message = 'Action'
-                    elif self.in_action:
-                        if self.ctrls == 1:
-                            event_message = 'Stopping in 3'
-                        elif self.ctrls == 2:
-                            event_message = 'Stopping in 3 2'
-                        elif self.ctrls == 3:
-                            event_message = 'Completed!'
+                    return
 
-                    try:
-                        wx.PostEvent(self.parent, ResultEvent(event_message, self.event_id))
-                    except Exception as e:
-                        print(e)
-
-                    # TODO revisit and optimize
-                    if self.ctrls >= 3:
-                        self.ctrls = 0
-                        self.in_action = not self.in_action
-
-            def on_release_recording(key):
-                """Process keystroke release for keyboard listener for ListenerThread instances."""
-                # TODO revisit and optimize
-                output = str(key).strip('\'').lower()
-                coords = None
                 if self.in_action:
-                    if output == 'key.ctrl_l':  # if left ctrl is pressed, record current mouse position
-                        coords = tuple(pyauto.position())
-                    if not output.startswith('key'):  # i.e., if output is alphanumeric
+                    if not output.startswith('key'):  # change case if output is alphanumeric and capslock is active
                         if self.capslock:
                             output = output.swapcase()
-                    if (output.startswith('\\') and output != '\\\\') or (
-                            output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
-                        output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
-                    if output == '\\\\':  # weird issues with setting output='//' and getting it to print only one slash
-                        output_to_file_bkup('Key \\ release')
-                        output = ''
-                    if output == '\"\'\"':
-                        output = '\''
-                    if (not output.startswith('key.ctrl_r')) and (
-                            not output.startswith('key.caps_lock')):  # ignore shift and ctrl_r keys
-                        if 'key.' in output:
-                            output = output.replace('key.', '')
-                        output = f'Key {output} release'
-                        if coords:
-                            output = f'{output} at {coords}'
-                        output_to_file_bkup(output)
 
-            # self.key_listener = keyboard.Listener(on_press=on_press_recording, on_release=on_release_recording)
-            # self.key_listener = keyboard.Listener(on_press=lambda key: print(key), on_release=on_release_recording)
+                    if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
+                        try:
+                            output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
+                        except KeyError:
+                            output = 'UNKNOWN-HOTKEY'
+
+                    # eliminate 'key.' and make substitutions for backslash (\), single quote ('), and right ctrl (should be replaced with left)
+                    output = output.replace('key.', '').replace('\\\\', '\\').replace('\"\'\"', '\'')
+
+                    output = f'Key {output} {key_action}'
+
+                    if 'ctrl_l' in output:  # if left ctrl is pressed, add current mouse position
+                        output = f'{output} at {tuple(pyauto.position())}'
+
+                    output_to_file_bkup(output)
+
+                # process right ctrls
+                if key_action == 'press':
+                    if 'ctrl_r' in output:
+                        self.ctrls += 1
+                        if self.debug:
+                            print(f'ctrl_r {self.ctrls}  ', end='')
+
+                        event_message = 'Error 693578!'
+                        if not self.in_action:
+                            if self.ctrls == 1:
+                                event_message = 'Action in 3'
+                            elif self.ctrls == 2:
+                                event_message = 'Action in 3 2'
+                            elif self.ctrls == 3:
+                                event_message = 'Action'
+
+                        elif self.in_action:
+                            if self.ctrls == 1:
+                                event_message = 'Stopping in 3'
+                            elif self.ctrls == 2:
+                                event_message = 'Stopping in 3 2'
+                            elif self.ctrls == 3:
+                                event_message = 'Completed!'
+
+                        wx.PostEvent(self.parent, ResultEvent(event_message, self.event_id))
+
+                        if self.ctrls >= 3:
+                            self.ctrls = 0
+                            self.in_action = not self.in_action  # toggle other keystroke recognition
+
+            self.key_listener = keyboard.Listener(on_press=lambda key: process_keystroke(key, 'press'), on_release=lambda key: process_keystroke(key, 'release'))
             self.key_listener.start()
 
         if self.listen_to_mouse:
-            def on_click_recording(x, y, button, pressed):
+            def process_click(x, y, button, pressed):
                 """Process click for mouse listener for ListenerThread instances."""
                 if self.in_action:
                     button = str(button).replace('Button.', '').capitalize()
                     output_to_file_bkup(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
 
-            self.mouse_listener = mouse.Listener(on_click=on_click_recording)
-            # self.mouse_listener = mouse.Listener(on_click=lambda *_: print('yeet'))
+            self.mouse_listener = mouse.Listener(on_click=process_click)
             self.mouse_listener.start()
 
         if __name__ == '__main__':  # allows function to be tested by running module file as main
@@ -167,8 +146,6 @@ class ListenerThread(threading.Thread):
     def abort(self):
         """Abort worker thread."""
         # Method for use by main thread to signal an abort
-
-        print('aborted')
 
         if self.listen_to_key:
             self.key_listener.stop()
