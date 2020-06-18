@@ -75,7 +75,7 @@ def conditional_operation_in(input_string, operations):
 
 def conditional_comparison_in(input_string):
     """Return matching operation between ~ and ~ syntax after variable {{~var~}}"""
-    return input_string.replace('{{~', '').replace('~}}', '').split('~')[1]
+    return re.search(r'(?<=~)(.*?)(?=~)', input_string.replace('{{~', '').replace('~}}', '')).group()
 
 
 def matching_widget_in_edit_row(sizer, name):
