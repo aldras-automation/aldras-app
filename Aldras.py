@@ -19,6 +19,7 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 from screeninfo import get_monitors
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
+from modules.aldras_core import *
 
 
 # TODO comments
@@ -35,48 +36,6 @@ from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, elim
 # TODO investigate speed optimization with multiprocessing
 # TODO premium feature separation (any workflow destination)
 # TODO add Mac specific instructions (control --> command key) possibly ESC key?
-
-
-def float_in(input_string):
-    """Returns parsed float from string."""
-    floats = re.findall(r'[-+]?\d*\.\d+|\d+', input_string)
-    if not floats:
-        output = float(0)
-    elif len(floats) > 1:
-        output = [float(indiv_float) for indiv_float in floats]
-    else:
-        output = float(floats[0])
-
-    return output
-
-
-def variable_name_in(input_string):
-    """Return variable in string between {{~ and ~}} syntax"""
-    variables = re.findall(r'(?<={{~)(.*?)(?=~}})', input_string)
-    if len(variables) == 1:
-        return variables[0]
-    else:
-        raise ValueError
-
-
-def assignment_variable_value_in(input_string):
-    """Return string after equals sign"""
-    return '='.join(input_string.split('=')[1:])
-
-
-def conditional_operation_in(input_string, operations):
-    """Return matching operation between ~}} and ~ syntax"""
-    operation_in = re.search(r'(?<=~}})(.*?)(?=~)', input_string).group().lower()
-    matching_operations_in = [element for element in operations if element.lower() in operation_in]
-    if len(matching_operations_in) == 0:
-        return ''
-    return matching_operations_in[0]
-
-
-def conditional_comparison_in(input_string):
-    """Return matching operation between ~ and ~ syntax after variable {{~var~}}"""
-    return re.search(r'(?<=~)(.*?)(?=~)', input_string.replace('{{~', '').replace('~}}', '')).group()
-
 
 def matching_widget_in_edit_row(sizer, name):
     matching_widgets = [child.GetWindow() for child in sizer.GetChildren() if
@@ -2721,8 +2680,6 @@ class EditFrame(wx.Frame):
                             """Init Worker Thread Class."""
                             threading.Thread.__init__(self, daemon=True)
                             self.parent = parent
-                            # global execution_thread
-                            # execution_thread = self
 
                         def run(self):
                             """Run Worker Thread."""
