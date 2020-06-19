@@ -1,14 +1,12 @@
-import ctypes
 import math
 import os
-import re
 import string
 import threading
 import time
 import webbrowser
 from platform import system as system_platform
 
-import clipboard
+import pyperclip
 import numpy as np
 import pyautogui as pyauto
 import wx
@@ -565,7 +563,7 @@ class CustomGrid(wx.grid.Grid):
         self.resize_rows()
 
     def paste_clipboard(self):
-        clipboard_text = clipboard.paste()
+        clipboard_text = pyperclip.paste()
         excel_list = clipboard_text.split('\r\n')  # split rows
         excel_list = [row.split('\t') for row in excel_list]  # split columns
         try:
