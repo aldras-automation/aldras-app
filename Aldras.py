@@ -1467,9 +1467,8 @@ class EditFrame(wx.Frame):
             indices_to_delete = delete_dlg.get_selections()
             if indices_to_delete:  # if indices_to_delete is not empty
                 for index in sorted(indices_to_delete, reverse=True):
-                    del (self.lines[index])
-                    del (self.edit_row_container_sizers[index])
-                    del (self.edit_row_widget_sizers[index])
+                    for list_to_change in self.tracker_lists:  # delete records from tracker_lists
+                        del (list_to_change[index])
                     self.vbox_edit.Show(index, False)
                     self.vbox_edit.Remove(index)
                 self.vbox_edit.Layout()
@@ -1490,8 +1489,8 @@ class EditFrame(wx.Frame):
         except IndexError:
             pass
 
+        self.refresh_move_buttons()
         self.Layout()
-
         self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
                                        isinstance(child.GetWindow(), wx.ComboBox)][-1])
         self.Layout()
@@ -1792,7 +1791,7 @@ class EditFrame(wx.Frame):
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
 
-        for list_to_change in self.tracker_lists:
+        for list_to_change in self.tracker_lists:  # delete records from tracker_lists
             del (list_to_change[index])
 
         self.vbox_edit.Show(index, False)
