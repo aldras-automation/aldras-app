@@ -687,7 +687,7 @@ class EditFrame(wx.Frame):
 
         # add plus command button
         self.plus_btn = wx.Button(self, label='+', size=(20, -1))
-        self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_add_command_dialog())
+        self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.add_command())
         config_status_and_tooltip(self, self.plus_btn, 'Add commands', 'Add commands')
         self.hbox_line_mods.Add(self.plus_btn, 1)
 
@@ -1475,10 +1475,12 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.Layout()
                 self.Layout()
 
-    def open_add_command_dialog(self):
+    def add_command(self):
         self.default_new_command = f'Left-mouse click at {self.default_coords}'
         self.lines.append(self.default_new_command)
         new_line_index = len(self.lines) - 1
+
+        self.Freeze()
 
         self.create_command_sizer(new_line_index, self.lines[-1])
 
@@ -1488,12 +1490,12 @@ class EditFrame(wx.Frame):
         except IndexError:
             pass
 
-        self.vbox_edit.Layout()
         self.Layout()
 
         self.edit.ScrollChildIntoView([child.GetWindow() for child in list(self.hbox_edit.GetChildren()) if
                                        isinstance(child.GetWindow(), wx.ComboBox)][-1])
         self.Layout()
+        self.Thaw()
 
     def open_reorder_dialog(self):
         reorder_character_cutoff = 50
@@ -1795,8 +1797,9 @@ class EditFrame(wx.Frame):
 
         self.vbox_edit.Show(index, False)
         self.vbox_edit.Remove(index)
-        self.vbox_edit.Layout()
+        self.Freeze()
         self.Layout()
+        self.Thaw()
 
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -1901,6 +1904,8 @@ class EditFrame(wx.Frame):
             else:
                 self.show_move_button(sizer_indiv, 'up', True)
                 self.show_move_button(sizer_indiv, 'down', True)
+
+        print(self.indents)
 
         # hide move down button of indent block start if nothing below indent block
         if self.indents[-2:] != [0, 0]:
