@@ -1126,7 +1126,7 @@ class EditFrame(wx.Frame):
         mouse_button = wx.ComboBox(self.edit, value=button, choices=self.software_info.mouse_buttons,
                                    style=wx.CB_READONLY)
         mouse_button.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
-        mouse_button.Bind(wx.EVT_COMBOBOX, lambda event: self.mouse_command_change(sizer, event))
+        mouse_button.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'mouse'))
 
         if 'click' in line:
             action = 'Click'
@@ -1140,7 +1140,7 @@ class EditFrame(wx.Frame):
         mouse_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.mouse_actions,
                                    style=wx.CB_READONLY)
         mouse_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
-        mouse_action.Bind(wx.EVT_COMBOBOX, lambda event: self.mouse_command_change(sizer, event))
+        mouse_action.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'mouse'))
 
         sizer.Add(mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(10)
@@ -1163,7 +1163,7 @@ class EditFrame(wx.Frame):
                                    value=str(x_val),
                                    validator=self.CharValidator('only_integer', self))
         self.x_coord.SetMaxLength(len(str(display_size[0])))
-        self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, x=True))
+        self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
@@ -1171,7 +1171,7 @@ class EditFrame(wx.Frame):
                                    value=str(y_val),
                                    validator=self.CharValidator('only_integer', self))
         self.y_coord.SetMaxLength(len(str(display_size[1])))
-        self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.coord_change(sizer, event, y=True))
+        self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1191,7 +1191,7 @@ class EditFrame(wx.Frame):
 
         text_value = str(line).replace('type:', '').replace('Type:', '').replace('``nl``', '\n')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
-        text_to_type.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'type'))
+        text_to_type.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'type'))
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1204,7 +1204,7 @@ class EditFrame(wx.Frame):
 
         wait_entry = wx.TextCtrl(self.edit, value=value, style=wx.TE_RICH,
                                  validator=self.CharValidator('only_digit', self))
-        wait_entry.Bind(wx.EVT_TEXT, lambda event: self.wait_change(sizer, event))
+        wait_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'wait'))
         wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
@@ -1261,7 +1261,7 @@ class EditFrame(wx.Frame):
         for index, key in enumerate(combination):
             hotkey_cb = wx.ComboBox(self.edit, value=str(key), choices=self.software_info.all_keys,
                                     style=wx.CB_READONLY)
-            hotkey_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.hotkey_change(sizer, event))
+            hotkey_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'hotkey'))
             hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
             sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1303,7 +1303,7 @@ class EditFrame(wx.Frame):
         change_font(comment, size=10, style=wx.ITALIC, color=3 * (comment_contrast,))
         comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                      lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
-        comment.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'comment'))
+        comment.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'comment'))
         sizer.Add(comment, 2, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1316,7 +1316,7 @@ class EditFrame(wx.Frame):
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
-        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_name'))
+        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'assign_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1327,7 +1327,7 @@ class EditFrame(wx.Frame):
         variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
                                                               value=assignment_variable_value_in(line).replace('``nl``',
                                                                                                                '\n'))
-        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'assign_var_value'))
+        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -1346,20 +1346,20 @@ class EditFrame(wx.Frame):
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
-        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_var_name'))
+        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations),
                                 choices=self.conditional_operations, style=wx.CB_READONLY)
-        operation.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_operator'))
+        operation.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_operator'))
 
         operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
                                                           value=conditional_comparison_in(line).replace('``nl``', '\n'))
-        comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'conditional_comparison_value'))
+        comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                               lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -2069,72 +2069,143 @@ class EditFrame(wx.Frame):
         self.Layout()
         self.Thaw()
 
-    def mouse_command_change(self, sizer, event):
-        index = self.edit_row_widget_sizers.index(sizer)
-        command_change = event.GetString()  # can be mouse_button change or mouse_action change
-
-        if command_change == 'Left':
-            self.lines[index] = re.compile(re.escape('right'), re.IGNORECASE).sub('Left', self.lines[index])
-
-        elif command_change == 'Right':
-            self.lines[index] = re.compile(re.escape('left'), re.IGNORECASE).sub('Right', self.lines[index])
-
-        elif command_change in self.software_info.mouse_actions:  # click, press, or release
-            for replace_word in [x for x in self.software_info.mouse_actions if
-                                 x != command_change]:  # loop through remaining actions
-                self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change.lower(),
-                                                                                           self.lines[index])
-
-    def coord_change(self, sizer, event, x=None, y=None):
-        command_change = event.GetString()
-        index = self.edit_row_widget_sizers.index(sizer)
-        text_ctrl = event.GetEventObject()
-        text_ctrl.SetForegroundColour(wx.BLACK)
-        # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
-        error_static_text.SetLabel('')
-
-        # validate input and display feedback
-        try:
-            if not command_change.isdecimal() and command_change:
-                raise ValueError()
-            line_split_on_comma = self.lines[index].split(',')
-            if x:
-                if command_change:
-                    x_coord = command_change
-                else:
-                    x_coord = '0'
-                if int(x_coord) > display_size[0]:
-                    raise ValueError()
-                self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
-
-            elif y:
-                if command_change:
-                    y_coord = command_change
-                else:
-                    y_coord = '0'
-                if int(y_coord) > display_size[1]:
-                    raise ValueError()
-                self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
-
-        except ValueError:
-            text_ctrl.SetForegroundColour(wx.RED)
-            # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
-            if x:
-                error_msg = f'The max X value is {display_size[0]} px.'
-            elif y:
-                error_msg = f'The max Y value is {display_size[1]} px.'
-            else:
-                error_msg = f'The maximum coordinates are {display_size} px.'
-            error_static_text.SetLabel(error_msg)
-            self.command_row_error = True
-            event.Skip()
-
-    def text_change(self, sizer, event, command_type):
+    def command_parameter_change(self, sizer, event, command_type):
         index = self.edit_row_widget_sizers.index(sizer)
         input_one_lined = event.GetString().replace('\n', '``nl``')
-        if command_type == 'type':
+        if command_type == 'mouse':
+            index = self.edit_row_widget_sizers.index(sizer)
+            command_change = event.GetString()  # can be mouse_button change or mouse_action change
+
+            # replace left or right
+            if command_change in self.software_info.mouse_buttons:
+                for replace_word in [x for x in self.software_info.mouse_buttons if x != command_change]:  # loop through remaining actions
+                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change, self.lines[index]).capitalize()
+
+            # replace click, press, or release
+            elif command_change in self.software_info.mouse_actions:
+                for replace_word in [x for x in self.software_info.mouse_actions if x != command_change]:  # loop through remaining actions
+                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change, self.lines[index]).capitalize()
+
+        elif 'coord' in command_type:
+            command_change = event.GetString()
+            text_ctrl = event.GetEventObject()
+            text_ctrl.SetForegroundColour(wx.BLACK)
+            # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
+            error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
+            error_static_text.SetLabel('')
+
+            # validate input and display feedback
+            try:
+                if not command_change.isdecimal() and command_change:
+                    raise ValueError()
+                line_split_on_comma = self.lines[index].split(',')
+                if 'x' in command_type:
+                    if command_change:
+                        x_coord = command_change
+                    else:
+                        x_coord = '0'
+                    if int(x_coord) > display_size[0]:
+                        raise ValueError()
+                    self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
+
+                elif 'y' in command_type:
+                    if command_change:
+                        y_coord = command_change
+                    else:
+                        y_coord = '0'
+                    if int(y_coord) > display_size[1]:
+                        raise ValueError()
+                    self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
+
+            except ValueError:
+                text_ctrl.SetForegroundColour(wx.RED)
+                # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
+                if 'x' in command_type:
+                    error_msg = f'The max X value is {display_size[0]} px.'
+                elif 'y' in command_type:
+                    error_msg = f'The max Y value is {display_size[1]} px.'
+                else:
+                    error_msg = f'The maximum coordinates are {display_size} px.'
+                error_static_text.SetLabel(error_msg)
+                self.command_row_error = True
+                event.Skip()
+
+        elif command_type == 'type':
             self.lines[index] = f'Type:{input_one_lined}'
+        elif command_type == 'wait':
+            command_change = event.GetString()
+            text_ctrl = event.GetEventObject()
+            text_ctrl.SetMaxLength(0)  # discards previous max length assignment
+            text_ctrl.SetForegroundColour(wx.BLACK)
+            # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
+            error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
+            error_static_text.SetForegroundColour(wx.RED)
+            error_static_text.SetLabel('')
+            too_long = False
+
+            # validate input and display feedback
+            intervals = (
+                ('days', 86400),  # 60 * 60 * 24
+                ('hrs', 3600),  # 60 * 60
+                ('mins', 60),
+                ('secs', 1),
+            )
+
+            def verbalize_time(seconds, granularity=4):
+                result = []
+                for name, count in intervals:
+                    value = seconds // count
+                    if value:
+                        seconds -= value * count
+                        if value == 1:
+                            name = name.rstrip('s')
+                        # result.append("{} {}".format(value, name))
+                        result.append(f'{int(value)} {name}')
+                return ', '.join(result[:granularity])
+
+            try:
+                wait_time = float(command_change)
+                if wait_time > 604800:  # more than a week
+                    error_static_text.SetLabel('The max wait time is one week.')
+                    too_long = True
+                    raise ValueError
+                elif wait_time > 60:  # more than a day
+                    error_static_text.SetLabel(verbalize_time(wait_time))
+                    error_static_text.SetForegroundColour(wx.BLACK)
+                self.lines[index] = f'Wait {float_in(command_change)}'
+            except ValueError:
+                if command_change:  # if the wait entry is not empty
+                    text_ctrl.SetForegroundColour(wx.RED)
+                    if not too_long:
+                        error_static_text.SetLabel('Invalid number.')
+                    if text_ctrl.GetValue() != '.':
+                        text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
+                    self.command_row_error = True
+                    self.lines[index] = f'Wait {float_in(command_change)}'
+                else:
+                    self.lines[index] = 'Wait 0'
+
+        elif command_type == 'key':
+            new_key = event.GetString()
+            old_key = self.lines[index].split(' ')[1]
+            self.lines[index] = self.lines[index].replace(old_key, new_key)
+        elif command_type == 'key_action':
+            new_action = event.GetString()
+            old_action = self.lines[index].split(' ')[2]
+            self.lines[index] = self.lines[index].replace(old_action, new_action)
+        elif command_type == 'hotkey':
+            # only cycle through last number of comboboxes because only they are the hotkey inputs
+            combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
+                           isinstance(child.GetWindow(), wx.ComboBox)][-self.num_hotkeys::]  # TODO refine method with widget names to improve reliability
+            combination = eliminate_duplicates(combination)
+
+            try:
+                combination.remove('')  # remove blank hotkey placeholders
+            except ValueError:
+                pass
+
+            self.lines[index] = f'Hotkey {" + ".join(combination)}'
+
         elif command_type == 'comment':
             self.lines[index] = f'#{input_one_lined}'
         elif command_type == 'assign_var_name':
@@ -2165,88 +2236,6 @@ class EditFrame(wx.Frame):
                 index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
 
         event.Skip()
-
-    def wait_change(self, sizer, event):
-        index = self.edit_row_widget_sizers.index(sizer)
-        command_change = event.GetString()
-        text_ctrl = event.GetEventObject()
-        text_ctrl.SetMaxLength(0)  # discards previous max length assignment
-        text_ctrl.SetForegroundColour(wx.BLACK)
-        # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
-        error_static_text = matching_widget_in_edit_row(sizer, 'error_display')
-        error_static_text.SetForegroundColour(wx.RED)
-        error_static_text.SetLabel('')
-        too_long = False
-
-        # validate input and display feedback
-        intervals = (
-            ('days', 86400),  # 60 * 60 * 24
-            ('hrs', 3600),  # 60 * 60
-            ('mins', 60),
-            ('secs', 1),
-        )
-
-        def verbalize_time(seconds, granularity=4):
-            result = []
-            for name, count in intervals:
-                value = seconds // count
-                if value:
-                    seconds -= value * count
-                    if value == 1:
-                        name = name.rstrip('s')
-                    # result.append("{} {}".format(value, name))
-                    result.append(f'{int(value)} {name}')
-            return ', '.join(result[:granularity])
-
-        try:
-            wait_time = float(command_change)
-            if wait_time > 604800:  # more than a week
-                error_static_text.SetLabel('The max wait time is one week.')
-                too_long = True
-                raise ValueError
-            elif wait_time > 60:  # more than a day
-                error_static_text.SetLabel(verbalize_time(wait_time))
-                error_static_text.SetForegroundColour(wx.BLACK)
-            self.lines[index] = f'Wait {float_in(command_change)}'
-        except ValueError:
-            if command_change:  # if the wait entry is not empty
-                text_ctrl.SetForegroundColour(wx.RED)
-                if not too_long:
-                    error_static_text.SetLabel('Invalid number.')
-                if text_ctrl.GetValue() != '.':
-                    text_ctrl.SetMaxLength(text_ctrl.GetLineLength(0))
-                self.command_row_error = True
-                self.lines[index] = f'Wait {float_in(command_change)}'
-            else:
-                self.lines[index] = 'Wait 0'
-
-    def key_change(self, sizer, event):
-        index = self.edit_row_widget_sizers.index(sizer)
-        new_key = event.GetString()
-        old_key = self.lines[index].split(' ')[1]
-        self.lines[index] = self.lines[index].replace(old_key, new_key)
-
-    def key_action_change(self, sizer, event):
-        index = self.edit_row_widget_sizers.index(sizer)
-        new_action = event.GetString()
-        old_action = self.lines[index].split(' ')[2]
-        self.lines[index] = self.lines[index].replace(old_action, new_action)
-
-    def hotkey_change(self, sizer, _):
-        index = self.edit_row_widget_sizers.index(sizer)
-
-        # only cycle through last number of comboboxes because only they are the hotkey inputs
-        combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
-                       isinstance(child.GetWindow(), wx.ComboBox)][-self.num_hotkeys::]
-
-        combination = eliminate_duplicates(combination)
-
-        try:
-            combination.remove('')  # remove blank hotkey placeholders
-        except ValueError:
-            pass
-
-        self.lines[index] = f'Hotkey {" + ".join(combination)}'
 
     def on_record(self):
 
@@ -2910,7 +2899,7 @@ class EditFrame(wx.Frame):
     @staticmethod
     def do_nothing(_):  # might want to use to redirect scroll inputs
         """Function to bind events to be disabled."""
-        pass
+        pass  # TODO replace with scrolling functionality of panel at some point
 
     def close_window(self, _=None, quitall=False):
         if self.lines_when_launched != self.lines or self.workflow_name_when_launched != self.workflow_name:
