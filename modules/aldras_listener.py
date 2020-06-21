@@ -25,7 +25,8 @@ class ListenerThread(threading.Thread):
                 ctrl_keys_file = f'../data/ctrl_keys_ref.csv'
             else:
                 ctrl_keys_file = f'{self.parent.parent.parent.software_info.data_directory}ctrl_keys_ref.csv'
-            self.ctrl_keys_df = pd.read_csv(ctrl_keys_file, names=['Translation', 'Code'])  # reference for all ctrl hotkeys (registered as separate key)
+            self.ctrl_keys_df = pd.read_csv(ctrl_keys_file, names=['Translation',
+                                                                   'Code'])  # reference for all ctrl hotkeys (registered as separate key)
             self.ctrl_keys_df = self.ctrl_keys_df.set_index('Code')
         except FileNotFoundError as _:
             print('FileNotFoundError: [Errno 2] File ctrl_keys_ref.csv does not exist: \'ctrl_keys_ref.csv\'')
@@ -43,7 +44,7 @@ class ListenerThread(threading.Thread):
             if self.record:
                 self.recording_lines.append(output)
                 if self.debug:
-                    print(f'self.recording_lines: {self.recording_lines}')
+                    # print(f'self.recording_lines: {self.recording_lines}')
                     pass
 
             # output = (output + end)
@@ -67,12 +68,14 @@ class ListenerThread(threading.Thread):
                 output = str(key).strip('\'').lower()  # strip single quotes and lower
 
                 if self.in_action:
+
                     if not output.startswith('key'):  # change case if output is alphanumeric and capslock is active
                         # get capslock status on windows
                         if WinDLL("User32.dll").GetKeyState(0x14):  # TODO test on other platforms
                             output = output.swapcase()
 
-                    if (output.startswith('\\') and output != '\\\\') or (output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
+                    if (output.startswith('\\') and output != '\\\\') or (
+                            output.startswith('<') and output.endswith('>')):  # substituted ctrl+_key_ value
                         try:
                             output = self.ctrl_keys_df['Translation'][output.replace('<', '').replace('>', '')]
                         except KeyError:
@@ -86,7 +89,8 @@ class ListenerThread(threading.Thread):
                     if 'ctrl_l' in output:  # if left ctrl is pressed, add current mouse position
                         output = f'{output} at {tuple(pyauto.position())}'
 
-                    output_to_file_bkup(output)
+                    if 'ctrl_r' not in output:  # ignore right ctrl trigger keystrokes
+                        output_to_file_bkup(output)
 
                 # process right ctrls
                 if key_action == 'press':
@@ -94,6 +98,8 @@ class ListenerThread(threading.Thread):
                         self.ctrls += 1
                         if self.debug:
                             print(f'ctrl_r {self.ctrls}  ', end='')
+                            if self.ctrls == 3:
+                                print()
 
                         event_message = 'Error 693578!'
                         if not self.in_action:
@@ -119,7 +125,11 @@ class ListenerThread(threading.Thread):
                             self.ctrls = 0
                             self.in_action = not self.in_action  # toggle other keystroke recognition
 
-            self.key_listener = keyboard.Listener(on_press=lambda key: process_keystroke(key, 'press'), on_release=lambda key: process_keystroke(key, 'release'))
+                            if __name__ == '__main__' and not self.in_action:
+                                self.abort()
+
+            self.key_listener = keyboard.Listener(on_press=lambda key: process_keystroke(key, 'press'),
+                                                  on_release=lambda key: process_keystroke(key, 'release'))
             self.key_listener.start()
 
         if self.listen_to_mouse:
@@ -153,7 +163,9 @@ class ListenerThread(threading.Thread):
 
     def compile_recording(self):
         lines = self.recording_lines
-        print(f'lines: {lines}')
+        if self.debug:
+            print(f'\nCOMPILING RECORDING LINES {50*"-"}\n')
+            print(f'lines: {lines}\n')
 
         mouse_hover_duration = 0.5
         processed_lines = []
@@ -169,21 +181,22 @@ class ListenerThread(threading.Thread):
             'shift': ['shift_l', 'shift_r'],
             'cmd': ['cmd_l', 'cmd_r'],
         }
+        # lines = ['Key n press', 'Key o press', 'Key n release','Key v press', 'Key o release', 'Key v release', '']
         for index, line in enumerate(lines[:-1]):  # loop through all lines except last one (should be release)
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
-                print(f'line: {line}')
                 key = line.split(' ')[1]
-                print(f'key: {key}')
+                if self.debug:
+                    print(f'\tline: {line}')
+                    print(f'\tkey: {key}')
 
-                if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release',
-                                                                                                      ''):  # if line press is same as next line release
-                    print('ONLY TAP')
+                if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release', ''):  # if line press is same as next line release
+                    print('\tONLY TAP')
 
                     skip = True  # skip the next (release) line
                     if len(key) > 1:  # special functions
 
-                        if 'ctrl_l' in line:  # if left ctrl is in line signalling mouse-move
+                        if 'ctrl_l' in line:  # if left ctrl is in line indicating mouse-move
                             coords = coords_of(line)
                             line = f'Mouse-move to {coords}{break_code}Wait {mouse_hover_duration}{break_code}'
                         elif key == 'space':
@@ -191,10 +204,10 @@ class ListenerThread(threading.Thread):
 
                         else:
                             if 'mouse' in line:
-                                tap_replacement = 'click'
+                                press_replacement = 'click'
                             else:
-                                tap_replacement = 'tap'
-                            line = lines[index].replace('press', tap_replacement)
+                                press_replacement = 'tap'
+                            line = lines[index].replace('press', press_replacement)
 
                         processed_line = f'{break_code}{line}{break_code}'
 
@@ -202,37 +215,59 @@ class ListenerThread(threading.Thread):
                         processed_line = f'{break_code}Type:{key}{break_code}'
 
                 else:  # line press not equal to next line release
-                    print(f'NOT TAP: {line}')
+                    print('\tNOT TAP')
                     if 'Key' in line:
+                        check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
+                            1}  # all hotkeys are single chars
+                        check_alphabet_letters = {(x.isalpha() and len(x)==1) for x in pressed_keys} == {
+                            True}  # all hotkeys are single alphabetic characters
+                        check_symbol_chars = {x for x in pressed_keys if
+                                              x in symbol_chars}  # any hotkeys are symbols
+
                         if 'press' in line:
                             if index != len(lines) - 1:
-                                pressed_keys.append(key)
-                                pressed_keys = eliminate_duplicates(pressed_keys)
-                                register_hotkey = True
-                                line = ''
-
-                        if 'release' in line and key in pressed_keys:
-                            # execute hotkey
-                            if register_hotkey:
-                                check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
-                                    1}  # all hotkeys are single chars
-                                check_alphabet_letters = {x.isalpha() for x in pressed_keys if x != 'shift'} == {
-                                    True}  # all hotkeys are alphabet
-                                check_symbol_chars = {x for x in pressed_keys if
-                                                      x in symbol_chars}  # any hotkeys are symbols
-                                if 'shift' in pressed_keys and check_single_chars and (
-                                        check_alphabet_letters or check_symbol_chars):
-                                    line = f"Type:{''.join([x.capitalize() for x in pressed_keys if x != 'shift'])}"
-                                    # pressed_keys = []
+                                if check_alphabet_letters and len(key) == 1 and key.isalpha():
+                                    line = f'Type:{"".join(pressed_keys)}{key}'
                                 else:
-                                    line = f"Hotkey {' + '.join(pressed_keys)}"
+                                    pressed_keys.append(key)
+                                    pressed_keys = eliminate_duplicates(pressed_keys)
+                                    register_hotkey = True
+                                    line = ''
+
+                        elif 'release' in line:
+                            if key in pressed_keys:
+                                # execute hotkey
+                                print('\t\tregister_hotkey: ', register_hotkey)
+                                if register_hotkey:
+                                    if 'shift' in pressed_keys and check_single_chars and (
+                                            check_alphabet_letters or check_symbol_chars):
+                                        line = f'Type:{"".join([x.capitalize() for x in pressed_keys if x != "shift"])}'
+                                        # pressed_keys = []
+                                    elif check_alphabet_letters:  # process release of key if pressed keys are alphabetic
+                                        if key in pressed_keys:
+                                            pressed_keys.remove(key)
+                                        if pressed_keys:
+                                            line = f'Type:{"".join(pressed_keys)}'
+                                        else:
+                                            line = ''
+                                    else:
+                                        line = f"Hotkey {' + '.join(pressed_keys)}"
+                                else:
+                                    line = ''
+                                register_hotkey = False
+                                if key in pressed_keys:
+                                    pressed_keys.remove(key)
+
                             else:
                                 line = ''
-                            register_hotkey = False
-                            if key in pressed_keys:
-                                pressed_keys.remove(key)
+                                if check_alphabet_letters:  # process release of key if pressed keys are alphabetic
+                                    if key in pressed_keys:
+                                        pressed_keys.remove(key)
+                                    if pressed_keys:
+                                        line = f'Type:{"".join(pressed_keys)}'
 
-                        print(f'pressed_keys: {pressed_keys}')
+
+                        print(f'\tpressed_keys: {pressed_keys}')
 
                     # else:
                     if line:
@@ -245,13 +280,12 @@ class ListenerThread(threading.Thread):
                         processed_line = processed_line.replace(replacement_key, master_key)
 
                 processed_lines.append(processed_line)
-                print(f'processed_line: {processed_line}')
+                print(f'\tprocessed_line: {[processed_line]}\n')
             else:
                 skip = False
 
-            print()
         # processed_lines.append(break_code + lines[-1])
-        print(processed_lines)
+        print(f'processed_lines: {processed_lines}')
         processed_lines = ''.join(processed_lines).split(break_code)
         processed_lines = [x for x in processed_lines if x]
         print()
@@ -331,11 +365,13 @@ def coords_of(line):
     """Returns tuple of parsed coordinates from string."""
 
     try:
-        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[0]  # find first integer between '(' and','
+        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[
+            0]  # find first integer between '(' and','
     except IndexError:
         x_coord = 0
     try:
-        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[0]  # find first integer between ',' and')'
+        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[
+            0]  # find first integer between ',' and')'
     except IndexError:
         y_coord = 0
 
