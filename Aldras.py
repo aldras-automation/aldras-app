@@ -1510,8 +1510,8 @@ class EditFrame(wx.Frame):
         reorder_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
 
         # center dialog
-        reorder_dlg.Position = (self.Position[0] + ((self.Size[0] - reorder_dlg.Size[0]) / 2),
-                                self.Position[1] + ((self.Size[1] - reorder_dlg.Size[1]) / 2))
+        reorder_dlg.Position = (int(self.Position[0] + ((self.Size[0] - reorder_dlg.Size[0]) / 2)),
+                                int(self.Position[1] + ((self.Size[1] - reorder_dlg.Size[1]) / 2)))
         reorder_dlg.SetBackgroundColour('white')
 
         if reorder_dlg.ShowModal() == wx.ID_OK:
@@ -2452,8 +2452,8 @@ class EditFrame(wx.Frame):
                             self.Raise()
                             self.position_old = self.GetPosition()
                             self.size_old = self.GetSize()
-                            self.Position = (self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2),
-                                             self.position_old[1])
+                            self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
+                                             int(self.position_old[1]))
                         self.Fit()
 
                 def finish(self, _):
@@ -2653,8 +2653,8 @@ class EditFrame(wx.Frame):
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
-                                     parent_dialog.Position[1])
+                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
+                                     int(parent_dialog.Position[1]))
 
                     # Process message events from threads
                     self.thread_event_id = wx.NewIdRef()
@@ -2864,8 +2864,8 @@ class EditFrame(wx.Frame):
                             self.Raise()
                             self.position_old = self.GetPosition()
                             self.size_old = self.GetSize()
-                            self.Position = (self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2),
-                                             self.position_old[1])
+                            self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
+                                             int(self.position_old[1]))
                         self.Fit()
 
                 def close_window(self, _):
@@ -2982,8 +2982,8 @@ class EditFrame(wx.Frame):
             self.parent.Close(True)
         else:
             # center workflow frame where edit frame is now
-            self.parent.Position = (self.Position[0] + ((self.Size[0] - self.parent.Size[0]) / 2),
-                                    self.Position[1] + ((self.Size[1] - self.parent.Size[1]) / 2))
+            self.parent.Position = (int(self.Position[0] + ((self.Size[0] - self.parent.Size[0]) / 2)),
+                                    int(self.Position[1] + ((self.Size[1] - self.parent.Size[1]) / 2)))
             self.parent.Show()
             self.parent.Raise()
             self.parent.Layout()
