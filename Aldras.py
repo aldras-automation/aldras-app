@@ -623,6 +623,7 @@ class EditFrame(wx.Frame):
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
+            size = (int(size[0]), int(size[1]))  # convert to integers
             image = wx.Image(f'data/{source_file_name}.png', wx.BITMAP_TYPE_PNG)  # import image
             image.Replace(*3 * (0,), *3 * (default_contrast,))  # change color from native black to lighter grey
             image = image.Scale(*size, quality=wx.IMAGE_QUALITY_HIGH)
@@ -750,6 +751,7 @@ class EditFrame(wx.Frame):
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
+        size = (int(size[0]), int(size[1]))  # convert to integers
         bitmap_btn = wx.BitmapButton(parent, size=wx.Size(*size), bitmap=bitmap)
         bitmap_btn.SetBackgroundColour(wx.WHITE)
         bitmap_btn.SetWindowStyleFlag(wx.NO_BORDER)
@@ -2388,8 +2390,7 @@ class EditFrame(wx.Frame):
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2),
-                                     parent_dialog.Position[1])
+                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)), parent_dialog.Position[1])
 
                     self.thread_event_id = wx.NewIdRef()
                     self.Connect(-1, -1, int(self.thread_event_id),
