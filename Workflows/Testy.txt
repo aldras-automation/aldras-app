@@ -1,9 +1,9 @@
 Left-mouse click at (341, 505)
 Right-mouse press at (262, 637)
-Assign {{~Var~}}=valueasdfasd``nl``asdf``nl``asdf``nl``asdf``nl``asdf``nl``adsf``nl``asdf``nl``asdf``nl``asdf
+Assign {{~Var~}}=gdsf
 Type:This proposal was initiated by John Smith.
 Hotkey ctrl+s
-If {{~Var~}} Equals ~valued a``nl``asdf``nl``asdf``nl``asdfadsf``nl``asd~ {
+If {{~Var~}} Equals ~asdf~ {
 Wait 0.5
 }
 Mouse-move to (749, 450)

@@ -1402,7 +1402,7 @@ class EditFrame(wx.Frame):
 
             elif action == 'For each element in list':
                 list_btn = wx.Button(self.edit, label='List')
-                list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(line))
+                list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(sizer))
                 loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
             if modification:
@@ -1704,7 +1704,7 @@ class EditFrame(wx.Frame):
                 self.create_edit_panel()
                 self.Layout()
 
-    def open_loop_list_grid(self, line):
+    def open_loop_list_grid(self, sizer):
 
         class LoopListGrid(wx.Dialog):
             """Dialog to edit loop list elements"""
@@ -1782,13 +1782,22 @@ class EditFrame(wx.Frame):
                 self.grid.resize_rows()
                 self.Refresh()
 
+        index = self.edit_row_widget_sizers.index(sizer)
+        line = self.lines[index]
         loop_list_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-        loop_list_values = loop_list_text.split('```')  # split based on '```' delimiter
+        loop_list_values = loop_list_text.split('```')  # split based on delimiter
 
         loop_list_dlg = LoopListGrid(self, loop_list_values)
 
         if loop_list_dlg.ShowModal() == wx.ID_OK:
-            pass
+            # get loop_list values by iterating through rows
+            loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in range(loop_list_dlg.grid.GetNumberRows())]
+
+            # remove trailing empty list elements
+            while loop_list_values[-1] == '':
+                loop_list_values.pop()  # remove last element
+
+            self.lines[index] = f'Loop for each element in list [{"```".join(loop_list_values)}] {{'
 
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
