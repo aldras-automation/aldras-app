@@ -6,6 +6,7 @@ import wx
 import re
 import pyautogui as pyauto
 from ctypes import WinDLL
+from modules.aldras_core import coords_of, eliminate_duplicates
 
 
 class ListenerThread(threading.Thread):
@@ -359,29 +360,6 @@ class ResultEvent(wx.PyEvent):
         wx.PyEvent.__init__(self)
         self.SetEventType(int(event_id))
         self.data = data
-
-
-def coords_of(line):
-    """Returns tuple of parsed coordinates from string."""
-
-    try:
-        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[
-            0]  # find first integer between '(' and','
-    except IndexError:
-        x_coord = 0
-    try:
-        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[
-            0]  # find first integer between ',' and')'
-    except IndexError:
-        y_coord = 0
-
-    return int(x_coord), int(y_coord)
-
-
-def eliminate_duplicates(list_with_duplicates):
-    """Eliminates duplicates from list"""
-    seen = set()
-    return [x for x in list_with_duplicates if not (x in seen or seen.add(x))]
 
 
 if __name__ == '__main__':  # debugging capability by running module file as main

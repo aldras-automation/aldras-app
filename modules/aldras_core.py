@@ -2,6 +2,29 @@
 import re
 
 
+def coords_of(line):
+    """Returns tuple of parsed coordinates from string."""
+
+    try:
+        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[
+            0]  # find first integer between '(' and','
+    except IndexError:
+        x_coord = 0
+    try:
+        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[
+            0]  # find first integer between ',' and')'
+    except IndexError:
+        y_coord = 0
+
+    return int(x_coord), int(y_coord)
+
+
+def eliminate_duplicates(list_with_duplicates):
+    """Eliminates duplicates from list"""
+    seen = set()
+    return [x for x in list_with_duplicates if not (x in seen or seen.add(x))]
+
+
 def float_in(input_string):
     """Returns parsed float from string."""
     floats = re.findall(r'[-+]?\d*\.\d+|\d+', input_string)

@@ -5,7 +5,7 @@ import threading
 import time
 import webbrowser
 from platform import system as system_platform
-
+import re
 import pyperclip
 import numpy as np
 import pyautogui as pyauto
@@ -17,7 +17,7 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 from screeninfo import get_monitors
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
-from modules.aldras_core import *
+from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in
 
 
 # TODO comments
@@ -47,7 +47,7 @@ def matching_widget_in_edit_row(sizer, name):
         raise ValueError(f'Multiple matching widgets with name \'{name}\'')
 
 
-def setup_frame(self, status_bar=False, edit_frame=False):
+def setup_frame(self, status_bar=False):
     """Setup standardized frame characteristics including file menu and status bar."""
 
     def on_about(_):
@@ -345,19 +345,21 @@ def setup_frame(self, status_bar=False, edit_frame=False):
     self.Bind(wx.EVT_MENU, on_about, menu_about)
 
     menu_new = file_menu.Append(wx.ID_ANY, 'New...', f' Create new {self.software_info.name} workflow')
-    # self.Bind(wx.EVT_MENU, ???, menu_new)
+    self.Bind(wx.EVT_MENU, lambda event: self.close_window(), menu_new)  # go back to selection from edit frame
+    if self.GetName() != 'edit_frame':
+        menu_new.Enable(False)
 
     menu_open = file_menu.Append(wx.ID_ANY, 'Open...', f' Open existing {self.software_info.name} workflow')
     # self.Bind(wx.EVT_MENU, ???, menu_open)
 
     menu_save = file_menu.Append(wx.ID_ANY, 'Save', f' Save {self.software_info.name} workflow')
-    # self.Bind(wx.EVT_MENU, ???, menu_save)
-    if not edit_frame:
+    self.Bind(wx.EVT_MENU, lambda event: self.save_workflow(), menu_save)  # call EditFrame self.save_workflow()
+    if self.GetName() != 'edit_frame':
         menu_save.Enable(False)
 
     menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f' Save {self.software_info.name} workflow as...')
     # self.Bind(wx.EVT_MENU, ???, menu_save_as)
-    if not edit_frame:
+    if self.GetName() != 'edit_frame':
         menu_save_as.Enable(False)
 
     menu_preferences = file_menu.Append(wx.ID_ANY, 'Preferences', f' {self.software_info.name} settings')
@@ -370,7 +372,7 @@ def setup_frame(self, status_bar=False, edit_frame=False):
 
     ############
     # set up the insert menu
-    if edit_frame:
+    if self.GetName() == 'edit_frame':
         insert_menu = wx.Menu()
         variables_menu = wx.Menu()
         builtin_variables_menu = wx.Menu()
@@ -609,8 +611,8 @@ class EditFrame(wx.Frame):
         self.lines = lines
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
         self.variables = dict()
-        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}')
-        setup_frame(self, status_bar=True, edit_frame=True)
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}', name='edit_frame')
+        setup_frame(self, status_bar=True)
 
         # set parameters
         self.margin = 10
@@ -2915,7 +2917,7 @@ class EditFrame(wx.Frame):
         """Function to bind events to be disabled."""
         pass  # TODO replace with scrolling functionality of panel at some point
 
-    def close_window(self, _=None, quitall=False):
+    def save_workflow(self):
         if self.lines_when_launched != self.lines or self.workflow_name_when_launched != self.workflow_name:
             # confirm save intent when closing with changes
             class SaveDialog(wx.Dialog):
@@ -2969,7 +2971,7 @@ class EditFrame(wx.Frame):
             if save_dlg == wx.ID_OK:
                 # write to workflow file
                 with open(workflow_path_when_launched, 'w') as record_file:
-                    print(f'LINES: {self.lines}')
+                    print(f'LINES saved to file: {self.lines}')
                     for line in self.lines:
                         record_file.write(f'{line}\n')
 
@@ -2980,10 +2982,16 @@ class EditFrame(wx.Frame):
                     self.parent.recent_workflows.remove(workflow_path_when_launched)
                     self.parent.recent_workflows.insert(0, workflow_path_new)
                     self.parent.update_recent_workflows()
+
+                self.lines_when_launched = self.lines
+
             elif save_dlg == 20:  # 'don't save' button
                 pass
             else:  # cancel button
                 return
+
+    def close_window(self, _=None, quitall=False):
+        self.save_workflow()
 
         self.Hide()
         if quitall:
@@ -3059,7 +3067,7 @@ class SelectionFrame(wx.Frame):
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
         self.software_info = SoftwareInfo()
-        wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation')
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
 
         # Creates directories if do not exist --------------------------------------------------------------------------
