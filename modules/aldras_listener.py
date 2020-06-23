@@ -375,7 +375,7 @@ def coords_of(line):
     except IndexError:
         y_coord = 0
 
-    return x_coord, y_coord
+    return int(x_coord), int(y_coord)
 
 
 def eliminate_duplicates(list_with_duplicates):
