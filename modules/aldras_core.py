@@ -1,5 +1,6 @@
 """Aldras module containing core functions used across classes"""
 import re
+import wx
 
 
 def coords_of(line):
@@ -65,3 +66,31 @@ def conditional_comparison_in(input_string):
     """Return matching operation between ~ and ~ syntax after variable {{~var~}}"""
     return re.search(r'(?<=~)(.*?)(?=~)', input_string.replace('{{~', '').replace('~}}', '')).group()
 
+
+class PlaceholderTextCtrl(wx.TextCtrl):
+    """Placeholder text ctrl."""
+
+    def __init__(self, *args, **kwargs):
+        self.default_text = kwargs.pop('placeholder', '')  # remove default text parameter
+        wx.TextCtrl.__init__(self, *args, **kwargs)
+        self.on_unfocus(None)
+        self.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        self.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.on_unfocus)
+
+    def on_focus(self, _):
+        self.SetForegroundColour(wx.BLACK)
+        if self.GetValue() == self.default_text:
+            self.SetValue('')
+
+    def on_unfocus(self, _):
+        if self.GetValue().strip() == '':
+            self.SetValue(self.default_text)
+            self.SetForegroundColour(3 * (120,))
+
+
+def textctrl_tab_trigger_nav(event):
+    """Function to process tab keypresses and trigger panel navigation."""
+    if event.GetKeyCode() == wx.WXK_TAB:
+        event.EventObject.Navigate()
+    event.Skip()

@@ -16,8 +16,10 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 from screeninfo import get_monitors
+from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
-from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in
+from modules.aldras_record import RecordDialog
+from modules.aldras_execute import ExecuteDialog
 
 
 # TODO comments
@@ -461,35 +463,6 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
     if status:
         obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}', event))
         obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent, event))
-
-
-def textctrl_tab_trigger_nav(event):
-    """Function to process tab keypresses and trigger panel navigation."""
-    if event.GetKeyCode() == wx.WXK_TAB:
-        event.EventObject.Navigate()
-    event.Skip()
-
-
-class PlaceholderTextCtrl(wx.TextCtrl):
-    """Placeholder text ctrl."""
-
-    def __init__(self, *args, **kwargs):
-        self.default_text = kwargs.pop('placeholder', '')  # remove default text parameter
-        wx.TextCtrl.__init__(self, *args, **kwargs)
-        self.on_unfocus(None)
-        self.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
-        self.Bind(wx.EVT_SET_FOCUS, self.on_focus)
-        self.Bind(wx.EVT_KILL_FOCUS, self.on_unfocus)
-
-    def on_focus(self, _):
-        self.SetForegroundColour(wx.BLACK)
-        if self.GetValue() == self.default_text:
-            self.SetValue('')
-
-    def on_unfocus(self, _):
-        if self.GetValue().strip() == '':
-            self.SetValue(self.default_text)
-            self.SetForegroundColour(3 * (120,))
 
 
 class CustomGrid(wx.grid.Grid):
@@ -2255,76 +2228,6 @@ class EditFrame(wx.Frame):
         event.Skip()
 
     def on_record(self):
-
-        class RecordDialog(wx.Dialog):
-            def __init__(self, parent, caption):
-                wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-                self.parent = parent
-                self.SetTitle(caption)
-                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-                self.SetBackgroundColour('white')
-
-                # setup sizers
-                self.vbox = wx.BoxSizer(wx.VERTICAL)
-                self.hbox_options = wx.BoxSizer(wx.HORIZONTAL)
-
-                self.some_sleep_thresh = 0.2
-
-                # recording pause input
-                self.sleep_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Record pause'), wx.VERTICAL)  # ---------
-
-                self.record_no_sleep = wx.RadioButton(self, wx.ID_ANY, 'No pauses')
-                self.record_no_sleep.SetValue(True)
-                self.record_no_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: self.not_some_sleep_pressed())
-                self.sleep_sizer.Add(self.record_no_sleep, 0, wx.ALL, 4)
-
-                self.record_all_sleep = wx.RadioButton(self, wx.ID_ANY, 'All pauses')
-                self.record_all_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: self.not_some_sleep_pressed())
-                self.sleep_sizer.Add(self.record_all_sleep, 0, wx.ALL, 4)
-
-                self.some_sleep_hbox = wx.BoxSizer(wx.HORIZONTAL)
-                self.some_sleep_hbox.AddSpacer(4)
-                self.record_some_sleep = wx.RadioButton(self, wx.ID_ANY, 'Pauses over')
-                self.record_some_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: self.record_some_sleep_pressed())
-                self.some_sleep_hbox.Add(self.record_some_sleep, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.some_sleep_thresh = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
-                                                             style=wx.TE_CENTER)
-                self.some_sleep_thresh.Enable(False)
-                self.some_sleep_hbox.Add(self.some_sleep_thresh)
-
-                self.some_sleep_hbox.Add(wx.StaticText(self, label='  sec   '), 0, wx.ALIGN_CENTER_VERTICAL)
-                self.sleep_sizer.Add(self.some_sleep_hbox, 0, wx.BOTTOM, 5)
-
-                self.hbox_options.Add(self.sleep_sizer, 0, wx.ALL, 5)
-                # ------------------------------------------------------------------------------------------------------
-                self.hbox_options.AddSpacer(5)
-
-                # recording method input
-                self.record_mthd = wx.RadioBox(self, label='Method', choices=['Overwrite', 'Append'], majorDimension=1,
-                                               style=wx.RA_SPECIFY_COLS)
-                self.record_mthd.SetItemToolTip(0, 'Erase existing data')
-                self.record_mthd.SetItemToolTip(1, 'Add to end of existing data')
-                self.hbox_options.Add(self.record_mthd, 0, wx.ALL, 5)
-
-                self.vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-                self.vbox.AddSpacer(10)
-
-                # add buttons
-                self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
-                self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-
-                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                self.vbox_outer.Add(self.vbox, 0, wx.ALL, 10)
-                self.SetSizerAndFit(self.vbox_outer)
-                self.Center()
-
-            def record_some_sleep_pressed(self):
-                self.some_sleep_thresh.Enable(True)
-
-            def not_some_sleep_pressed(self):
-                self.some_sleep_thresh.Enable(False)
-
         record_dlg = RecordDialog(self, f'Record - {self.workflow_name}')
 
         if record_dlg.ShowModal() == wx.ID_OK:
@@ -2486,93 +2389,6 @@ class EditFrame(wx.Frame):
             RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}', record_dlg).ShowModal()
 
     def on_execute(self):
-
-        class ExecuteDialog(wx.Dialog):
-            def __init__(self, parent, caption):
-                wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
-                self.parent = parent
-                self.SetTitle(caption)
-                self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-                self.SetBackgroundColour('white')
-
-                self.vbox = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Options'), wx.VERTICAL)
-                self.vbox.AddSpacer(10)
-
-                # execution pause input
-                self.hbox_pause = wx.BoxSizer(wx.HORIZONTAL)  # --------------------------------------------------------
-
-                self.checkbox_pause = wx.CheckBox(self, label=' Pause between commands: ')
-                self.checkbox_pause.SetValue(True)
-                self.checkbox_pause.Bind(wx.EVT_CHECKBOX, self.checkbox_pause_pressed)
-                self.hbox_pause.Add(self.checkbox_pause, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.execute_pause_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
-                                                               style=wx.TE_CENTER)
-                self.hbox_pause.Add(self.execute_pause_input, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.hbox_pause.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
-                self.vbox.Add(self.hbox_pause, 0, wx.EAST | wx.WEST, 10)
-                # ------------------------------------------------------------------------------------------------------
-
-                self.vbox.AddSpacer(20)
-
-                # Mouse duration input
-                self.hbox_mouse_dur = wx.BoxSizer(wx.HORIZONTAL)  # ----------------------------------------------------
-
-                self.checkbox_mouse_dur = wx.CheckBox(self, label=' Mouse command duration: ')
-                self.checkbox_mouse_dur.SetValue(True)
-                self.checkbox_mouse_dur.Bind(wx.EVT_CHECKBOX, self.checkbox_mouse_dur_pressed)
-                self.hbox_mouse_dur.Add(self.checkbox_mouse_dur, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.execute_mouse_dur_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='1',
-                                                                   size=wx.Size(50, -1),
-                                                                   style=wx.TE_CENTER)
-                self.hbox_mouse_dur.Add(self.execute_mouse_dur_input, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.hbox_mouse_dur.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
-                self.vbox.Add(self.hbox_mouse_dur, 0, wx.EAST | wx.WEST, 10)
-                # ------------------------------------------------------------------------------------------------------
-
-                self.vbox.AddSpacer(20)
-
-                # Text type interval duration input
-                self.hbox_type_interval = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
-
-                self.checkbox_type_interval = wx.CheckBox(self, label=' Interval between text character outputs: ')
-                self.checkbox_type_interval.SetValue(True)
-                self.checkbox_type_interval.Bind(wx.EVT_CHECKBOX, self.checkbox_type_interval_pressed)
-                self.hbox_type_interval.Add(self.checkbox_type_interval, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.execute_type_interval_input = PlaceholderTextCtrl(self, wx.ID_ANY, placeholder='0.05',
-                                                                       size=wx.Size(50, -1)
-                                                                       , style=wx.TE_CENTER)
-                self.hbox_type_interval.Add(self.execute_type_interval_input, 0, wx.ALIGN_CENTER_VERTICAL)
-
-                self.hbox_type_interval.Add(wx.StaticText(self, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
-                self.vbox.Add(self.hbox_type_interval, 0, wx.EAST | wx.WEST, 10)
-                # ------------------------------------------------------------------------------------------------------
-
-                self.vbox.AddSpacer(10)
-
-                self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
-
-                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                self.vbox_outer.Add(wx.StaticText(self, label='Uncheck option(s) for fastest execution'), 0,
-                                    wx.ALIGN_RIGHT | wx.NORTH | wx.EAST | wx.WEST, 20)
-                self.vbox_outer.Add(self.vbox, 0, wx.EAST | wx.WEST | wx.SOUTH, 20)
-                self.vbox_outer.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 15)
-                self.SetSizerAndFit(self.vbox_outer)
-                self.Center()
-
-            def checkbox_pause_pressed(self, _):
-                self.execute_pause_input.Enable(self.checkbox_pause.GetValue())
-
-            def checkbox_mouse_dur_pressed(self, _):
-                self.execute_mouse_dur_input.Enable(self.checkbox_mouse_dur.GetValue())
-
-            def checkbox_type_interval_pressed(self, _):
-                self.execute_type_interval_input.Enable(self.checkbox_type_interval.GetValue())
-
         execute_dlg = ExecuteDialog(self, f'Execute - {self.workflow_name}')
 
         if execute_dlg.ShowModal() == wx.ID_OK:
@@ -3159,7 +2975,7 @@ class SelectionFrame(wx.Frame):
     def update_recent_workflows(self):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
         with open(self.data_directory_recent_workflows, 'w') as record_file:  # add workflow to recent history
-            for line in self.recent_workflows[0:10]:
+            for line in self.recent_workflows[0:20]:
                 record_file.write(f'{line}\n')
 
         self.hbox_recent.ShowItems(show=False)
