@@ -1233,7 +1233,7 @@ class EditFrame(wx.Frame):
             raise ValueError('Key category not specified.')
 
         key = wx.ComboBox(self.edit, value=str(key_in), choices=choices, style=wx.CB_READONLY)
-        key.Bind(wx.EVT_COMBOBOX, lambda event: self.key_change(sizer, event))
+        key.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'key'))
         key.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
 
         if 'tap' in line:
@@ -1245,7 +1245,7 @@ class EditFrame(wx.Frame):
         else:
             raise ValueError
         key_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.key_actions, style=wx.CB_READONLY)
-        key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.key_action_change(sizer, event))
+        key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'key_action'))
         key_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
 
         sizer.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
