@@ -1,4 +1,4 @@
-"""Aldras module containing core functions used across classes"""
+"""Aldras module containing core objects used across classes"""
 import re
 import wx
 

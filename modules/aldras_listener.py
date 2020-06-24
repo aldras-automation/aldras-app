@@ -1,4 +1,4 @@
-"""Aldras module containing ListenerThread"""
+"""Aldras module containing listener objects"""
 import threading
 import pandas as pd
 from pynput import keyboard, mouse

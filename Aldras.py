@@ -18,7 +18,7 @@ from pynput import keyboard, mouse
 from screeninfo import get_monitors
 from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
-from modules.aldras_settings import SettingsFrame
+from modules.aldras_settings import SettingsDialog, save_settings
 from modules.aldras_record import RecordDialog
 from modules.aldras_execute import ExecuteDialog
 
@@ -419,9 +419,11 @@ def setup_frame(self, status_bar=False):
     self.SetBackgroundColour('white')  # set background color
 
     def open_settings(parent_window):
-        if SettingsFrame(parent_window).ShowModal() == wx.ID_OK:
-            pass
-
+        settings_dialog = SettingsDialog(parent_window)
+        if settings_dialog.ShowModal() == wx.ID_OK:
+            print(settings_dialog.settings)
+            save_settings(settings_dialog.settings)
+        settings_dialog.Destroy()
 
 
 def change_font(widget, size=None, family=None, style=None, weight=None, color=None):

@@ -1,6 +1,7 @@
-"""Aldras module containing execution-related code"""
+"""Aldras module containing execution objects"""
 import wx
 from modules.aldras_core import PlaceholderTextCtrl
+from modules.aldras_settings import import_settings
 
 
 def create_execute_options(parent_frame, settings_frame=False):
@@ -17,10 +18,13 @@ def create_execute_options(parent_frame, settings_frame=False):
             parent_frame.execute_type_interval_input.Enable(parent_frame.checkbox_type_interval.GetValue())
 
     def textctrl(placeholder_val, name):
+        # TODO implement numeric validator
         if settings_frame:
-            return wx.TextCtrl(parent_frame, wx.ID_ANY, value=placeholder_val, size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
+            return wx.TextCtrl(parent_frame, wx.ID_ANY, value=str(placeholder_val), size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
         else:
-            return PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder=placeholder_val, size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
+            return PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder=str(placeholder_val), size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
+
+    settings = import_settings()
 
     vbox = wx.BoxSizer(wx.VERTICAL)
     vbox.AddSpacer(10)
@@ -28,12 +32,12 @@ def create_execute_options(parent_frame, settings_frame=False):
     # execution pause input
     parent_frame.hbox_pause = wx.BoxSizer(wx.HORIZONTAL)  # --------------------------------------------------------
 
-    parent_frame.checkbox_pause = wx.CheckBox(parent_frame, label=' Pause between commands: ')
-    parent_frame.checkbox_pause.SetValue(True)
+    parent_frame.checkbox_pause = wx.CheckBox(parent_frame, label=' Pause between commands: ', name='Execute pause between commands checked')
+    parent_frame.checkbox_pause.SetValue(settings['Execute pause between commands checked'])
     parent_frame.checkbox_pause.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_pause_pressed())
     parent_frame.hbox_pause.Add(parent_frame.checkbox_pause, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_pause_input = textctrl('0.2', 'Execute pause between commands')
+    parent_frame.execute_pause_input = textctrl(settings['Execute pause between commands'], 'Execute pause between commands')
     parent_frame.hbox_pause.Add(parent_frame.execute_pause_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_pause.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -45,12 +49,12 @@ def create_execute_options(parent_frame, settings_frame=False):
     # Mouse duration input
     parent_frame.hbox_mouse_dur = wx.BoxSizer(wx.HORIZONTAL)  # ----------------------------------------------------
 
-    parent_frame.checkbox_mouse_dur = wx.CheckBox(parent_frame, label=' Mouse command duration: ')
-    parent_frame.checkbox_mouse_dur.SetValue(True)
+    parent_frame.checkbox_mouse_dur = wx.CheckBox(parent_frame, label=' Mouse command duration: ', name='Execute mouse command duration checked')
+    parent_frame.checkbox_mouse_dur.SetValue(settings['Execute mouse command duration checked'])
     parent_frame.checkbox_mouse_dur.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_mouse_dur_pressed())
     parent_frame.hbox_mouse_dur.Add(parent_frame.checkbox_mouse_dur, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_mouse_dur_input = textctrl('1', 'Execute mouse command duration')
+    parent_frame.execute_mouse_dur_input = textctrl(settings['Execute mouse command duration'], 'Execute mouse command duration')
     parent_frame.hbox_mouse_dur.Add(parent_frame.execute_mouse_dur_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_mouse_dur.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -62,12 +66,12 @@ def create_execute_options(parent_frame, settings_frame=False):
     # Text type interval duration input
     parent_frame.hbox_type_interval = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
 
-    parent_frame.checkbox_type_interval = wx.CheckBox(parent_frame, label=' Interval between text character outputs: ')
-    parent_frame.checkbox_type_interval.SetValue(True)
+    parent_frame.checkbox_type_interval = wx.CheckBox(parent_frame, label=' Interval between text character outputs: ', name='Interval between text character outputs checked')
+    parent_frame.checkbox_type_interval.SetValue(settings['Interval between text character outputs checked'])
     parent_frame.checkbox_type_interval.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_type_interval_pressed())
     parent_frame.hbox_type_interval.Add(parent_frame.checkbox_type_interval, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_type_interval_input = textctrl('0.05', 'Interval between text character outputs')
+    parent_frame.execute_type_interval_input = textctrl(settings['Interval between text character outputs'], 'Interval between text character outputs')
     parent_frame.hbox_type_interval.Add(parent_frame.execute_type_interval_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_type_interval.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)

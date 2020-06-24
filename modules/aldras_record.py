@@ -1,4 +1,4 @@
-"""Aldras module containing recording-related code"""
+"""Aldras module containing recording objects"""
 import wx
 from modules.aldras_core import PlaceholderTextCtrl
 
@@ -52,8 +52,7 @@ def create_record_options(parent_frame, settings_frame=False):
     hbox_options.AddSpacer(5)
 
     # recording method input
-    record_mthd = wx.RadioBox(parent_frame, label='Method', choices=['Overwrite', 'Append'], majorDimension=1,
-                                   style=wx.RA_SPECIFY_COLS)
+    record_mthd = wx.RadioBox(parent_frame, label='Method', choices=['Overwrite', 'Append'], majorDimension=1, style=wx.RA_SPECIFY_COLS, name='Record method')
     record_mthd.SetItemToolTip(0, 'Erase existing data')
     record_mthd.SetItemToolTip(1, 'Add to end of existing data')
     hbox_options.Add(record_mthd, 0, wx.ALL, 5)

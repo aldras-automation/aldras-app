@@ -1,13 +1,13 @@
 {
-    "Number of recent workflows displayed": 5,
-    "Freeze method": "None",
-    "Record pause": "Pauses over",
-    "Record pause over duration": 0.23,
+    "Number of recent workflows displayed": 3,
+    "Freeze method": "Click or ctrl",
+    "Record pause": "All pauses",
+    "Record pause over duration": 0.1,
     "Record method": "Overwrite",
-    "Execute pause between commands": 12.3,
-    "Execute pause between commands checked": false,
-    "Execute mouse command duration": 0.53,
-    "Execute mouse command duration checked": false,
-    "Interval between text character outputs": 2.03,
-    "Interval between text character outputs checked": false
+    "Execute pause between commands": 0.2,
+    "Execute pause between commands checked": true,
+    "Execute mouse command duration": 0.5,
+    "Execute mouse command duration checked": true,
+    "Interval between text character outputs": 0.05,
+    "Interval between text character outputs checked": true
 }
