@@ -3,15 +3,24 @@ import wx
 from modules.aldras_core import PlaceholderTextCtrl
 
 
-def create_execute_options(parent_frame):
+def create_execute_options(parent_frame, settings_frame=False):
     def checkbox_pause_pressed():
-        parent_frame.execute_pause_input.Enable(parent_frame.checkbox_pause.GetValue())
+        if not settings_frame:
+            parent_frame.execute_pause_input.Enable(parent_frame.checkbox_pause.GetValue())
 
     def checkbox_mouse_dur_pressed():
-        parent_frame.execute_mouse_dur_input.Enable(parent_frame.checkbox_mouse_dur.GetValue())
+        if not settings_frame:
+            parent_frame.execute_mouse_dur_input.Enable(parent_frame.checkbox_mouse_dur.GetValue())
 
     def checkbox_type_interval_pressed():
-        parent_frame.execute_type_interval_input.Enable(parent_frame.checkbox_type_interval.GetValue())
+        if not settings_frame:
+            parent_frame.execute_type_interval_input.Enable(parent_frame.checkbox_type_interval.GetValue())
+
+    def textctrl(placeholder_val, name):
+        if settings_frame:
+            return wx.TextCtrl(parent_frame, wx.ID_ANY, value=placeholder_val, size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
+        else:
+            return PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder=placeholder_val, size=wx.Size(50, -1), style=wx.TE_CENTER, name=name)
 
     vbox = wx.BoxSizer(wx.VERTICAL)
     vbox.AddSpacer(10)
@@ -24,8 +33,7 @@ def create_execute_options(parent_frame):
     parent_frame.checkbox_pause.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_pause_pressed())
     parent_frame.hbox_pause.Add(parent_frame.checkbox_pause, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_pause_input = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
-                                                   style=wx.TE_CENTER)
+    parent_frame.execute_pause_input = textctrl('0.2', 'Execute pause between commands')
     parent_frame.hbox_pause.Add(parent_frame.execute_pause_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_pause.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -42,9 +50,7 @@ def create_execute_options(parent_frame):
     parent_frame.checkbox_mouse_dur.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_mouse_dur_pressed())
     parent_frame.hbox_mouse_dur.Add(parent_frame.checkbox_mouse_dur, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_mouse_dur_input = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='1',
-                                                       size=wx.Size(50, -1),
-                                                       style=wx.TE_CENTER)
+    parent_frame.execute_mouse_dur_input = textctrl('1', 'Execute mouse command duration')
     parent_frame.hbox_mouse_dur.Add(parent_frame.execute_mouse_dur_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_mouse_dur.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -61,9 +67,7 @@ def create_execute_options(parent_frame):
     parent_frame.checkbox_type_interval.Bind(wx.EVT_CHECKBOX, lambda event: checkbox_type_interval_pressed())
     parent_frame.hbox_type_interval.Add(parent_frame.checkbox_type_interval, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    parent_frame.execute_type_interval_input = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='0.05',
-                                                           size=wx.Size(50, -1)
-                                                           , style=wx.TE_CENTER)
+    parent_frame.execute_type_interval_input = textctrl('0.05', 'Interval between text character outputs')
     parent_frame.hbox_type_interval.Add(parent_frame.execute_type_interval_input, 0, wx.ALIGN_CENTER_VERTICAL)
 
     parent_frame.hbox_type_interval.Add(wx.StaticText(parent_frame, label='  sec'), 0, wx.ALIGN_CENTER_VERTICAL)

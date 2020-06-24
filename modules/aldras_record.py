@@ -3,13 +3,15 @@ import wx
 from modules.aldras_core import PlaceholderTextCtrl
 
 
-def create_record_options(parent_frame):
+def create_record_options(parent_frame, settings_frame=False):
 
     def record_some_sleep_pressed():
-        some_sleep_thresh.Enable(True)
+        if not settings_frame:
+            some_sleep_thresh.Enable(True)
 
     def not_some_sleep_pressed():
-        some_sleep_thresh.Enable(False)
+        if not settings_frame:
+            some_sleep_thresh.Enable(False)
 
     hbox_options = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -33,9 +35,13 @@ def create_record_options(parent_frame):
     record_some_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: record_some_sleep_pressed())
     some_sleep_hbox.Add(record_some_sleep, 0, wx.ALIGN_CENTER_VERTICAL)
 
-    some_sleep_thresh = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
-                                                 style=wx.TE_CENTER)
-    some_sleep_thresh.Enable(False)
+    if settings_frame:
+        some_sleep_thresh = wx.TextCtrl(parent_frame, wx.ID_ANY, value='0.2', size=wx.Size(50, -1),
+                                                style=wx.TE_CENTER, name='some_sleep_thresh')
+    else:
+        some_sleep_thresh = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
+                                                style=wx.TE_CENTER, name='some_sleep_thresh')
+        some_sleep_thresh.Enable(False)
     some_sleep_hbox.Add(some_sleep_thresh)
 
     some_sleep_hbox.Add(wx.StaticText(parent_frame, label='  sec   '), 0, wx.ALIGN_CENTER_VERTICAL)

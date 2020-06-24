@@ -1051,7 +1051,7 @@ class EditFrame(wx.Frame):
 
                 if not value.strip():  # if empty string or only spaces
                     valid = False
-                    wx.MessageDialog(None, f'Enter a file name or cancel',
+                    wx.MessageDialog(None, 'Enter a file name or cancel',
                                      'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
 
                 try:
