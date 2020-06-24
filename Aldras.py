@@ -18,6 +18,7 @@ from pynput import keyboard, mouse
 from screeninfo import get_monitors
 from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
+from modules.aldras_settings import SettingsFrame
 from modules.aldras_record import RecordDialog
 from modules.aldras_execute import ExecuteDialog
 
@@ -364,8 +365,8 @@ def setup_frame(self, status_bar=False):
     if self.GetName() != 'edit_frame':
         menu_save_as.Enable(False)
 
-    menu_preferences = file_menu.Append(wx.ID_ANY, 'Preferences', f' {self.software_info.name} settings')
-    # self.Bind(wx.EVT_MENU, ???, menu_preferences)
+    menu_settings = file_menu.Append(wx.ID_ANY, 'Settings', f' {self.software_info.name} settings')
+    self.Bind(wx.EVT_MENU, lambda event: open_settings(self), menu_settings)
 
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f' Exit {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
@@ -416,6 +417,11 @@ def setup_frame(self, status_bar=False):
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
     self.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
     self.SetBackgroundColour('white')  # set background color
+
+    def open_settings(parent_window):
+        if SettingsFrame(parent_window).ShowModal() == wx.ID_OK:
+            pass
+
 
 
 def change_font(widget, size=None, family=None, style=None, weight=None, color=None):
