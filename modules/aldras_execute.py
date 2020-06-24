@@ -78,6 +78,10 @@ def create_execute_options(parent_frame, settings_frame=False):
     vbox.Add(parent_frame.hbox_type_interval, 0, wx.EAST | wx.WEST, 10)
     # ------------------------------------------------------------------------------------------------------
 
+    checkbox_pause_pressed()
+    checkbox_mouse_dur_pressed()
+    checkbox_type_interval_pressed()
+
     return vbox
 
 

@@ -1,6 +1,7 @@
 """Aldras module containing recording objects"""
 import wx
 from modules.aldras_core import PlaceholderTextCtrl
+from modules.aldras_settings import import_settings
 
 
 def create_record_options(parent_frame, settings_frame=False):
@@ -13,6 +14,8 @@ def create_record_options(parent_frame, settings_frame=False):
         if not settings_frame:
             some_sleep_thresh.Enable(False)
 
+    settings = import_settings()
+
     hbox_options = wx.BoxSizer(wx.HORIZONTAL)
 
     some_sleep_thresh = 0.2
@@ -21,7 +24,6 @@ def create_record_options(parent_frame, settings_frame=False):
     sleep_sizer = wx.StaticBoxSizer(wx.StaticBox(parent_frame, label='Record pause'), wx.VERTICAL)  # ---------
 
     record_no_sleep = wx.RadioButton(parent_frame, wx.ID_ANY, 'No pauses')
-    record_no_sleep.SetValue(True)
     record_no_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: not_some_sleep_pressed())
     sleep_sizer.Add(record_no_sleep, 0, wx.ALL, 4)
 
@@ -36,12 +38,12 @@ def create_record_options(parent_frame, settings_frame=False):
     some_sleep_hbox.Add(record_some_sleep, 0, wx.ALIGN_CENTER_VERTICAL)
 
     if settings_frame:
-        some_sleep_thresh = wx.TextCtrl(parent_frame, wx.ID_ANY, value='0.2', size=wx.Size(50, -1),
+        some_sleep_thresh = wx.TextCtrl(parent_frame, wx.ID_ANY, value=str(settings['Record pause over duration']), size=wx.Size(50, -1),
                                                 style=wx.TE_CENTER, name='some_sleep_thresh')
     else:
-        some_sleep_thresh = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder='0.2', size=wx.Size(50, -1),
+        some_sleep_thresh = PlaceholderTextCtrl(parent_frame, wx.ID_ANY, placeholder=str(settings['Record pause over duration']), size=wx.Size(50, -1),
                                                 style=wx.TE_CENTER, name='some_sleep_thresh')
-        some_sleep_thresh.Enable(False)
+        some_sleep_thresh.Enable(settings['Record pause'] == 'Pauses over')
     some_sleep_hbox.Add(some_sleep_thresh)
 
     some_sleep_hbox.Add(wx.StaticText(parent_frame, label='  sec   '), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -67,11 +69,17 @@ class RecordDialog(wx.Dialog):
         self.SetTitle(caption)
         self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
+        settings = import_settings()
 
         # setup sizers
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         
         self.hbox_options = create_record_options(self)
+
+        # set defaults from settings
+        self.FindWindowByLabel(settings['Record pause']).SetValue(True)
+        self.FindWindowByName('Record method').SetSelection(
+            self.FindWindowByName('Record method').FindString(settings['Record method']))
 
         self.vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         self.vbox.AddSpacer(10)

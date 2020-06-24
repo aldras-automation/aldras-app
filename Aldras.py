@@ -16,9 +16,10 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 from screeninfo import get_monitors
-from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
+from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, \
+    conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
 from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
-from modules.aldras_settings import SettingsDialog, save_settings
+from modules.aldras_settings import SettingsDialog, import_settings, save_settings
 from modules.aldras_record import RecordDialog
 from modules.aldras_execute import ExecuteDialog
 
@@ -149,21 +150,39 @@ def setup_frame(self, status_bar=False):
                     self.parent = parent
                     self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
                     self.Bind(wx.EVT_CLOSE, self.close_window)
+                    settings = import_settings()
 
                     self.padding = 5
                     self.margin = 40
 
                     self.menubar = wx.MenuBar()
-                    self.viewMenu = wx.Menu()
-                    self.cb_click_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze mouse click positions',
-                                                                kind=wx.ITEM_CHECK)
-                    self.cb_ctrl_freeze = self.viewMenu.Append(wx.ID_ANY, 'Freeze positions when CTRL tapped',
-                                                               kind=wx.ITEM_CHECK)
 
-                    self.viewMenu.Check(self.cb_click_freeze.GetId(), True)
-                    self.viewMenu.Check(self.cb_ctrl_freeze.GetId(), True)
+                    self.freeze_menu = wx.Menu()
+                    self.cb_click_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze mouse click positions',
+                                                                   kind=wx.ITEM_CHECK)
+                    self.cb_ctrl_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze positions when CTRL tapped',
+                                                                  kind=wx.ITEM_CHECK)
 
-                    self.menubar.Append(self.viewMenu, '&Freeze')
+                    if 'click' in settings['Freeze method'].lower():
+                        self.freeze_menu.Check(self.cb_click_freeze.GetId(), True)
+                    if 'ctrl' in settings['Freeze method'].lower():
+                        self.freeze_menu.Check(self.cb_ctrl_freeze.GetId(), True)
+
+                    self.menubar.Append(self.freeze_menu, 'Freeze')
+
+                    def toggle_stay_on_top(event):
+                        if event.IsChecked():
+                            self.SetWindowStyleFlag(wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
+                        else:
+                            self.SetWindowStyleFlag(wx.DEFAULT_FRAME_STYLE)
+
+                    # add view menu to allow toggle to stay on top
+                    self.view_menu = wx.Menu()
+                    self.stay_on_top = self.view_menu.Append(wx.ID_ANY, 'Stay on top', kind=wx.ITEM_CHECK)
+                    self.Bind(wx.EVT_MENU, lambda event: toggle_stay_on_top(event), self.stay_on_top)
+
+                    self.menubar.Append(self.view_menu, 'View')
+
                     self.SetMenuBar(self.menubar)
 
                     # create sizers
@@ -380,7 +399,8 @@ def setup_frame(self, status_bar=False):
         variables_menu = wx.Menu()
         builtin_variables_menu = wx.Menu()
 
-        internet_connection = builtin_variables_menu.Append(wx.ID_ANY, 'internet.connection', f'Boolean value evaluating if connected to internet.')
+        internet_connection = builtin_variables_menu.Append(wx.ID_ANY, 'internet.connection',
+                                                            f'Boolean value evaluating if connected to internet.')
         # self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
         variables_menu.AppendSubMenu(builtin_variables_menu, 'Built-In')
@@ -392,7 +412,8 @@ def setup_frame(self, status_bar=False):
     # set up the tools menu
     tools_menu = wx.Menu()
 
-    menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor', f' {self.software_info.name} mouse monitoring tool')
+    menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor',
+                                           f' {self.software_info.name} mouse monitoring tool')
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
     menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
@@ -407,7 +428,8 @@ def setup_frame(self, status_bar=False):
     menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f' {self.software_info.name} edit guide')
     # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
 
-    menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback', f' Submit feedback to the {self.software_info.name} team')
+    menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
+                                     f' Submit feedback to the {self.software_info.name} team')
     # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
 
     menu_bar.Append(help_menu, 'Help')  # add the insert menu to the menu bar
@@ -421,7 +443,6 @@ def setup_frame(self, status_bar=False):
     def open_settings(parent_window):
         settings_dialog = SettingsDialog(parent_window)
         if settings_dialog.ShowModal() == wx.ID_OK:
-            print(settings_dialog.settings)
             save_settings(settings_dialog.settings)
         settings_dialog.Destroy()
 
@@ -592,7 +613,8 @@ class EditFrame(wx.Frame):
         self.lines = lines
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
         self.variables = dict()
-        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}', name='edit_frame')
+        wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}',
+                          name='edit_frame')
         setup_frame(self, status_bar=True)
 
         # set parameters
@@ -1301,7 +1323,8 @@ class EditFrame(wx.Frame):
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
-        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'assign_var_name'))
+        variable_name_entry.Bind(wx.EVT_TEXT,
+                                 lambda event: self.command_parameter_change(sizer, event, 'assign_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -1312,7 +1335,8 @@ class EditFrame(wx.Frame):
         variable_value_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
                                                               value=assignment_variable_value_in(line).replace('``nl``',
                                                                                                                '\n'))
-        variable_value_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'assign_var_value'))
+        variable_value_entry.Bind(wx.EVT_TEXT,
+                                  lambda event: self.command_parameter_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -1331,20 +1355,23 @@ class EditFrame(wx.Frame):
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
-        variable_name_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_var_name'))
+        variable_name_entry.Bind(wx.EVT_TEXT,
+                                 lambda event: self.command_parameter_change(sizer, event, 'conditional_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations),
                                 choices=self.conditional_operations, style=wx.CB_READONLY)
-        operation.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_operator'))
+        operation.Bind(wx.EVT_TEXT,
+                       lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_operator'))
 
         operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
                                                           value=conditional_comparison_in(line).replace('``nl``', '\n'))
-        comparison_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_value'))
+        comparison_entry.Bind(wx.EVT_TEXT,
+                              lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                               lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -1774,7 +1801,8 @@ class EditFrame(wx.Frame):
 
         if loop_list_dlg.ShowModal() == wx.ID_OK:
             # get loop_list values by iterating through rows
-            loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in range(loop_list_dlg.grid.GetNumberRows())]
+            loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in
+                                range(loop_list_dlg.grid.GetNumberRows())]
 
             # remove trailing empty list elements
             while loop_list_values[-1] == '':
@@ -2076,13 +2104,19 @@ class EditFrame(wx.Frame):
 
             # replace left or right
             if command_change in self.software_info.mouse_buttons:
-                for replace_word in [x for x in self.software_info.mouse_buttons if x != command_change]:  # loop through remaining actions
-                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change, self.lines[index]).capitalize()
+                for replace_word in [x for x in self.software_info.mouse_buttons if
+                                     x != command_change]:  # loop through remaining actions
+                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change,
+                                                                                               self.lines[
+                                                                                                   index]).capitalize()
 
             # replace click, press, or release
             elif command_change in self.software_info.mouse_actions:
-                for replace_word in [x for x in self.software_info.mouse_actions if x != command_change]:  # loop through remaining actions
-                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change, self.lines[index]).capitalize()
+                for replace_word in [x for x in self.software_info.mouse_actions if
+                                     x != command_change]:  # loop through remaining actions
+                    self.lines[index] = re.compile(re.escape(replace_word), re.IGNORECASE).sub(command_change,
+                                                                                               self.lines[
+                                                                                                   index]).capitalize()
 
         elif 'coord' in command_type:
             command_change = event.GetString()
@@ -2194,7 +2228,8 @@ class EditFrame(wx.Frame):
         elif command_type == 'hotkey':
             # only cycle through last number of comboboxes because only they are the hotkey inputs
             combination = [child.GetWindow().GetStringSelection() for child in list(sizer.GetChildren()) if
-                           isinstance(child.GetWindow(), wx.ComboBox)][-self.num_hotkeys::]  # TODO refine method with widget names to improve reliability
+                           isinstance(child.GetWindow(), wx.ComboBox)][
+                          -self.num_hotkeys::]  # TODO refine method with widget names to improve reliability
             combination = eliminate_duplicates(combination)
 
             try:
@@ -2312,7 +2347,8 @@ class EditFrame(wx.Frame):
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)), parent_dialog.Position[1])
+                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
+                                     parent_dialog.Position[1])
 
                     self.thread_event_id = wx.NewIdRef()
                     self.Connect(-1, -1, int(self.thread_event_id),
@@ -2395,6 +2431,8 @@ class EditFrame(wx.Frame):
                     self.Destroy()
 
             RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}', record_dlg).ShowModal()
+
+        record_dlg.Destroy()
 
     def on_execute(self):
         execute_dlg = ExecuteDialog(self, f'Execute - {self.workflow_name}')
@@ -2611,7 +2649,8 @@ class EditFrame(wx.Frame):
 
                             try:
                                 if not self.keep_running:
-                                    wx.PostEvent(self.parent, ResultEvent('Failsafe triggered', self.parent.thread_event_id))
+                                    wx.PostEvent(self.parent,
+                                                 ResultEvent('Failsafe triggered', self.parent.thread_event_id))
                                 else:
                                     wx.PostEvent(self.parent, ResultEvent('Completed!', self.parent.thread_event_id))
                             except RuntimeError:
@@ -2716,6 +2755,8 @@ class EditFrame(wx.Frame):
                     self.Destroy()
 
             ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}', execute_dlg).ShowModal()
+
+        execute_dlg.Destroy()
 
     @staticmethod
     def show_move_button(command_row_sizeritem, up_down, show=True):
@@ -2891,6 +2932,7 @@ class SelectionFrame(wx.Frame):
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
         self.software_info = SoftwareInfo()
+        self.settings = import_settings()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
 
@@ -2990,11 +3032,11 @@ class SelectionFrame(wx.Frame):
         self.hbox_recent.Clear(delete_windows=True)
 
         # show recent workflow title if there are recent workflows
-        if self.recent_workflows:
+        if self.recent_workflows and self.settings['Number of recent workflows displayed']:
             self.recent_title.Show()
 
-        # create buttons for 3 most recently accessed workflows
-        for workflow_path_name in self.recent_workflows[0:3]:
+        # create buttons for most recently accessed workflows
+        for workflow_path_name in self.recent_workflows[0:self.settings['Number of recent workflows displayed']]:
             workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
@@ -3136,8 +3178,8 @@ if __name__ == '__main__':
     global mouse_monitor_frame
 
     # get display size
-    display_size = (sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
+    display_size = (
+    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
     print(f'display_size: {display_size}')
 
     main()
-
