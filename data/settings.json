@@ -1,0 +1,13 @@
+{
+    "Number of recent workflows displayed": 3,
+    "Default freeze method": "Click or ctrl",
+    "Default record pause": "No pauses",
+    "Default record pause over duration": 0.2,
+    "Default record method": "Overwrite",
+    "Default execute pause between commands": 0.2,
+    "Default execute pause between commands checked": true,
+    "Default execute mouse command duration": 0.5,
+    "Default execute mouse command duration checked": true,
+    "Interval between text character outputs": 2.0,
+    "Interval between text character outputs checked": true
+}

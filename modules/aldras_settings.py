@@ -46,7 +46,7 @@ class SettingsFrame(wx.Dialog):
         mouse_monitor_freeze_mthd_st = wx.StaticText(panel, label='Default freeze method:')
         mouse_monitor_freeze_mthd_hbox.Add(mouse_monitor_freeze_mthd_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
-        mouse_monitor_freeze_mthd_cb = wx.ComboBox(panel, value='Click or Ctrl', choices=['None', 'Click', 'Ctrl', 'Click or Ctrl'], style=wx.CB_READONLY)
+        mouse_monitor_freeze_mthd_cb = wx.ComboBox(panel, value='Click or ctrl', choices=['None', 'Click', 'Ctrl', 'Click or ctrl'], style=wx.CB_READONLY)
         mouse_monitor_freeze_mthd_hbox.Add(mouse_monitor_freeze_mthd_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
         mouse_monitor_sizer.Add(mouse_monitor_freeze_mthd_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
