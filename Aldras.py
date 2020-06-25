@@ -3202,8 +3202,21 @@ if __name__ == '__main__':
     global mouse_monitor_frame
 
     # get display size
-    display_size = (
-    sum([monitor.width for monitor in get_monitors()]), sum([monitor.height for monitor in get_monitors()]))
-    print(f'display_size: {display_size}')
+    monitors = get_monitors()
+
+    x_indiv = [monitor.x for monitor in monitors]
+    widths = [monitor.width for monitor in monitors]
+
+    y_indiv = [monitor.y for monitor in monitors]
+    heights = [monitor.height for monitor in monitors]
+
+    from operator import add
+    x_sum = list(map(add, x_indiv, widths))
+    y_sum = list(map(add, y_indiv, heights))
+
+    display_size = (max(x_sum), max(y_sum))
+
+    print(display_size)
+    print(f'displays: {monitors}')
 
     main()
