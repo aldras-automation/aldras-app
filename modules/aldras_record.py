@@ -65,30 +65,29 @@ def create_record_options(parent_frame, settings_frame=False):
 class RecordDialog(wx.Dialog):
     def __init__(self, parent, caption):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-        self.parent = parent
         self.SetTitle(caption)
-        self.SetIcon(wx.Icon(self.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
         self.SetBackgroundColour('white')
         settings = import_settings()
 
         # setup sizers
-        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
         
-        self.hbox_options = create_record_options(self)
+        hbox_options = create_record_options(self)
 
         # set defaults from settings
         self.FindWindowByLabel(settings['Record pause']).SetValue(True)
         self.FindWindowByName('Record method').SetSelection(
             self.FindWindowByName('Record method').FindString(settings['Record method']))
 
-        self.vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        self.vbox.AddSpacer(10)
+        vbox.Add(hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        vbox.AddSpacer(10)
 
         # add buttons
-        self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
-        self.vbox.Add(self.btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+        vbox.Add(btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
-        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        self.vbox_outer.Add(self.vbox, 0, wx.ALL, 10)
-        self.SetSizerAndFit(self.vbox_outer)
+        vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        vbox_outer.Add(vbox, 0, wx.ALL, 10)
+        self.SetSizerAndFit(vbox_outer)
         self.Center()

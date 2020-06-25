@@ -165,14 +165,13 @@ class ListenerThread(threading.Thread):
     def compile_recording(self):
         lines = self.recording_lines
         if self.debug:
-            print(f'\nCOMPILING RECORDING LINES {50*"-"}\n')
+            print(f'\nCOMPILING RECORDING LINES {50 * "-"}\n')
             print(f'lines: {lines}\n')
 
         mouse_hover_duration = 0.5
         processed_lines = []
         skip = False
         break_code = '```8729164788```'
-        register_hotkey = False
         pressed_keys = []
         symbol_chars = ['[', '@', '_', '!', '#', '$', '%', '^', '&', '*', '(', ')', '<', '>', '?', '/', '\\', '|', '}',
                         '{', '~', ':', ']']
@@ -191,8 +190,10 @@ class ListenerThread(threading.Thread):
                     print(f'\tline: {line}')
                     print(f'\tkey: {key}')
 
-                if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release', ''):  # if line press is same as next line release
-                    print('\tONLY TAP')
+                if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release',
+                                                                                                      ''):  # if line press is same as next line release
+                    if self.debug:
+                        print('\tONLY TAP')
 
                     skip = True  # skip the next (release) line
                     if len(key) > 1:  # special functions
@@ -216,11 +217,13 @@ class ListenerThread(threading.Thread):
                         processed_line = f'{break_code}Type:{key}{break_code}'
 
                 else:  # line press not equal to next line release
-                    print('\tNOT TAP')
+                    if self.debug:
+                        print('\tNOT TAP')
+
                     if 'Key' in line:
                         check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
                             1}  # all hotkeys are single chars
-                        check_alphabet_letters = {(x.isalpha() and len(x)==1) for x in pressed_keys} == {
+                        check_alphabet_letters = {(x.isalpha() and len(x) == 1) for x in pressed_keys if (x != 'shift' and x not in symbol_chars)} == {
                             True}  # all hotkeys are single alphabetic characters
                         check_symbol_chars = {x for x in pressed_keys if
                                               x in symbol_chars}  # any hotkeys are symbols
@@ -229,33 +232,35 @@ class ListenerThread(threading.Thread):
                             if index != len(lines) - 1:
                                 if check_alphabet_letters and len(key) == 1 and key.isalpha():
                                     line = f'Type:{"".join(pressed_keys)}{key}'
+                                    pressed_keys.clear()
                                 else:
                                     pressed_keys.append(key)
                                     pressed_keys = eliminate_duplicates(pressed_keys)
-                                    register_hotkey = True
                                     line = ''
 
                         elif 'release' in line:
                             if key in pressed_keys:
                                 # execute hotkey
-                                print('\t\tregister_hotkey: ', register_hotkey)
-                                if register_hotkey:
+                                if pressed_keys:
+                                    if self.debug:
+                                        print('\t\tregister hotkey: ', check_alphabet_letters)
                                     if 'shift' in pressed_keys and check_single_chars and (
                                             check_alphabet_letters or check_symbol_chars):
                                         line = f'Type:{"".join([x.capitalize() for x in pressed_keys if x != "shift"])}'
+                                        pressed_keys.clear()
                                         # pressed_keys = []
                                     elif check_alphabet_letters:  # process release of key if pressed keys are alphabetic
                                         if key in pressed_keys:
-                                            pressed_keys.remove(key)
-                                        if pressed_keys:
-                                            line = f'Type:{"".join(pressed_keys)}'
+                                            # pressed_keys.remove(key)
+                                            if pressed_keys:
+                                                line = f'Type:{"".join(pressed_keys)}'
+                                            pressed_keys.clear()
                                         else:
                                             line = ''
                                     else:
                                         line = f"Hotkey {' + '.join(pressed_keys)}"
                                 else:
                                     line = ''
-                                register_hotkey = False
                                 if key in pressed_keys:
                                     pressed_keys.remove(key)
 
@@ -263,12 +268,14 @@ class ListenerThread(threading.Thread):
                                 line = ''
                                 if check_alphabet_letters:  # process release of key if pressed keys are alphabetic
                                     if key in pressed_keys:
-                                        pressed_keys.remove(key)
-                                    if pressed_keys:
-                                        line = f'Type:{"".join(pressed_keys)}'
+                                        # pressed_keys.remove(key)
+                                        if pressed_keys:
+                                            line = f'Type:{"".join(pressed_keys)}'
 
+                                        pressed_keys.clear()
 
-                        print(f'\tpressed_keys: {pressed_keys}')
+                        if self.debug:
+                            print(f'\tpressed_keys: {pressed_keys}')
 
                     # else:
                     if line:
@@ -281,16 +288,16 @@ class ListenerThread(threading.Thread):
                         processed_line = processed_line.replace(replacement_key, master_key)
 
                 processed_lines.append(processed_line)
-                print(f'\tprocessed_line: {[processed_line]}\n')
+                if self.debug:
+                    print(f'\tprocessed_line: {[processed_line]}\n')
             else:
                 skip = False
 
         # processed_lines.append(break_code + lines[-1])
-        print(f'processed_lines: {processed_lines}')
-        processed_lines = ''.join(processed_lines).split(break_code)
-        processed_lines = [x for x in processed_lines if x]
-        print()
-        print()
+        if self.debug:
+            print(f'processed_lines: {processed_lines}\n\n')
+        processed_lines = ''.join(processed_lines).split(break_code)  # join lines and split on break_code
+        processed_lines = [x for x in processed_lines if x]  # eliminate empty elements
 
         # consolidate triple clicks
         processed_lines_to_remove = []
@@ -325,7 +332,8 @@ class ListenerThread(threading.Thread):
         for index in processed_lines_to_remove[::-1]:
             processed_lines.pop(index)
 
-        print(processed_lines)
+        if self.debug:
+            print(f'processed_lines: {processed_lines}\n\n')
 
         # consolidate consecutive type commands
         def consecutive_ranges_of(list_in):
@@ -337,7 +345,6 @@ class ListenerThread(threading.Thread):
 
         typing_indices = [index for index, line in enumerate(processed_lines) if 'Type:' in line]
         typing_ranges = consecutive_ranges_of(typing_indices)
-        print(list(reversed(typing_ranges)))
         for typing_range in reversed(typing_ranges):
             if typing_range[0] != typing_range[1]:  # only if range is not a single index
                 consolidated_type = ''
@@ -348,7 +355,9 @@ class ListenerThread(threading.Thread):
                         del processed_lines[index]
                 processed_lines[typing_range[0]] = f'Type:{consolidated_type}'
 
-        print(processed_lines)
+        if self.debug:
+            print(f'processed_lines: {processed_lines}\n\n')
+
         return processed_lines
 
 

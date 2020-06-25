@@ -2267,6 +2267,7 @@ class EditFrame(wx.Frame):
             comparison_value = input_one_lined
             self.lines[
                 index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
+        # TODO loop parameters changes
 
         event.Skip()
 
