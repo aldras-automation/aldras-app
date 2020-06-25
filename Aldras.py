@@ -1391,6 +1391,13 @@ class EditFrame(wx.Frame):
         def add_loop_details(loop_sizer, action, modification):
 
             # TODO change line
+
+            self.no_right_spacer = False
+
+            index = None
+            if sizer in self.edit_row_widget_sizers:  # if changing loop_details, sizer will be in self.edit_row_widget_sizers
+                index = self.edit_row_widget_sizers.index(sizer)
+
             for child in reversed(loop_sizer.GetChildren()):
                 if child.GetWindow() == matching_widget_in_edit_row(loop_sizer, 'loop_behavior'):
                     break
@@ -1399,18 +1406,20 @@ class EditFrame(wx.Frame):
                     loop_sizer.Remove(loop_sizer.GetChildren().index(child))
 
             if action == 'Forever':
-                return
+                if index is not None:
+                    self.lines[index] = 'Loop forever {'
             elif action == 'Multiple times':
-                loop_iteration_number = wx.TextCtrl(self.edit, value=re.search(r'\d+', line).group(),
-                                                    size=wx.Size(self.software_info.coord_width, -1),
-                                                    style=wx.TE_RICH | wx.TE_CENTRE,
-                                                    validator=self.CharValidator('only_integer', self))
+                if index is not None:
+                    self.lines[index] = 'Loop multiple times 1 {'
+                loop_iteration_number = wx.TextCtrl(self.edit, value='1', size=wx.Size(self.software_info.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
                 loop_iteration_number.SetMaxLength(4)
-                # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))
+                # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))  # TODO add functionality
                 loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
                 loop_sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
 
             elif action == 'For each element in list':
+                if index is not None:
+                    self.lines[index] = 'Loop for each element in list [1```2```3```4```5] {'  # TODO decide on new loop delimiters
                 list_btn = wx.Button(self.edit, label='List')
                 list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(sizer))
                 loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
