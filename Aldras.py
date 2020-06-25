@@ -623,8 +623,8 @@ class EditFrame(wx.Frame):
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 25
         self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
-        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list', 'For each row in table',
-                               'For each column in table']
+        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
+        self.command_sizers_to_delete_after_ingest = []
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
@@ -753,6 +753,9 @@ class EditFrame(wx.Frame):
         # all tracker lists must be modified when altering command order or adding/deleting
         self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
 
+        for sizer_to_delete in self.command_sizers_to_delete_after_ingest:
+            self.delete_command(sizer_to_delete)
+
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
@@ -880,6 +883,7 @@ class EditFrame(wx.Frame):
                 self.next_indent -= 1
                 if self.next_indent < 0:
                     self.next_indent = 0
+                    self.command_sizers_to_delete_after_ingest.append(self.hbox_edit)  # mark for deletion right after ingest
                     raise ValueError
                 end_indent = True
             else:
@@ -1419,10 +1423,12 @@ class EditFrame(wx.Frame):
 
             elif action == 'For each element in list':
                 if index is not None:
-                    self.lines[index] = 'Loop for each element in list [1```2```3```4```5] {'  # TODO decide on new loop delimiters
+                    self.lines[index] = "Loop for each element in list [1`'`2`'`3`'`4`'`5] {"
                 list_btn = wx.Button(self.edit, label='List')
                 list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(sizer))
                 loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                # TODO add num of loop iterations statictext
 
             if modification:
                 self.create_delete_x_btn(loop_sizer)
@@ -1621,17 +1627,16 @@ class EditFrame(wx.Frame):
                         change_font(self.title, size=18, color=3 * (self.title_contrast,))
                         self.vbox_inner.Add(self.title)
 
-                        self.vbox_inner.AddSpacer(5)
+                        self.vbox_inner.AddSpacer(10)
 
                         # add advanced edit guide description
                         self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
                         self.hbox_description.AddSpacer(5)
                         self.description = wx.StaticText(self, label=self.software_info.advanced_edit_guide_description)
-                        self.description.SetToolTip('Feel free to use any capitalization scheme')
                         self.hbox_description.Add(self.description)
                         self.vbox_inner.Add(self.hbox_description)
 
-                        self.vbox_inner.AddSpacer(20)
+                        self.vbox_inner.AddSpacer(10)
 
                         # add commands title
                         self.command_title = wx.StaticText(self, label='Commands')
@@ -1678,13 +1683,18 @@ class EditFrame(wx.Frame):
 
                         self.vbox_inner.AddSpacer(20)
 
+                        # add documentation description
+                        docs_description = wx.StaticText(self, label='For more including information about\nconditionals and loops...', style=wx.ALIGN_CENTRE_HORIZONTAL)
+                        change_font(docs_description, size=10, family=wx.DECORATIVE, color=3 * (100,))
+                        self.vbox_inner.Add(docs_description, 0, wx.CENTER | wx.SOUTH, 8)
+
                         # add documentation title
                         self.docs = wx.StaticText(self, label='Read the Docs')
-                        change_font(self.docs, size=13, family=wx.DECORATIVE, color=3 * (80,))
+                        change_font(self.docs, size=13, family=wx.DECORATIVE, color=3 * (60,))
                         config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
                         self.vbox_inner.Add(self.docs, 0, wx.CENTER)
 
-                        # add documentation linke
+                        # TODO add documentation link
                         self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
                                                               label=f'{self.software_info.name.lower()}.com/docs',
                                                               url=f'{self.software_info.website}/docs',
@@ -1693,7 +1703,7 @@ class EditFrame(wx.Frame):
                         change_font(self.docs_link, size=11, family=wx.DECORATIVE)
                         self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
 
-                        self.vbox_inner.AddSpacer(25)
+                        self.vbox_inner.AddSpacer(15)
                         self.vbox_inner.AddStretchSpacer()
 
                         self.hbox_outer.AddStretchSpacer()
@@ -1701,8 +1711,9 @@ class EditFrame(wx.Frame):
                         self.hbox_outer.AddStretchSpacer()
 
                         self.SetSizerAndFit(self.hbox_outer)
-                        self.vbox_inner.SetSizeHints(self)
+                        self.hbox_outer.SetSizeHints(self)
 
+                        self.Center()
                         self.Show()
 
                 if not self.adv_edit_guide or not self.adv_edit_guide.IsShown():  # only if window does not yet exist or is not shown
@@ -1804,7 +1815,7 @@ class EditFrame(wx.Frame):
         index = self.edit_row_widget_sizers.index(sizer)
         line = self.lines[index]
         loop_list_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-        loop_list_values = loop_list_text.split('```')  # split based on delimiter
+        loop_list_values = loop_list_text.split("`'`")  # split based on delimiter
 
         loop_list_dlg = LoopListGrid(self, loop_list_values)
 
@@ -1817,7 +1828,8 @@ class EditFrame(wx.Frame):
             while loop_list_values[-1] == '':
                 loop_list_values.pop()  # remove last element
 
-            self.lines[index] = f'Loop for each element in list [{"```".join(loop_list_values)}] {{'
+            loop_list_string = "`'`".join(loop_list_values)
+            self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
 
     def delete_command(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -2783,8 +2795,10 @@ class EditFrame(wx.Frame):
             # attempting to show move button of command row of line concluding indent block ("}") but not valid so do nothing
             return
         else:
-            return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
-                up_down_index].GetWindow().Show(show)
+            try:
+                return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[up_down_index].GetWindow().Show(show)
+            except AttributeError:
+                print('AttributeError')
 
     # do_nothing = lambda: None
     @staticmethod
@@ -2898,7 +2912,7 @@ class SelectionFrame(wx.Frame):
                 self.website = f'http://www.{self.name.lower()}.com/'
                 self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.start_stop_directions = ': Press the right control key 3 times'
-                self.advanced_edit_guide_description = f'{self.name} is not sensitive capitalization upon ingest,\nplease use whatever convention is most readable for you.'
+                self.advanced_edit_guide_description = f'A look at the underlying syntax of {self.name} commands.'
                 self.advanced_edit_guide_command_description = 'Replace the values in the double quotes " ".'
                 self.advanced_edit_guide_commands = {
                     '"Left/Right"-mouse "click/press/release" at ("x", "y")': ['Left-mouse click at (284, 531)',
@@ -2914,8 +2928,8 @@ class SelectionFrame(wx.Frame):
                     'Triple-click at ("x", "y")': ['Triple-click at (284, 531)', 'Simulates triple left click']
                 }
                 self.advanced_edit_guide_commands_pro = {
-                    'Assign {{~"Variable"~}}="value"': ['Assign {{~Name~}}=John Smith',
-                                                        'Assigns value to variable that can be referenced later'],
+                    'Assign {{~"Variable"~}}="value"': ['Assign {{~Name~}}=John Smith', 'Assigns value to variable that can be referenced later'],
+                    'If {{~"variable"~}} "operation" ~"comparison"~ {\n\t"commands"\n  }': ['If {{~diameter~}} < ~10~ {\n     Type:The circle is small.\n   }', 'Executes containing commands if conditional is satisfied']
                 }
                 self.advanced_edit_guide_commands.update(self.advanced_edit_guide_commands_pro)
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
