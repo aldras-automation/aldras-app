@@ -91,7 +91,6 @@ def import_settings():
 
 def save_settings(settings):
     settings = validate_settings(settings)
-    # print('settings to save: ', settings)
     with open('data/settings.json', 'w') as json_file:
         json.dump(settings, json_file, indent=4)
 
@@ -112,6 +111,7 @@ class SettingsDialog(wx.Dialog):
                                style=wx.CB_READONLY)
 
         self.settings = import_settings()
+        self.settings_as_imported = self.settings.copy()
 
         static_boxsizer_inner_padding = 10
         static_boxsizer_outer_spacing = 20
@@ -215,6 +215,8 @@ class SettingsDialog(wx.Dialog):
         btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
         vbox_main.Add(btns, 0, wx.EXPAND | wx.ALL, 5)
 
+        self.FindWindowById(wx.ID_OK).Enable(False)
+
         vbox_outer.AddStretchSpacer()
         vbox_outer.Add(vbox_main, 0, wx.EXPAND | wx.NORTH | wx.WEST | wx.EAST, margin)
         vbox_outer.AddSpacer(margin / 2)
@@ -228,8 +230,7 @@ class SettingsDialog(wx.Dialog):
         self.settings[setting] = value
         self.settings = validate_settings(self.settings)
 
-
-if __name__ == '__main__':  # debugging capability by running module file as main
-    app = wx.App(False)
-    if SettingsDialog(None).ShowModal() == wx.ID_OK:
-        pass
+        if self.settings != self.settings_as_imported:
+            self.FindWindowById(wx.ID_OK).Enable()  # enable OK button if changes
+        else:
+            self.FindWindowById(wx.ID_OK).Enable(False)  # disable OK button if no changes
