@@ -268,10 +268,6 @@ def setup_frame(self, status_bar=False):
                             self.freezes = []
 
                             def update_monitor(x, y, freeze=''):
-                                if x < 0:
-                                    x = 0
-                                if y < 0:
-                                    y = 0
                                 output = f'({x}, {y})'
 
                                 self.parent.current_coords.SetLabel(output)  # set current coordinates
@@ -810,7 +806,7 @@ class EditFrame(wx.Frame):
 
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
-        self.vbox_edit_container.SetMinSize(wx.Size(650, 300))
+        self.vbox_edit_container.SetMinSize(wx.Size(700, 300))
         self.vbox_container.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
         if not first_creation:
@@ -1111,6 +1107,8 @@ class EditFrame(wx.Frame):
                     return
                 if self.flag == 'only_integer' and not key.isdecimal():
                     return
+                if self.flag == 'coordinate' and not (key.isdecimal() or key == '-'):
+                    return
                 if self.flag == 'file_name':
                     invalid_file_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*']
                     if key in invalid_file_characters:
@@ -1172,16 +1170,16 @@ class EditFrame(wx.Frame):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(x_val),
-                                   validator=self.CharValidator('only_integer', self))
-        self.x_coord.SetMaxLength(len(str(display_size[0])))
+                                   validator=self.CharValidator('coordinate', self))
+        self.x_coord.SetMaxLength(max([len(str(x)) for x in x_range]))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.software_info.coord_width, -1),
                                    value=str(y_val),
-                                   validator=self.CharValidator('only_integer', self))
-        self.y_coord.SetMaxLength(len(str(display_size[1])))
+                                   validator=self.CharValidator('coordinate', self))
+        self.y_coord.SetMaxLength(max([len(str(y)) for y in y_range]))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
@@ -2140,7 +2138,7 @@ class EditFrame(wx.Frame):
                                                                                                    index]).capitalize()
 
         elif 'coord' in command_type:
-            command_change = event.GetString()
+            command_change = event.GetString()  # will be empty if not input and should be converted to zero
             text_ctrl = event.GetEventObject()
             text_ctrl.SetForegroundColour(wx.BLACK)
             # find desired element by looping through all sizer children and filtering children with None windows and then the window with desired name
@@ -2148,16 +2146,18 @@ class EditFrame(wx.Frame):
             error_static_text.SetLabel('')
 
             # validate input and display feedback
+            invalid_range = False
             try:
-                if not command_change.isdecimal() and command_change:
-                    raise ValueError()
+                # if key != '-' and not command_change.isdecimal() and command_change:
+                #     raise ValueError()
                 line_split_on_comma = self.lines[index].split(',')
                 if 'x' in command_type:
                     if command_change:
                         x_coord = command_change
                     else:
                         x_coord = '0'
-                    if int(x_coord) > display_size[0]:
+                    if not x_range[0] < int(x_coord) < x_range[1]:
+                        invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
 
@@ -2166,19 +2166,22 @@ class EditFrame(wx.Frame):
                         y_coord = command_change
                     else:
                         y_coord = '0'
-                    if int(y_coord) > display_size[1]:
+                    if not y_range[0] < int(y_coord) < y_range[1]:
+                        invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
 
             except ValueError:
                 text_ctrl.SetForegroundColour(wx.RED)
                 # not catastrophic if mouse is moved to coordinates that are out of bounds of the display size
-                if 'x' in command_type:
-                    error_msg = f'The max X value is {display_size[0]} px.'
+                if not invalid_range:
+                    error_msg = 'Invalid integer.'
+                elif 'x' in command_type:
+                    error_msg = f'The X range is {x_range[0]} to {x_range[1]} px.'
                 elif 'y' in command_type:
-                    error_msg = f'The max Y value is {display_size[1]} px.'
+                    error_msg = f'The Y range is {y_range[0]} to {y_range[1]} px.'
                 else:
-                    error_msg = f'The maximum coordinates are {display_size} px.'
+                    error_msg = f'Invalid coordinates.'
                 error_static_text.SetLabel(error_msg)
                 self.command_row_error = True
                 event.Skip()
@@ -2939,7 +2942,7 @@ class SelectionFrame(wx.Frame):
                 self.mouse_buttons = ['Left', 'Right']
                 self.mouse_actions = ['Click', 'Press', 'Release']
                 self.key_actions = ['Tap', 'Press', 'Release']
-                self.coord_width = 40
+                self.coord_width = 10 * max([len(str(r)) for r in x_range+y_range])  # ten times the max length of range in x or y direction
                 self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End',
                                      'PageUp', 'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command',
                                      'Option', 'BrowserBack', 'BrowserForward', 'Insert', 'NumLock', 'PrntScrn',
@@ -3214,9 +3217,10 @@ if __name__ == '__main__':
     x_sum = list(map(add, x_indiv, widths))
     y_sum = list(map(add, y_indiv, heights))
 
-    display_size = (max(x_sum), max(y_sum))
+    x_range = (min(x_indiv), max(x_sum))
+    y_range = (min(y_indiv), max(y_sum))
 
-    print(display_size)
     print(f'displays: {monitors}')
+    print(f'display range: {[x_range, y_range]}')
 
     main()

@@ -7,12 +7,12 @@ def coords_of(line):
     """Returns tuple of parsed coordinates from string."""
 
     try:
-        x_coord = re.findall(r'\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[
+        x_coord = re.findall(r'[+-]?\d+', re.findall(r'(?<=\()(.*?)(?=,)', line)[0])[
             0]  # find first integer between '(' and','
     except IndexError:
         x_coord = 0
     try:
-        y_coord = re.findall(r'\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[
+        y_coord = re.findall(r'[+-]?\d+', re.findall(r'(?<=,)(.*?)(?=\))', line)[0])[
             0]  # find first integer between ',' and')'
     except IndexError:
         y_coord = 0
