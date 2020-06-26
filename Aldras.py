@@ -1,27 +1,28 @@
 import math
 import os
+import re
 import string
 import threading
 import time
 import webbrowser
 from platform import system as system_platform
-import re
-import pyperclip
+
 import numpy as np
 import pyautogui as pyauto
+import pyperclip
 import wx
 import wx.adv
 import wx.grid
 import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
-from screeninfo import get_monitors
-from modules.aldras_core import float_in, variable_name_in, assignment_variable_value_in, conditional_operation_in, \
-    conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
-from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
-from modules.aldras_settings import SettingsDialog, import_settings, save_settings
-from modules.aldras_record import RecordDialog
+
+from modules.aldras_core import get_system_parameters, float_in, variable_name_in, assignment_variable_value_in, \
+    conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav
 from modules.aldras_execute import ExecuteDialog
+from modules.aldras_listener import ListenerThread, ResultEvent, coords_of, eliminate_duplicates
+from modules.aldras_record import RecordDialog
+from modules.aldras_settings import SettingsDialog, import_settings, save_settings
 
 
 # TODO comments
@@ -448,10 +449,29 @@ def setup_frame(self, status_bar=False):
     self.SetBackgroundColour('white')  # set background color
 
     def open_settings(parent_window):
-        settings_dialog = SettingsDialog(parent_window)
-        if settings_dialog.ShowModal() == wx.ID_OK:
-            save_settings(settings_dialog.settings)
-        settings_dialog.Destroy()
+        settings_dlg = SettingsDialog(parent_window)
+        if settings_dlg.ShowModal() == wx.ID_OK:
+            settings_old = import_settings()
+            save_settings(settings_dlg.settings)
+
+            # prompt user to restart Aldras if settings were changed affecting SelectionFrame or EditFrame
+            if settings_old['Number of recent workflows displayed'] != settings_dlg.settings[
+                'Number of recent workflows displayed']:
+                settings_restart_dlg = wx.MessageDialog(settings_dlg,
+                                                        'Aldras must be restarted for changes to be fully applied',
+                                                        'Restart Aldras to apply changes', wx.YES_NO | wx.ICON_WARNING)
+                settings_restart_dlg.SetYesNoLabels('Restart',
+                                                    'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
+
+                if settings_restart_dlg.ShowModal() == wx.ID_YES:
+                    # relaunch selection_frame
+                    global selection_frame
+                    selection_frame.Close()
+                    selection_frame = SelectionFrame(None)
+
+                settings_restart_dlg.Destroy()
+
+        settings_dlg.Destroy()
 
 
 def change_font(widget, size=None, family=None, style=None, weight=None, color=None):
@@ -3195,43 +3215,11 @@ class SelectionFrame(wx.Frame):
 
 
 if __name__ == '__main__':
-    def get_system_parameters():
-        # get display ranges
-        monitors = get_monitors()
-
-        x_indiv = [monitor.x for monitor in monitors]
-        widths = [monitor.width for monitor in monitors]
-
-        y_indiv = [monitor.y for monitor in monitors]
-        heights = [monitor.height for monitor in monitors]
-
-        from operator import add
-        x_sum = list(map(add, x_indiv, widths))
-        y_sum = list(map(add, y_indiv, heights))
-
-        # get unique hardware id
-        import subprocess
-        import hashlib
-
-        uu_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()  # internal uuid
-        display_id = ''.join([str(item) for item in
-                              x_indiv + y_indiv + widths + heights])  # display configuration id by joining display attributes
-
-        config_id = display_id + uu_id
-        config_id = hashlib.sha256(config_id.encode()).hexdigest()  # hash using SHA-256
-        config_id = int(math.log(int(config_id, 16), 1.01))  # consolidate by taking log of integer representation
-
-        return (min(x_indiv), max(x_sum)), (min(y_indiv), max(y_sum)), config_id
-
-
-    _, _, hardware_id = get_system_parameters()
-    print(f'hardware_id: {hardware_id}')
-
     mouse_monitor_frame = None
 
     # get system platform
     print(f'system_platform: {system_platform()}')
 
     app = wx.App(False)
-    SelectionFrame(None)
+    selection_frame = SelectionFrame(None)
     app.MainLoop()

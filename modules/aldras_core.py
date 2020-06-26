@@ -1,6 +1,35 @@
 """Aldras module containing core objects used across classes"""
 import re
 import wx
+from screeninfo import get_monitors
+import math
+from operator import add
+import subprocess
+import hashlib
+
+
+def get_system_parameters():
+    # get display ranges
+    monitors = get_monitors()
+
+    x_indiv = [monitor.x for monitor in monitors]
+    widths = [monitor.width for monitor in monitors]
+    y_indiv = [monitor.y for monitor in monitors]
+    heights = [monitor.height for monitor in monitors]
+
+    x_sum = list(map(add, x_indiv, widths))
+    y_sum = list(map(add, y_indiv, heights))
+
+    # get unique hardware id
+    uu_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()  # internal uuid
+    display_id = ''.join([str(item) for item in
+                          x_indiv + y_indiv + widths + heights])  # display configuration id by joining display attributes
+
+    config_id = display_id + uu_id
+    config_id = hashlib.sha256(config_id.encode()).hexdigest()  # hash using SHA-256
+    config_id = int(math.log(int(config_id, 16), 1.01))  # consolidate by taking log of integer representation
+
+    return (min(x_indiv), max(x_sum)), (min(y_indiv), max(y_sum)), config_id
 
 
 def coords_of(line):
