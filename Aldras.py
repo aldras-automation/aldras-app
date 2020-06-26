@@ -198,7 +198,7 @@ def setup_frame(self, status_bar=False):
 
                     # add coordinate text
                     x_range, y_range, _ = get_system_parameters()
-                    display_size = (x_range[1], y_range[1])
+                    display_size = (x_range[1], y_range[1])  # kind of, only the maximum coordinates now but good enough
                     self.current_coords = wx.StaticText(self, label=f'{display_size}')
                     change_font(self.current_coords, size=22, color=3 * (60,))
                     self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 4 * self.padding)
@@ -273,7 +273,7 @@ def setup_frame(self, status_bar=False):
                             self.freezes = []
 
                             def update_monitor(x, y, freeze=''):
-                                output = f'({x}, {y})'
+                                output = f'({x}, {y})'  # the standard is that (0, 0) is upper left corner of the main displays with the x-coordinate increasing as the cursor moves right and the y-coordinate increasing as the cursor moves down. Note this is different from the standard cartesian coordinates in common mathematics. Aldras has chosen the less familiar established cursor coordinate system to allow users to apply workflow data generated in Aldras to other tools.
 
                                 self.parent.current_coords.SetLabel(output)  # set current coordinates
                                 if len(
