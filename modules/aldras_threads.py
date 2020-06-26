@@ -1,4 +1,4 @@
-"""Aldras module containing listener objects"""
+"""Aldras module containing listener and execute thread objects"""
 import threading
 import pandas as pd
 from pynput import keyboard, mouse
@@ -6,7 +6,10 @@ import wx
 import re
 import pyautogui as pyauto
 from ctypes import WinDLL
-from modules.aldras_core import coords_of, eliminate_duplicates
+import math
+import time
+from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_name_in, \
+    assignment_variable_value_in
 
 
 class ListenerThread(threading.Thread):
@@ -361,6 +364,138 @@ class ListenerThread(threading.Thread):
         return processed_lines
 
 
+class ExecutionThread(threading.Thread):
+    """Worker Thread Class."""
+
+    def __init__(self, parent):
+        """Init Worker Thread Class."""
+        threading.Thread.__init__(self, daemon=True)
+        self.parent = parent
+
+    def run(self):
+        """Run Worker Thread."""
+
+        drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
+        lines = self.parent.parent.lines
+        type_interval = self.parent.parent.execution_type_intrv
+        mouse_duration = self.parent.parent.execution_mouse_dur
+
+        mouse_down_coords = [0, 0]
+        variables = dict()
+        pyauto.PAUSE = self.parent.parent.execution_pause
+        self.keep_running = True
+
+        try:
+            def on_move(x, y):
+                """Process click for mouse listener for ExecutionThread instances."""
+                if x < 5 and y < 5:
+                    self.keep_running = False
+
+            self.mouse_listener = mouse.Listener(
+                on_move=on_move)  # monitor mouse position to stop execution if failsafe detected
+            self.mouse_listener.start()
+
+            time.sleep(0.5)  # wait for last activating CTRL key to be released fully
+
+            for line_orig in lines:
+                if self.keep_running:  # only run when running
+                    line = line_orig.lower()
+
+                    if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
+                        pyauto.typewrite(
+                            re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
+                            interval=type_interval)
+
+                    elif 'wait' in line:
+                        tot_time = float_in(line)
+                        time_floored = math.floor(
+                            0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
+                        for half_sec_interval in range(
+                                20 * time_floored):  # loop through each 0.05 second and if still running
+                            if self.keep_running:
+                                time.sleep(0.05)
+                        time.sleep(
+                            tot_time - time_floored)  # wait additional time unaccounted for in rounding
+
+                    elif 'left-mouse' in line or 'right-mouse' in line:
+                        coords = coords_of(line)
+                        if 'right-mouse' in line:
+                            btn = 'right'
+                        else:
+                            btn = 'left'
+
+                        if 'click' in line:
+                            pyauto.click(x=coords[0], y=coords[1], button=btn)
+                        elif 'press' in line:
+                            pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+                            mouse_down_coords = coords
+                        elif 'release' in line:
+                            drag_dist = math.hypot(mouse_down_coords[0] - coords[0],
+                                                   mouse_down_coords[1] - coords[1])
+                            drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
+                            pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+                            pyauto.mouseUp(button=btn)
+                            time.sleep(0.5 * mouse_duration)
+
+                    elif 'hotkey' in line:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
+                        # contained in 'hotkey'
+                        hotkeys = line.replace('hotkey ', '').split('+')
+                        pyauto.hotkey(
+                            *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+
+                    elif 'key' in line:
+                        if 'tap' in line:
+                            key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                            pyauto.press(key)
+                        elif 'press' in line:
+                            key = line.replace('key', '').replace('press', '').replace(' ', '')
+                            pyauto.keyDown(key)
+                        elif 'release' in line:
+                            key = line.replace('key', '').replace('release', '').replace(' ', '')
+                            pyauto.keyUp(key)
+
+                    elif 'mouse-move' in line:
+                        coords = coords_of(line)
+                        pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+
+                    elif 'doubleclick' in line:
+                        coords = coords_of(line)
+                        pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
+
+                    elif 'tripleclick' in line:
+                        coords = coords_of(line)
+                        pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+
+                    elif ('assign' in line) and ('{{~' in line) and ('~}}' in line):
+                        variables[variable_name_in(line)] = assignment_variable_value_in(line)
+                        print(variables)
+
+        except pyauto.FailSafeException:
+            self.keep_running = False
+
+        try:
+            if not self.keep_running:
+                wx.PostEvent(self.parent,
+                             ResultEvent('Failsafe triggered', self.parent.thread_event_id))
+            else:
+                wx.PostEvent(self.parent, ResultEvent('Completed!', self.parent.thread_event_id))
+        except RuntimeError:
+            print('Runtime error code kTPbmaAW66')
+            raise SystemError('Runtime error code kTPbmaAW66')
+
+    def abort(self):
+        self.mouse_listener.stop()
+        self.keep_running = False
+        pyauto.FAILSAFE = False
+        pyauto.PAUSE = 0.001
+        for key in self.parent.parent.software_info.special_keys:  # release any problematic keys that may still be pressed
+            pyauto.keyUp(key)
+        for button in self.parent.parent.software_info.mouse_buttons:
+            pyauto.mouseUp(button=button.lower())
+        pyauto.PAUSE = self.parent.parent.execution_pause
+        pyauto.FAILSAFE = True
+
+
 class ResultEvent(wx.PyEvent):
     """Event to carry result data."""
 
@@ -373,6 +508,8 @@ class ResultEvent(wx.PyEvent):
 
 if __name__ == '__main__':  # debugging capability by running module file as main
     wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
+
+    # test listener_thread
     listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
     listener_thread.start()
     listener_thread.join()
