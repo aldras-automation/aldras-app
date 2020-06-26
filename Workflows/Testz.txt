@@ -1,17 +1,6 @@
 HardwareID: 17650
-Loop for each row in table ['A': [1,2,3], 'B': [4,5,6]] {
-Type:
-	#This will be executed with loop.row.col having a value depending on the loop iteration.
-Loop for each element in list [1```two```[1,2,3]```,,,,```5] {
-#This will be executed 5 times
-If {{~Var~}} equals ~value~ {
-Loop multiple times 5 {
-#This will be executed 5 times
+Left-mouse click at (3341, 421)
+Assign {{~Var~}}=2
+If {{~Var~}} Equals ~2 ~ {
+Type:Yeah!``nl``
 }
-Type:
-Left-mouse click at (10, 10)
- } 
-}
-Wait
-Double-click at (10, 10)
-Type:

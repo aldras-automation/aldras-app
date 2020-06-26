@@ -8,8 +8,8 @@ import pyautogui as pyauto
 from ctypes import WinDLL
 import math
 import time
-from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_name_in, \
-    assignment_variable_value_in
+from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
+    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in
 
 
 class ListenerThread(threading.Thread):
@@ -387,7 +387,8 @@ class ExecutionThread(threading.Thread):
 
         try:
             def on_move(x, y):
-                """Process click for mouse listener for ExecutionThread instances."""
+                """Process mouse move listener for ExecutionThread instances."""
+                # TODO revisit failsafe triggers
                 if x < 5 and y < 5:
                     self.keep_running = False
 
@@ -397,78 +398,131 @@ class ExecutionThread(threading.Thread):
 
             time.sleep(0.5)  # wait for last activating CTRL key to be released fully
 
+            unsatisfied_conditional_indent = 0
+
             for line_orig in lines:
                 if self.keep_running:  # only run when running
                     line = line_orig.lower()
+                    line_first_word = line.strip().split(' ')[0]
 
-                    if 'type' in line:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                        pyauto.typewrite(
-                            re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
-                            interval=type_interval)
+                    if unsatisfied_conditional_indent == 0:
+                        if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
+                            line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
+                            for var_to_type in variable_names_in(line_orig):
+                                line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', variables[var_to_type])
 
-                    elif 'wait' in line:
-                        tot_time = float_in(line)
-                        time_floored = math.floor(
-                            0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
-                        for half_sec_interval in range(
-                                20 * time_floored):  # loop through each 0.05 second and if still running
-                            if self.keep_running:
-                                time.sleep(0.05)
-                        time.sleep(
-                            tot_time - time_floored)  # wait additional time unaccounted for in rounding
+                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
+                                             interval=type_interval)
 
-                    elif 'left-mouse' in line or 'right-mouse' in line:
-                        coords = coords_of(line)
-                        if 'right-mouse' in line:
-                            btn = 'right'
-                        else:
-                            btn = 'left'
+                        elif 'wait' in line_first_word:
+                            tot_time = float_in(line)
+                            time_floored = math.floor(
+                                0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
+                            for half_sec_interval in range(
+                                    20 * time_floored):  # loop through each 0.05 second and if still running
+                                if self.keep_running:
+                                    time.sleep(0.05)
+                            time.sleep(
+                                tot_time - time_floored)  # wait additional time unaccounted for in rounding
 
-                        if 'click' in line:
-                            pyauto.click(x=coords[0], y=coords[1], button=btn)
-                        elif 'press' in line:
-                            pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
-                            mouse_down_coords = coords
-                        elif 'release' in line:
-                            drag_dist = math.hypot(mouse_down_coords[0] - coords[0],
-                                                   mouse_down_coords[1] - coords[1])
-                            drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
-                            pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
-                            pyauto.mouseUp(button=btn)
-                            time.sleep(0.5 * mouse_duration)
+                        elif 'left-mouse' in line_first_word or 'right-mouse' in line_first_word:
+                            coords = coords_of(line)
+                            if 'right-mouse' in line:
+                                btn = 'right'
+                            else:
+                                btn = 'left'
 
-                    elif 'hotkey' in line:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
-                        # contained in 'hotkey'
-                        hotkeys = line.replace('hotkey ', '').split('+')
-                        pyauto.hotkey(
-                            *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+                            if 'click' in line:
+                                pyauto.click(x=coords[0], y=coords[1], button=btn)
+                            elif 'press' in line:
+                                pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+                                mouse_down_coords = coords
+                            elif 'release' in line:
+                                drag_dist = math.hypot(mouse_down_coords[0] - coords[0],
+                                                       mouse_down_coords[1] - coords[1])
+                                drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
+                                pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+                                pyauto.mouseUp(button=btn)
+                                time.sleep(0.5 * mouse_duration)
 
-                    elif 'key' in line:
-                        if 'tap' in line:
-                            key = line.replace('key', '').replace('tap', '').replace(' ', '')
-                            pyauto.press(key)
-                        elif 'press' in line:
-                            key = line.replace('key', '').replace('press', '').replace(' ', '')
-                            pyauto.keyDown(key)
-                        elif 'release' in line:
-                            key = line.replace('key', '').replace('release', '').replace(' ', '')
-                            pyauto.keyUp(key)
+                        elif 'hotkey' in line_first_word:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
+                            # contained in 'hotkey'
+                            hotkeys = line.replace('hotkey ', '').split('+')
+                            pyauto.hotkey(
+                                *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
 
-                    elif 'mouse-move' in line:
-                        coords = coords_of(line)
-                        pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
+                        elif 'key' in line_first_word:
+                            if 'tap' in line:
+                                key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                                pyauto.press(key)
+                            elif 'press' in line:
+                                key = line.replace('key', '').replace('press', '').replace(' ', '')
+                                pyauto.keyDown(key)
+                            elif 'release' in line:
+                                key = line.replace('key', '').replace('release', '').replace(' ', '')
+                                pyauto.keyUp(key)
 
-                    elif 'doubleclick' in line:
-                        coords = coords_of(line)
-                        pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
+                        elif 'mouse-move' in line_first_word:
+                            coords = coords_of(line)
+                            pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
 
-                    elif 'tripleclick' in line:
-                        coords = coords_of(line)
-                        pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+                        elif 'doubleclick' in line_first_word:
+                            coords = coords_of(line)
+                            pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
 
-                    elif ('assign' in line) and ('{{~' in line) and ('~}}' in line):
-                        variables[variable_name_in(line)] = assignment_variable_value_in(line)
-                        print(variables)
+                        elif 'tripleclick' in line_first_word:
+                            coords = coords_of(line)
+                            pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
+
+                        elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+                            variables[variable_names_in(line_orig)[0]] = assignment_variable_value_in(
+                                line_orig)  # store variable
+
+                        elif ('if' in line_first_word) and ('{' in line):
+                            conditional_var = variable_names_in(line_orig)[0]
+
+                            conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',
+                                                      '≤']  # TODO import from compartmentalized softwareinfo module
+
+                            conditional_operation = conditional_operation_in(line_orig, conditional_operations)
+                            conditional_comparison = conditional_comparison_in(line_orig)
+
+                            if conditional_operation == 'Equals':
+                                if variables[conditional_var].strip() == conditional_comparison.strip():
+                                    continue
+                            elif conditional_operation == 'Not equal to':
+                                if variables[conditional_var] != conditional_comparison:
+                                    continue
+                            elif conditional_operation == 'Contains':  # if var contains comparison
+                                if conditional_comparison in variables[conditional_var]:
+                                    continue
+                            elif conditional_operation == 'Is in':  # if var is in comparison
+                                if variables[conditional_var] in conditional_comparison:
+                                    continue
+                            elif conditional_operation == '>':
+                                if float_in(variables[conditional_var]) > float_in(conditional_comparison):
+                                    continue
+                            elif conditional_operation == '<':
+                                if float_in(variables[conditional_var]) < float_in(conditional_comparison):
+                                    continue
+                            elif conditional_operation == '≥':
+                                if float_in(variables[conditional_var]) >= float_in(conditional_comparison):
+                                    continue
+                            elif conditional_operation == '≤':
+                                if float_in(variables[conditional_var]) <= float_in(conditional_comparison):
+                                    continue
+
+                            # if the condition was not met, set the unsatisfied_conditional_indent to 1 to prevent command execution until matching end bracket
+                            unsatisfied_conditional_indent = 1
+
+                    else:
+                        if ('if' in line_first_word) and ('{' in line):
+                            unsatisfied_conditional_indent += 1  # increase unsatisfied_conditional_indent by 1 with new indent block to account for ending of indent block that should not signal end of unsatisfied conditional block
+                        elif line.strip() == '}':
+                            unsatisfied_conditional_indent -= 1  # decrease unsatisfied_conditional_indent by 1 if end of indent block
+
+
+
 
         except pyauto.FailSafeException:
             self.keep_running = False
@@ -509,7 +563,7 @@ class ResultEvent(wx.PyEvent):
 if __name__ == '__main__':  # debugging capability by running module file as main
     wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
 
-    # test listener_thread
-    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
-    listener_thread.start()
-    listener_thread.join()
+    # # test listener_thread
+    # listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
+    # listener_thread.start()
+    # listener_thread.join()

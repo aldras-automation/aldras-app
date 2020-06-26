@@ -17,7 +17,7 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 
-from modules.aldras_core import get_system_parameters, float_in, variable_name_in, assignment_variable_value_in, \
+from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates
 from modules.aldras_execute import ExecuteDialog
@@ -655,9 +655,10 @@ class EditFrame(wx.Frame):
         global hardware_id
         self.x_range, self.y_range, hardware_id = get_system_parameters()
         self.coord_width = 10 * max([len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
-        
-        self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
-        self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
+
+        self.conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥', '≤']
+        self.loop_behaviors = ['Forever', 'Multiple times',
+                               'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
         self.command_sizers_to_delete_after_ingest = []
 
         # read workflow hardware id
@@ -1371,7 +1372,8 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT,
+        variable_name_text = variable_names_in(line)[0]
+        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_text, style=wx.TE_RICH | wx.TE_RIGHT,
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
@@ -1403,7 +1405,7 @@ class EditFrame(wx.Frame):
         change_font(if_text, size=11)
         sizer.Add(if_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 8)
 
-        variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_in(line), style=wx.TE_RICH | wx.TE_RIGHT,
+        variable_name_entry = wx.TextCtrl(self.edit, value=variable_names_in(line)[0], style=wx.TE_RICH | wx.TE_RIGHT,
                                           validator=self.CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
@@ -1441,9 +1443,6 @@ class EditFrame(wx.Frame):
             raise ValueError
 
         def add_loop_details(loop_sizer, action, modification):
-
-            # TODO change line
-
             self.no_right_spacer = False
 
             index = None
@@ -1885,9 +1884,10 @@ class EditFrame(wx.Frame):
         for list_to_change in self.tracker_lists:  # delete records from tracker_lists
             del (list_to_change[index])
 
+        self.Freeze()
+        self.refresh_move_buttons()
         self.vbox_edit.Show(index, False)
         self.vbox_edit.Remove(index)
-        self.Freeze()
         self.Layout()
         self.Thaw()
 
@@ -2316,7 +2316,7 @@ class EditFrame(wx.Frame):
         elif command_type == 'comment':
             self.lines[index] = f'#{input_one_lined}'
         elif command_type == 'assign_var_name':
-            old_variable_name = variable_name_in(self.lines[index])
+            old_variable_name = variable_names_in(self.lines[index])[0]
             new_variable_name = event.GetString()
             variable_value = assignment_variable_value_in(self.lines[index])
 
@@ -2325,7 +2325,7 @@ class EditFrame(wx.Frame):
             self.variables.pop(old_variable_name, None)  # remove old variable
             self.variables[new_variable_name] = variable_value  # add new variable
         elif command_type == 'assign_var_value':
-            variable_name = variable_name_in(self.lines[index])
+            variable_name = variable_names_in(self.lines[index])[0]
             new_variable_value = input_one_lined
             self.lines[index] = f'Assign {{{{~{variable_name}~}}}}={new_variable_value}'
             self.variables[variable_name] = new_variable_value
@@ -2336,11 +2336,11 @@ class EditFrame(wx.Frame):
         elif command_type == 'conditional_comparison_operator':
             comparison_operator = event.GetString()
             self.lines[
-                index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {comparison_operator} ~{conditional_comparison_in(self.lines[index])}~ {{'
+                index] = f'If {{{{~{variable_names_in(self.lines[index])[0]}~}}}} {comparison_operator} ~{conditional_comparison_in(self.lines[index])}~ {{'
         elif command_type == 'conditional_comparison_value':
             comparison_value = input_one_lined
             self.lines[
-                index] = f'If {{{{~{variable_name_in(self.lines[index])}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
+                index] = f'If {{{{~{variable_names_in(self.lines[index])[0]}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
         # TODO loop parameters changes
 
         event.Skip()
@@ -2799,10 +2799,11 @@ class EditFrame(wx.Frame):
             elif save_dlg == 20:  # 'don't save' button
                 pass
             else:  # cancel button
-                return
+                return 'cancel'
 
     def close_window(self, _=None, quitall=False):
-        self.save_workflow()
+        if self.save_workflow() == 'cancel':
+            return
 
         self.Hide()
         if quitall:

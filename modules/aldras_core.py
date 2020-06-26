@@ -55,26 +55,29 @@ def eliminate_duplicates(list_with_duplicates):
     return [x for x in list_with_duplicates if not (x in seen or seen.add(x))]
 
 
-def float_in(input_string):
+def float_in(input_string, return_all=False):
     """Returns parsed float from string."""
     floats = re.findall(r'[-+]?\d*\.\d+|\d+', input_string)
+    output = float(floats[0])
     if not floats:
         output = float(0)
     elif len(floats) > 1:
-        output = [float(indiv_float) for indiv_float in floats]
-    else:
-        output = float(floats[0])
+        if return_all:
+            output = [float(indiv_float) for indiv_float in floats]
 
     return output
 
 
-def variable_name_in(input_string):
+def variable_names_in(input_string):
     """Return variable in string between {{~ and ~}} syntax"""
     variables = re.findall(r'(?<={{~)(.*?)(?=~}})', input_string)
-    if len(variables) == 1:
-        return variables[0]
-    else:
-        raise ValueError
+    return variables
+    # if len(variables) == 1:
+    #     return variables[0]
+    # else:
+    #     if allow_multiple_vars:
+    #         return variables
+    #     raise ValueError
 
 
 def assignment_variable_value_in(input_string):
