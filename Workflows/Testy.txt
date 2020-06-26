@@ -1,8 +1,9 @@
+HardwareID: 17650
 Left-mouse click at (341, 505)
-Right-mouse press at (262, 637)
 Assign {{~Var~}}=gdsf
-Type:This proposal was initiated by John Smith.
 Hotkey ctrl+s
+Right-mouse press at (262, 637)
+Type:This proposal was initiated by John Smith.
 If {{~Var~}} Equals ~asdf~ {
 Wait 0.5
 }

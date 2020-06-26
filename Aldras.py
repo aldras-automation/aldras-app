@@ -607,7 +607,6 @@ class EditFrame(wx.Frame):
         self.workflow_name_when_launched = parent.workflow_name
         self.parent = parent
         self.lines = lines
-        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
         self.variables = dict()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}',
                           name='edit_frame')
@@ -618,9 +617,20 @@ class EditFrame(wx.Frame):
         self.num_hotkeys = 3  # TODO to be set by preferences
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 25
+
+        global hardware_id
+        self.x_range, self.y_range, hardware_id = get_system_parameters()
+        self.coord_width = 10 * max([len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
+        
         self.conditional_operations = ['Equals', 'Contains', 'Is in', '>', '<', '≥', '≤']
         self.loop_behaviors = ['Forever', 'Multiple times', 'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
         self.command_sizers_to_delete_after_ingest = []
+
+        # read workflow hardware id
+        workflow_hardware_id = None
+        if 'hardware' in self.lines[0].strip().split(' ')[0].lower():  # if 'hardware' in first word of first line
+            workflow_hardware_id = int(re.search(r'\d+', self.lines[0]).group())
+            del self.lines[0]
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
@@ -752,7 +762,13 @@ class EditFrame(wx.Frame):
         for sizer_to_delete in self.command_sizers_to_delete_after_ingest:
             self.delete_command(sizer_to_delete)
 
+        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
+
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
+
+        # compare system hardware id to workflow hardware id
+        if hardware_id != workflow_hardware_id:
+            wx.MessageDialog(self, 'Your hardware configuration is different from the system that last made changes to this workflow.\n\nMouse coordinates and other features may not work as intended.', 'Different Hardware Configuration', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
         size = (int(size[0]), int(size[1]))  # convert to integers
@@ -1168,18 +1184,18 @@ class EditFrame(wx.Frame):
         y_val = coords_of(line)[1]
 
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
-                                   size=wx.Size(self.software_info.coord_width, -1),
+                                   size=wx.Size(self.coord_width, -1),
                                    value=str(x_val),
                                    validator=self.CharValidator('coordinate', self))
-        self.x_coord.SetMaxLength(max([len(str(x)) for x in x_range]))
+        self.x_coord.SetMaxLength(max([len(str(x)) for x in self.x_range]))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
-                                   size=wx.Size(self.software_info.coord_width, -1),
+                                   size=wx.Size(self.coord_width, -1),
                                    value=str(y_val),
                                    validator=self.CharValidator('coordinate', self))
-        self.y_coord.SetMaxLength(max([len(str(y)) for y in y_range]))
+        self.y_coord.SetMaxLength(max([len(str(y)) for y in self.y_range]))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
 
@@ -1413,7 +1429,7 @@ class EditFrame(wx.Frame):
             elif action == 'Multiple times':
                 if index is not None:
                     self.lines[index] = 'Loop multiple times 1 {'
-                loop_iteration_number = wx.TextCtrl(self.edit, value='1', size=wx.Size(self.software_info.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
+                loop_iteration_number = wx.TextCtrl(self.edit, value='1', size=wx.Size(self.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
                 loop_iteration_number.SetMaxLength(4)
                 # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))  # TODO add functionality
                 loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
@@ -2156,7 +2172,7 @@ class EditFrame(wx.Frame):
                         x_coord = command_change
                     else:
                         x_coord = '0'
-                    if not x_range[0] < int(x_coord) < x_range[1]:
+                    if not self.x_range[0] < int(x_coord) < self.x_range[1]:
                         invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
@@ -2166,7 +2182,7 @@ class EditFrame(wx.Frame):
                         y_coord = command_change
                     else:
                         y_coord = '0'
-                    if not y_range[0] < int(y_coord) < y_range[1]:
+                    if not self.y_range[0] < int(y_coord) < self.y_range[1]:
                         invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
@@ -2177,9 +2193,9 @@ class EditFrame(wx.Frame):
                 if not invalid_range:
                     error_msg = 'Invalid integer.'
                 elif 'x' in command_type:
-                    error_msg = f'The X range is {x_range[0]} to {x_range[1]} px.'
+                    error_msg = f'The X range is {self.x_range[0]} to {self.x_range[1]} px.'
                 elif 'y' in command_type:
-                    error_msg = f'The Y range is {y_range[0]} to {y_range[1]} px.'
+                    error_msg = f'The Y range is {self.y_range[0]} to {self.y_range[1]} px.'
                 else:
                     error_msg = f'Invalid coordinates.'
                 error_static_text.SetLabel(error_msg)
@@ -2863,6 +2879,7 @@ class EditFrame(wx.Frame):
             if save_dlg == wx.ID_OK:
                 # write to workflow file
                 with open(workflow_path_when_launched, 'w') as record_file:
+                    record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
                     print(f'LINES saved to file: {self.lines}')
                     for line in self.lines:
                         record_file.write(f'{line}\n')
@@ -2942,7 +2959,6 @@ class SelectionFrame(wx.Frame):
                 self.mouse_buttons = ['Left', 'Right']
                 self.mouse_actions = ['Click', 'Press', 'Release']
                 self.key_actions = ['Tap', 'Press', 'Release']
-                self.coord_width = 10 * max([len(str(r)) for r in x_range+y_range])  # ten times the max length of range in x or y direction
                 self.special_keys = ['Backspace', 'Del', 'Enter', 'Tab', 'Left', 'Right', 'Up', 'Down', 'Home', 'End',
                                      'PageUp', 'PageDown', 'Space', 'Shift', 'Esc', 'Ctrl', 'Alt', 'Win', 'Command',
                                      'Option', 'BrowserBack', 'BrowserForward', 'Insert', 'NumLock', 'PrntScrn',
@@ -3183,15 +3199,7 @@ def main():
     # get system platform
     print(f'system_platform: {system_platform()}')
 
-    # get unique hardware id
-    import subprocess
-    hardware_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()
-    print(f'hardware_id: {hardware_id}')
 
-    # get number of cores
-    import psutil
-    cpu_num_cores = psutil.cpu_count()
-    print(f'cpu_num_cores: {cpu_num_cores}')
 
     global mouse_monitor_frame
     mouse_monitor_frame = None
@@ -3204,23 +3212,36 @@ def main():
 if __name__ == '__main__':
     global mouse_monitor_frame
 
-    # get display size
-    monitors = get_monitors()
+    def get_system_parameters():
+        # get display ranges
+        monitors = get_monitors()
 
-    x_indiv = [monitor.x for monitor in monitors]
-    widths = [monitor.width for monitor in monitors]
+        x_indiv = [monitor.x for monitor in monitors]
+        widths = [monitor.width for monitor in monitors]
 
-    y_indiv = [monitor.y for monitor in monitors]
-    heights = [monitor.height for monitor in monitors]
+        y_indiv = [monitor.y for monitor in monitors]
+        heights = [monitor.height for monitor in monitors]
 
-    from operator import add
-    x_sum = list(map(add, x_indiv, widths))
-    y_sum = list(map(add, y_indiv, heights))
+        from operator import add
+        x_sum = list(map(add, x_indiv, widths))
+        y_sum = list(map(add, y_indiv, heights))
 
-    x_range = (min(x_indiv), max(x_sum))
-    y_range = (min(y_indiv), max(y_sum))
+        # get unique hardware id
+        import subprocess
+        import hashlib
 
-    print(f'displays: {monitors}')
-    print(f'display range: {[x_range, y_range]}')
+        uu_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()  # internal uuid
+        display_id = ''.join([str(item) for item in
+                              x_indiv + y_indiv + widths + heights])  # display configuration id by joining display attributes
+
+        config_id = display_id + uu_id
+        config_id = hashlib.sha256(config_id.encode()).hexdigest()  # hash using SHA-256
+        config_id = int(math.log(int(config_id, 16), 1.01))  # consolidate by taking log of integer representation
+
+        return (min(x_indiv), max(x_sum)), (min(y_indiv), max(y_sum)), config_id
+
+    _, _, hardware_id = get_system_parameters()
+
+    print(f'hardware_id: {hardware_id}')
 
     main()
