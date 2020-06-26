@@ -197,13 +197,18 @@ def setup_frame(self, status_bar=False):
                     self.vbox_live.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     # add coordinate text
+                    x_range, y_range, _ = get_system_parameters()
+                    display_size = (x_range[1], y_range[1])
                     self.current_coords = wx.StaticText(self, label=f'{display_size}')
                     change_font(self.current_coords, size=22, color=3 * (60,))
                     self.vbox_live.Add(self.current_coords, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 4 * self.padding)
 
                     # add coordinate label
-                    self.coords_label_spacer = ' ' * len(str(display_size))
-                    self.coords_label = wx.StaticText(self, label=f'x{self.coords_label_spacer}y')
+                    coords_label_spacer = ' ' * len(str(display_size))
+                    x_coord_spacer = ' ' * int(len(str(x_range[1])) / 2)
+                    y_coord_spacer = ' ' * int(len(str(y_range[1])) / 2)
+                    self.coords_label = wx.StaticText(self,
+                                                      label=f'{x_coord_spacer}x{coords_label_spacer}y{y_coord_spacer}')
                     change_font(self.coords_label, size=14, color=3 * (100,))
                     self.vbox_live.Add(self.coords_label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 2 * self.padding)
 
@@ -274,7 +279,13 @@ def setup_frame(self, status_bar=False):
                                 if len(
                                         output) != self.prev_output_len:  # change 'x' and 'y' label spacing if length is different
                                     self.prev_output_len = len(output)
-                                    self.parent.coords_label.SetLabel(f'x{" " * len(output)}y')
+
+                                    coords_label_spacer = ' ' * len(output)
+                                    x_coord_spacer = ' ' * int(len(str(x)) / 2)
+                                    y_coord_spacer = ' ' * int(len(str(y)) / 2)
+                                    self.parent.coords_label.SetLabel(
+                                        f'{x_coord_spacer}x{coords_label_spacer}y{y_coord_spacer}')
+
                                     self.parent.Layout()
 
                                 if freeze:
@@ -3060,7 +3071,6 @@ class SelectionFrame(wx.Frame):
         # display frame
         self.workflow_panel.SetSizerAndFit(self.vbox_outer)
         self.vbox_outer.SetSizeHints(self)
-        self.Bind(wx.EVT_CLOSE, self.close_window)
         self.ok_btn.SetFocus()
         self.Center()
         self.Show()
@@ -3162,17 +3172,6 @@ class SelectionFrame(wx.Frame):
         # trigger close event
         self.Close(True)
 
-    @staticmethod
-    def close_window(close_event):
-        # handle close event
-        try:
-            # close monitor frame if open
-            global mouse_monitor_frame
-            mouse_monitor_frame.Close(True)
-        except (AttributeError, RuntimeError):
-            pass
-        close_event.Skip()
-
     # def on_open(self, e):
     #     """ Open a file"""
     #     dlg = wx.FileDialog(self, 'Choose a file', self.dirname, '', '*.*', wx.FD_OPEN)
@@ -3195,23 +3194,7 @@ class SelectionFrame(wx.Frame):
     # dlg.Destroy()
 
 
-def main():
-    # get system platform
-    print(f'system_platform: {system_platform()}')
-
-
-
-    global mouse_monitor_frame
-    mouse_monitor_frame = None
-
-    app = wx.App(False)
-    SelectionFrame(None)
-    app.MainLoop()
-
-
 if __name__ == '__main__':
-    global mouse_monitor_frame
-
     def get_system_parameters():
         # get display ranges
         monitors = get_monitors()
@@ -3240,8 +3223,15 @@ if __name__ == '__main__':
 
         return (min(x_indiv), max(x_sum)), (min(y_indiv), max(y_sum)), config_id
 
-    _, _, hardware_id = get_system_parameters()
 
+    _, _, hardware_id = get_system_parameters()
     print(f'hardware_id: {hardware_id}')
 
-    main()
+    mouse_monitor_frame = None
+
+    # get system platform
+    print(f'system_platform: {system_platform()}')
+
+    app = wx.App(False)
+    SelectionFrame(None)
+    app.MainLoop()
