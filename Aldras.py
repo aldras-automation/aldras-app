@@ -875,11 +875,12 @@ class EditFrame(wx.Frame):
         end_brackets_expected = 0
         extra_end_bracket_indices = []
         for index, line in enumerate(self.lines):
-            line_first_word = line.strip().split(' ')[0].lower()
+            line_first_word = line.strip().split(' ')[0].lower()[:6]
             if ('if' in line_first_word and '{{~' in line and '~}}' in line) or (
                     'loop' in line_first_word and '{' in line):
                 # add ending bracket at end of workflow if block ending bracket cannot be found
                 if block_end_index(self.lines, index) == -1:
+                    print('this!')
                     self.lines.append('}')
                 end_brackets_expected += 1
 
@@ -983,7 +984,7 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
                 # ----------------------------------------------------------------------------------------------------------
 
-                self.line_first_word = self.line.strip().split(' ')[0]
+                self.line_first_word = self.line.strip().split(' ')[0][:6]
 
                 if not self.line:  # if line is empty, insert spacers
                     self.hbox_edit.Insert(0, 0, 50, 1)
@@ -1911,7 +1912,7 @@ class EditFrame(wx.Frame):
             index = self.edit_row_widget_sizers.index(sizer_or_index)
 
         line = self.lines[index]
-        line_first_word = line.strip().split(' ')[0].lower()
+        line_first_word = line.strip().split(' ')[0].lower()[:6]
         self.Freeze()
 
         # if deleting indent block, decrease indents and delete ending bracket
@@ -2054,7 +2055,7 @@ class EditFrame(wx.Frame):
                 self.show_move_button(sizer_indiv, 'down', True)
 
         # hide move down button of indent block start if nothing below indent block
-        if self.indents[-2:] != [0, 0]:
+        if self.indents[-2:] != [0, 0] and len(self.indents) >= 2:
             indent_block_start_index = len(self.indents[:-2]) - 1 - self.indents[:-2][::-1].index(
                 0)  # index of last zero before indent block
             self.show_move_button(self.edit_row_container_sizers[indent_block_start_index], 'down', False)
@@ -2067,7 +2068,7 @@ class EditFrame(wx.Frame):
         new_action = event.GetString()
         line_orig = self.lines[index]
         line = line_orig.lower().strip()
-        line_first_word = line.split(' ')[0]
+        line_first_word = line.split(' ')[0][:6]
 
         old_coords = self.default_coords
         old_action = ''

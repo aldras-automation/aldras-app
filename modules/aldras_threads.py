@@ -425,7 +425,7 @@ class ExecutionThread(threading.Thread):
     def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
-            line_first_word = line.strip().split(' ')[0]
+            line_first_word = line.strip().split(' ')[0][:6]
 
             if self.unsatisfied_conditional_indent == 0:
                 if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords

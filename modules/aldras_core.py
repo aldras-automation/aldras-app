@@ -134,7 +134,7 @@ def block_end_index(lines, loop_start_index):
 
     # loop through all lines starting from loop until ending bracket is found
     for loop_line_index, loop_line in enumerate(lines[loop_start_index:]):
-        line_first_word = loop_line.strip().split(' ')[0].lower()
+        line_first_word = loop_line.strip().split(' ')[0].lower()[:6]
 
         if loop_line.strip() == '}':
             indent_val -= 1

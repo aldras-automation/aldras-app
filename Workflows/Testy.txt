@@ -1,15 +1,4 @@
 HardwareID: 17650
-Left-mouse click at (3739, 944)
-Loop multiple times 2 {
-Type:Outer loop
-Key enter tap
-Loop multiple times 3 {
-Type:Inner loop a
-Key enter tap
-Loop multiple times 4 {
-Type:Inner loop b
-Key enter tap
+Loop for each element in list [1`'`2`'`3`'`4`'`5] {
+Type:{{~loop.list.var~}}
 }
-}
-}
-Type:OUTSIDE
