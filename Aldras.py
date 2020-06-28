@@ -876,7 +876,8 @@ class EditFrame(wx.Frame):
         extra_end_bracket_indices = []
         for index, line in enumerate(self.lines):
             line_first_word = line.strip().split(' ')[0].lower()
-            if ('if' in line_first_word and '{' in line) or ('loop' in line_first_word and '{' in line):
+            if ('if' in line_first_word and '{{~' in line and '~}}' in line) or (
+                    'loop' in line_first_word and '{' in line):
                 # add ending bracket at end of workflow if block ending bracket cannot be found
                 if block_end_index(self.lines, index) == -1:
                     self.lines.append('}')
@@ -1039,7 +1040,7 @@ class EditFrame(wx.Frame):
                     self.add_command_combobox('Assign')
                     self.create_assign_var_row(line_orig)
 
-                elif ('if' in self.line_first_word) and ('{' in self.line):
+                elif 'if' in self.line_first_word and '{{~' in self.line and '~}}' in self.line:
                     self.add_command_combobox('Conditional')
                     self.create_conditional_row(line_orig)
 
@@ -1613,7 +1614,6 @@ class EditFrame(wx.Frame):
 
         if reorder_dlg.ShowModal() == wx.ID_OK:
             order = reorder_dlg.GetOrder()
-            print(f'reordered indices: {order}')
             if order != list(range(len(order))):  # only perform operations if order changes
                 self.lines = [self.lines[index] for index in order]
                 self.create_edit_panel()
@@ -1906,17 +1906,16 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
 
     def delete_command(self, sizer_or_index):
+        index = sizer_or_index  # this is the case when called from delete dialog
         if isinstance(sizer_or_index, wx.Sizer):
             index = self.edit_row_widget_sizers.index(sizer_or_index)
-        elif isinstance(sizer_or_index, int):  # this is the case when called from delete dialog
-            index = sizer_or_index
 
         line = self.lines[index]
         line_first_word = line.strip().split(' ')[0].lower()
         self.Freeze()
 
         # if deleting indent block, decrease indents and delete ending bracket
-        if ('if' in line_first_word and '{' in line) or ('loop' in line_first_word and '{' in line):
+        if ('if' in line_first_word and '{{~' in line and '~}}' in line) or ('loop' in line_first_word and '{' in line):
             # find index of last element of indented block
             next_same_indent_offset = self.indents[index + 1:].index(
                 self.indents[index])  # distance between indent start and end
@@ -2054,8 +2053,6 @@ class EditFrame(wx.Frame):
                 self.show_move_button(sizer_indiv, 'up', True)
                 self.show_move_button(sizer_indiv, 'down', True)
 
-        print(self.indents)
-
         # hide move down button of indent block start if nothing below indent block
         if self.indents[-2:] != [0, 0]:
             indent_block_start_index = len(self.indents[:-2]) - 1 - self.indents[:-2][::-1].index(
@@ -2116,8 +2113,11 @@ class EditFrame(wx.Frame):
         elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
             old_action = 'Assign'
 
-        elif ('if' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+        elif 'if' in line_first_word and '{{~' in line and '~}}' in line:
             old_action = 'Conditional'
+
+        elif 'loop' in line_first_word and '{' in line:
+            old_action = 'Loop'
 
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
@@ -2219,6 +2219,8 @@ class EditFrame(wx.Frame):
             for indent_index in range(index + 1, index_of_end_bracket):
                 self.indents[indent_index] -= 1
                 self.set_indent(indent_index)
+
+            self.refresh_move_buttons()
 
         self.Layout()
         self.Thaw()
@@ -2783,7 +2785,7 @@ class EditFrame(wx.Frame):
                 return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
                     up_down_index].GetWindow().Show(show)
             except AttributeError:
-                print('AttributeError')
+                print('AttributeError  2925118694')
 
     # do_nothing = lambda: None
     @staticmethod
@@ -2846,7 +2848,6 @@ class EditFrame(wx.Frame):
                 # write to workflow file
                 with open(workflow_path_when_launched, 'w') as record_file:
                     record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
-                    print(f'LINES saved to file: {self.lines}')
                     for line in self.lines:
                         record_file.write(f'{line}\n')
 
