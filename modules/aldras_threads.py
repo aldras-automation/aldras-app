@@ -426,7 +426,8 @@ class ExecutionThread(threading.Thread):
             if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
                 for var_to_type in variable_names_in(line_orig):
-                    line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])
+                    if var_to_type in self.variables:
+                        line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])
 
                 pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
                                  interval=self.type_interval)
