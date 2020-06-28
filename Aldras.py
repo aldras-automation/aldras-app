@@ -880,7 +880,6 @@ class EditFrame(wx.Frame):
                     'loop' in line_first_word and '{' in line):
                 # add ending bracket at end of workflow if block ending bracket cannot be found
                 if block_end_index(self.lines, index) == -1:
-                    print('this!')
                     self.lines.append('}')
                 end_brackets_expected += 1
 
@@ -994,10 +993,6 @@ class EditFrame(wx.Frame):
                     self.add_command_combobox('Comment')
                     self.create_comment_row(line_orig)
 
-                elif '-mouse' in self.line_first_word:
-                    self.add_command_combobox('Mouse button')
-                    self.create_mouse_row(self.line)
-
                 elif 'type:' in self.line_first_word:
                     self.add_command_combobox('Type')
                     self.create_type_row(line_orig)
@@ -1048,6 +1043,11 @@ class EditFrame(wx.Frame):
                 elif ('loop' in self.line_first_word) and ('{' in self.line):
                     self.add_command_combobox('Loop')
                     self.create_loop_sizer(line_orig)
+
+                elif '-mouse' in self.line.strip().split(' ')[0]:
+                    print('here')
+                    self.add_command_combobox('Mouse button')
+                    self.create_mouse_row(self.line)
 
                 else:
                     raise ValueError
@@ -2075,10 +2075,6 @@ class EditFrame(wx.Frame):
         if line.replace(' ', '')[0] == '#':
             old_action = 'Comment'
 
-        elif '-mouse' in line_first_word:
-            old_action = 'Mouse button'
-            old_coords = coords_of(line)
-
         elif 'type:' in line_first_word:
             old_action = 'Type'
 
@@ -2119,6 +2115,10 @@ class EditFrame(wx.Frame):
 
         elif 'loop' in line_first_word and '{' in line:
             old_action = 'Loop'
+
+        elif '-mouse' in line.split(' ')[0]:
+            old_action = 'Mouse button'
+            old_coords = coords_of(line)
 
         if old_action == new_action:  # do nothing as not to reset existing parameters
             return
