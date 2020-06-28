@@ -934,6 +934,7 @@ class EditFrame(wx.Frame):
                             text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
             except IndexError:
                 pass
+        self.refresh_move_buttons()
         self.Layout()
         self.Thaw()
 
@@ -1045,7 +1046,6 @@ class EditFrame(wx.Frame):
                     self.create_loop_sizer(line_orig)
 
                 elif '-mouse' in self.line.strip().split(' ')[0]:
-                    print('here')
                     self.add_command_combobox('Mouse button')
                     self.create_mouse_row(self.line)
 
