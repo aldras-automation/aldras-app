@@ -872,7 +872,7 @@ class EditFrame(wx.Frame):
             pass
 
         # add missing ending brackets and remove extra ending brackets
-        end_bracket_expected = False
+        end_brackets_expected = 0
         extra_end_bracket_indices = []
         for index, line in enumerate(self.lines):
             line_first_word = line.strip().split(' ')[0].lower()
@@ -881,12 +881,12 @@ class EditFrame(wx.Frame):
                 # add ending bracket at end of workflow if block ending bracket cannot be found
                 if block_end_index(self.lines, index) == -1:
                     self.lines.append('}')
-                end_bracket_expected = True
+                end_brackets_expected += 1
 
-            elif line_first_word == '}' and end_bracket_expected:
-                end_bracket_expected = False
+            elif line_first_word == '}' and end_brackets_expected:
+                end_brackets_expected -= 1
 
-            elif line_first_word == '}' and not end_bracket_expected:
+            elif line_first_word == '}' and end_brackets_expected <= 0:
                 extra_end_bracket_indices.append(index)
 
         # delete extra ending bracket lines (must be done in reverse order)
