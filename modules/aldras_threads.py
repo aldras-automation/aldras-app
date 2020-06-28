@@ -422,10 +422,9 @@ class ExecutionThread(threading.Thread):
             print('Runtime error code kTPbmaAW66')
             raise SystemError('Runtime error code kTPbmaAW66')
 
-    def execute_line(self, line_orig, line_index, called_from_loop=False):
+    def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
-            print(f'line: {line} - {line_index}')
             line_first_word = line.strip().split(' ')[0]
 
             if self.unsatisfied_conditional_indent == 0:
@@ -542,39 +541,33 @@ class ExecutionThread(threading.Thread):
 
                 elif ('loop' in line_first_word) and ('{' in line):
                     loop_lines, loop_end_index = self.find_loop_lines(line_index)
+
                     if 'multiple' in line:
                         num_times_to_loop = int(float_in(line))
-                        print(f'start of loop: {self.lines_to_execute[line_index]} -- Loop {num_times_to_loop} times')
-                        for ii in range(num_times_to_loop):
-                            # print('\t', ii)
+
+                        for loop_iteration in range(num_times_to_loop):
                             loop_line_index = 0
+
+                            # reset lines_should_be_executed for lines in loop block to be executed below
                             self.lines_should_be_executed[line_index:loop_end_index] = [True] * (
                                         loop_end_index - line_index)
-                            # print(loop_lines)
-                            # print()
+
                             for loop_line in loop_lines:
                                 loop_line_index += 1
                                 if self.lines_should_be_executed[line_index + loop_line_index]:
-                                    print(loop_line)
                                     _, nested_loop_end_index = self.execute_line(loop_line,
-                                                                                 line_index + loop_line_index,
-                                                                                 called_from_loop=True)
-                                    if ii == num_times_to_loop - 1:
-                                        print('lines_should_be_executed changed: ', line_index, nested_loop_end_index)
+                                                                                 line_index + loop_line_index)
+
+                                    if loop_iteration == num_times_to_loop - 1:  # if last iteration has completed
+                                        # prevent future execution of lines that have already been executed by the loop logic
                                         self.lines_should_be_executed[line_index:nested_loop_end_index] = [False] * (
                                                     nested_loop_end_index - line_index)
 
-                    print('end loop!', line_index, loop_end_index)
                     return line_index, loop_end_index
 
-                    # delete loop block lines to prevent future execution of those lines that have already been executed by the loop logic
-                    # not recommended to delete looping list from within loop this is functional (may want to replace with next() if issues arise)
-                    # if not called_from_loop:
-                    #     print('LOOP LINES: ', self.find_loop_lines(line_index))
-                    #     del self.lines_to_execute[line_index:loop_end_index]
-
             else:
-                if ('if' in line_first_word) and ('{' in line):
+                if ('if' in line_first_word) and (
+                        '{' in line):  # TODO rework by making find_loop_lines() general purpose and using lines should be executed
                     self.unsatisfied_conditional_indent += 1  # increase unsatisfied_conditional_indent by 1 with new indent block to account for ending of indent block that should not signal end of unsatisfied conditional block
                 elif line.strip() == '}':
                     self.unsatisfied_conditional_indent -= 1  # decrease unsatisfied_conditional_indent by 1 if end of indent block
@@ -583,7 +576,7 @@ class ExecutionThread(threading.Thread):
 
     def find_loop_lines(self, loop_start_index):
         indent_val = 0  # starting indent value of zero to be increased by the
-        loop_end_index = -1  # return all lines after loop if no ending bracket is found in the loop below
+        loop_end_index = -1  # return index for all lines after loop if no ending bracket is found in the loop below
 
         # loop through all lines starting from loop until ending bracket is found
         for loop_line_index, loop_line in enumerate(self.lines_to_execute[loop_start_index:]):
@@ -592,11 +585,13 @@ class ExecutionThread(threading.Thread):
             if loop_line.strip() == '}':
                 indent_val -= 1
             elif ('if' in line_first_word) and ('{' in loop_line):
+                # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
                 indent_val += 1
             elif ('loop' in line_first_word) and ('{' in loop_line):
+                # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
                 indent_val += 1
 
-            if indent_val == 0:  # ending bracket is found
+            if indent_val == 0:  # if ending bracket for block of interest is found
                 loop_end_index = loop_start_index + loop_line_index
                 break  # stop loop
 
