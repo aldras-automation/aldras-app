@@ -1,18 +1,15 @@
 HardwareID: 17650
-Left-mouse click at (341, 505)
-Assign {{~Var~}}=gdsf
-Hotkey ctrl+s
-Right-mouse press at (262, 637)
-Type:This proposal was initiated by John Smith.
-If {{~Var~}} Equals ~asdf~ {
-Wait 0.5
+Left-mouse click at (3739, 944)
+Loop multiple times 2 {
+Type:Outer loop
+Key enter tap
+Loop multiple times 3 {
+Type:Inner loop a
+Key enter tap
+Loop multiple times 4 {
+Type:Inner loop b
+Key enter tap
 }
-Mouse-move to (749, 450)
-Wait 0.5
-Loop multiple times 1 {
-# Comment
-Left-mouse click at (749, 450)
 }
-Double-click at (749, 450)
-Triple-click at (749, 450)
-Key Esc Tap
+}
+Type:OUTSIDE

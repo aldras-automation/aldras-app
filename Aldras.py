@@ -1462,9 +1462,15 @@ class EditFrame(wx.Frame):
             elif action == 'Multiple times':
                 if index is not None:
                     self.lines[index] = 'Loop multiple times 1 {'
-                loop_iteration_number = wx.TextCtrl(self.edit, value='1', size=wx.Size(self.coord_width, -1), style=wx.TE_RICH | wx.TE_CENTRE, validator=self.CharValidator('only_integer', self))
+                    loop_num = '1'
+                else:
+                    loop_num = str(int(float_in(line)))
+                loop_iteration_number = wx.TextCtrl(self.edit, value=loop_num, size=wx.Size(self.coord_width, -1),
+                                                    style=wx.TE_RICH | wx.TE_CENTRE,
+                                                    validator=self.CharValidator('only_integer', self))
                 loop_iteration_number.SetMaxLength(4)
-                # loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.text_change(sizer, event, 'DESCRIPTOR'))  # TODO add functionality
+                loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event,
+                                                                                                    'loop_multiple_times_number'))  # TODO add functionality
                 loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
                 loop_sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -2341,6 +2347,8 @@ class EditFrame(wx.Frame):
             comparison_value = input_one_lined
             self.lines[
                 index] = f'If {{{{~{variable_names_in(self.lines[index])[0]}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
+        elif command_type == 'loop_multiple_times_number':
+            self.lines[index] = f'Loop multiple times {input_one_lined} {{'
         # TODO loop parameters changes
 
         event.Skip()
@@ -2488,6 +2496,7 @@ class EditFrame(wx.Frame):
                             self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
                                              int(self.position_old[1]))
                         self.Fit()
+                        self.Center()  # TODO center on previous position not on screen
 
                 def finish(self, _):
                     lines_recorded = self.listener_thread.abort()
@@ -2684,6 +2693,7 @@ class EditFrame(wx.Frame):
                             self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
                                              int(self.position_old[1]))
                         self.Fit()
+                        self.Center()  # TODO center on previous position not on screen
 
                 def close_window(self, _):
                     self.keep_running = False

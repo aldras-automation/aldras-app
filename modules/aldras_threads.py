@@ -375,13 +375,13 @@ class ExecutionThread(threading.Thread):
     def run(self):
         """Run Worker Thread."""
 
-        drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
-        lines = self.parent.parent.lines
-        type_interval = self.parent.parent.execution_type_intrv
-        mouse_duration = self.parent.parent.execution_mouse_dur
+        self.drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
+        self.lines_to_execute = self.parent.parent.lines.copy()
+        self.type_interval = self.parent.parent.execution_type_intrv
+        self.mouse_duration = self.parent.parent.execution_mouse_dur
 
-        mouse_down_coords = [0, 0]
-        variables = dict()
+        self.mouse_down_coords = [0, 0]
+        self.variables = dict()
         pyauto.PAUSE = self.parent.parent.execution_pause
         self.keep_running = True
 
@@ -398,131 +398,16 @@ class ExecutionThread(threading.Thread):
 
             time.sleep(0.5)  # wait for last activating CTRL key to be released fully
 
-            unsatisfied_conditional_indent = 0
+            self.unsatisfied_conditional_indent = 0
 
-            for line_orig in lines:
-                if self.keep_running:  # only run when running
-                    line = line_orig.lower()
-                    line_first_word = line.strip().split(' ')[0]
-
-                    if unsatisfied_conditional_indent == 0:
-                        if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
-                            line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
-                            for var_to_type in variable_names_in(line_orig):
-                                line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', variables[var_to_type])
-
-                            pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
-                                             interval=type_interval)
-
-                        elif 'wait' in line_first_word:
-                            tot_time = float_in(line)
-                            time_floored = math.floor(
-                                0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
-                            for half_sec_interval in range(
-                                    20 * time_floored):  # loop through each 0.05 second and if still running
-                                if self.keep_running:
-                                    time.sleep(0.05)
-                            time.sleep(
-                                tot_time - time_floored)  # wait additional time unaccounted for in rounding
-
-                        elif 'left-mouse' in line_first_word or 'right-mouse' in line_first_word:
-                            coords = coords_of(line)
-                            if 'right-mouse' in line:
-                                btn = 'right'
-                            else:
-                                btn = 'left'
-
-                            if 'click' in line:
-                                pyauto.click(x=coords[0], y=coords[1], button=btn)
-                            elif 'press' in line:
-                                pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
-                                mouse_down_coords = coords
-                            elif 'release' in line:
-                                drag_dist = math.hypot(mouse_down_coords[0] - coords[0],
-                                                       mouse_down_coords[1] - coords[1])
-                                drag_duration = 0.5 * mouse_duration + (drag_dist / drag_duration_scale)
-                                pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
-                                pyauto.mouseUp(button=btn)
-                                time.sleep(0.5 * mouse_duration)
-
-                        elif 'hotkey' in line_first_word:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
-                            # contained in 'hotkey'
-                            hotkeys = line.replace('hotkey ', '').split('+')
-                            pyauto.hotkey(
-                                *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
-
-                        elif 'key' in line_first_word:
-                            if 'tap' in line:
-                                key = line.replace('key', '').replace('tap', '').replace(' ', '')
-                                pyauto.press(key)
-                            elif 'press' in line:
-                                key = line.replace('key', '').replace('press', '').replace(' ', '')
-                                pyauto.keyDown(key)
-                            elif 'release' in line:
-                                key = line.replace('key', '').replace('release', '').replace(' ', '')
-                                pyauto.keyUp(key)
-
-                        elif 'mouse-move' in line_first_word:
-                            coords = coords_of(line)
-                            pyauto.moveTo(x=coords[0], y=coords[1], duration=mouse_duration)
-
-                        elif 'doubleclick' in line_first_word:
-                            coords = coords_of(line)
-                            pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=mouse_duration)
-
-                        elif 'tripleclick' in line_first_word:
-                            coords = coords_of(line)
-                            pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=mouse_duration)
-
-                        elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
-                            variables[variable_names_in(line_orig)[0]] = assignment_variable_value_in(
-                                line_orig)  # store variable
-
-                        elif ('if' in line_first_word) and ('{' in line):
-                            conditional_var = variable_names_in(line_orig)[0]
-
-                            conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',
-                                                      '≤']  # TODO import from compartmentalized softwareinfo module
-
-                            conditional_operation = conditional_operation_in(line_orig, conditional_operations)
-                            conditional_comparison = conditional_comparison_in(line_orig)
-
-                            if conditional_operation == 'Equals':
-                                if variables[conditional_var].strip() == conditional_comparison.strip():
-                                    continue
-                            elif conditional_operation == 'Not equal to':
-                                if variables[conditional_var] != conditional_comparison:
-                                    continue
-                            elif conditional_operation == 'Contains':  # if var contains comparison
-                                if conditional_comparison in variables[conditional_var]:
-                                    continue
-                            elif conditional_operation == 'Is in':  # if var is in comparison
-                                if variables[conditional_var] in conditional_comparison:
-                                    continue
-                            elif conditional_operation == '>':
-                                if float_in(variables[conditional_var]) > float_in(conditional_comparison):
-                                    continue
-                            elif conditional_operation == '<':
-                                if float_in(variables[conditional_var]) < float_in(conditional_comparison):
-                                    continue
-                            elif conditional_operation == '≥':
-                                if float_in(variables[conditional_var]) >= float_in(conditional_comparison):
-                                    continue
-                            elif conditional_operation == '≤':
-                                if float_in(variables[conditional_var]) <= float_in(conditional_comparison):
-                                    continue
-
-                            # if the condition was not met, set the unsatisfied_conditional_indent to 1 to prevent command execution until matching end bracket
-                            unsatisfied_conditional_indent = 1
-
-                    else:
-                        if ('if' in line_first_word) and ('{' in line):
-                            unsatisfied_conditional_indent += 1  # increase unsatisfied_conditional_indent by 1 with new indent block to account for ending of indent block that should not signal end of unsatisfied conditional block
-                        elif line.strip() == '}':
-                            unsatisfied_conditional_indent -= 1  # decrease unsatisfied_conditional_indent by 1 if end of indent block
-
-
-
+            self.lines_should_be_executed = [True] * len(self.lines_to_execute)
+            # print(len(self.lines_to_execute), len(self.lines_should_be_executed))
+            for line_index, line_orig in enumerate(self.lines_to_execute):
+                print(line_index, len(self.lines_should_be_executed))
+                if self.lines_should_be_executed[line_index]:
+                    executed_start_index, executed_end_index = self.execute_line(line_orig, line_index)
+                    self.lines_should_be_executed[executed_start_index:executed_end_index] = [False] * (
+                                executed_end_index - executed_start_index)
 
         except pyauto.FailSafeException:
             self.keep_running = False
@@ -536,6 +421,187 @@ class ExecutionThread(threading.Thread):
         except RuntimeError:
             print('Runtime error code kTPbmaAW66')
             raise SystemError('Runtime error code kTPbmaAW66')
+
+    def execute_line(self, line_orig, line_index, called_from_loop=False):
+        if self.keep_running:  # only run when running
+            line = line_orig.lower()
+            print(f'line: {line} - {line_index}')
+            line_first_word = line.strip().split(' ')[0]
+
+            if self.unsatisfied_conditional_indent == 0:
+                if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
+                    line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
+                    for var_to_type in variable_names_in(line_orig):
+                        line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])
+
+                    pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
+                                     interval=self.type_interval)
+
+                elif 'wait' in line_first_word:
+                    tot_time = float_in(line)
+                    time_floored = math.floor(
+                        0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
+                    for half_sec_interval in range(
+                            20 * time_floored):  # loop through each 0.05 second and if still running
+                        if self.keep_running:
+                            time.sleep(0.05)
+                    time.sleep(
+                        tot_time - time_floored)  # wait additional time unaccounted for in rounding
+
+                elif 'left-mouse' in line_first_word or 'right-mouse' in line_first_word:
+                    coords = coords_of(line)
+                    if 'right-mouse' in line:
+                        btn = 'right'
+                    else:
+                        btn = 'left'
+
+                    if 'click' in line:
+                        pyauto.click(x=coords[0], y=coords[1], button=btn)
+                    elif 'press' in line:
+                        pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+                        self.mouse_down_coords = coords
+                    elif 'release' in line:
+                        drag_dist = math.hypot(self.mouse_down_coords[0] - coords[0],
+                                               self.mouse_down_coords[1] - coords[1])
+                        drag_duration = 0.5 * self.mouse_duration + (drag_dist / self.drag_duration_scale)
+                        pyauto.moveTo(x=coords[0], y=coords[1], duration=drag_duration)
+                        pyauto.mouseUp(button=btn)
+                        time.sleep(0.5 * self.mouse_duration)
+
+                elif 'hotkey' in line_first_word:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is
+                    # contained in 'hotkey'
+                    hotkeys = line.replace('hotkey ', '').split('+')
+                    pyauto.hotkey(
+                        *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+
+                elif 'key' in line_first_word:
+                    if 'tap' in line:
+                        key = line.replace('key', '').replace('tap', '').replace(' ', '')
+                        pyauto.press(key)
+                    elif 'press' in line:
+                        key = line.replace('key', '').replace('press', '').replace(' ', '')
+                        pyauto.keyDown(key)
+                    elif 'release' in line:
+                        key = line.replace('key', '').replace('release', '').replace(' ', '')
+                        pyauto.keyUp(key)
+
+                elif 'mouse-move' in line_first_word:
+                    coords = coords_of(line)
+                    pyauto.moveTo(x=coords[0], y=coords[1], duration=self.mouse_duration)
+
+                elif 'doubleclick' in line_first_word:
+                    coords = coords_of(line)
+                    pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=self.mouse_duration)
+
+                elif 'tripleclick' in line_first_word:
+                    coords = coords_of(line)
+                    pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=self.mouse_duration)
+
+                elif ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+                    self.variables[variable_names_in(line_orig)[0]] = assignment_variable_value_in(
+                        line_orig)  # store variable
+
+                elif ('if' in line_first_word) and ('{' in line):
+                    conditional_var = variable_names_in(line_orig)[0]
+
+                    conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',
+                                              '≤']  # TODO import from compartmentalized softwareinfo module
+
+                    conditional_operation = conditional_operation_in(line_orig, conditional_operations)
+                    conditional_comparison = conditional_comparison_in(line_orig)
+
+                    conditional_satisfied = False
+                    if conditional_operation == 'Equals':
+                        if self.variables[conditional_var].strip() == conditional_comparison.strip():
+                            conditional_satisfied = True
+                    elif conditional_operation == 'Not equal to':
+                        if self.variables[conditional_var] != conditional_comparison:
+                            conditional_satisfied = True
+                    elif conditional_operation == 'Contains':  # if var contains comparison
+                        if conditional_comparison in self.variables[conditional_var]:
+                            conditional_satisfied = True
+                    elif conditional_operation == 'Is in':  # if var is in comparison
+                        if self.variables[conditional_var] in conditional_comparison:
+                            conditional_satisfied = True
+                    elif conditional_operation == '>':
+                        if float_in(self.variables[conditional_var]) > float_in(conditional_comparison):
+                            conditional_satisfied = True
+                    elif conditional_operation == '<':
+                        if float_in(self.variables[conditional_var]) < float_in(conditional_comparison):
+                            conditional_satisfied = True
+                    elif conditional_operation == '≥':
+                        if float_in(self.variables[conditional_var]) >= float_in(conditional_comparison):
+                            conditional_satisfied = True
+                    elif conditional_operation == '≤':
+                        if float_in(self.variables[conditional_var]) <= float_in(conditional_comparison):
+                            conditional_satisfied = True
+
+                    # if the condition was not met, set the unsatisfied_conditional_indent to 1 to prevent command execution until matching end bracket
+                    if not conditional_satisfied:
+                        self.unsatisfied_conditional_indent = 1
+
+                elif ('loop' in line_first_word) and ('{' in line):
+                    loop_lines, loop_end_index = self.find_loop_lines(line_index)
+                    if 'multiple' in line:
+                        num_times_to_loop = int(float_in(line))
+                        print(f'start of loop: {self.lines_to_execute[line_index]} -- Loop {num_times_to_loop} times')
+                        for ii in range(num_times_to_loop):
+                            # print('\t', ii)
+                            loop_line_index = 0
+                            self.lines_should_be_executed[line_index:loop_end_index] = [True] * (
+                                        loop_end_index - line_index)
+                            # print(loop_lines)
+                            # print()
+                            for loop_line in loop_lines:
+                                loop_line_index += 1
+                                if self.lines_should_be_executed[line_index + loop_line_index]:
+                                    print(loop_line)
+                                    _, nested_loop_end_index = self.execute_line(loop_line,
+                                                                                 line_index + loop_line_index,
+                                                                                 called_from_loop=True)
+                                    if ii == num_times_to_loop - 1:
+                                        print('lines_should_be_executed changed: ', line_index, nested_loop_end_index)
+                                        self.lines_should_be_executed[line_index:nested_loop_end_index] = [False] * (
+                                                    nested_loop_end_index - line_index)
+
+                    print('end loop!', line_index, loop_end_index)
+                    return line_index, loop_end_index
+
+                    # delete loop block lines to prevent future execution of those lines that have already been executed by the loop logic
+                    # not recommended to delete looping list from within loop this is functional (may want to replace with next() if issues arise)
+                    # if not called_from_loop:
+                    #     print('LOOP LINES: ', self.find_loop_lines(line_index))
+                    #     del self.lines_to_execute[line_index:loop_end_index]
+
+            else:
+                if ('if' in line_first_word) and ('{' in line):
+                    self.unsatisfied_conditional_indent += 1  # increase unsatisfied_conditional_indent by 1 with new indent block to account for ending of indent block that should not signal end of unsatisfied conditional block
+                elif line.strip() == '}':
+                    self.unsatisfied_conditional_indent -= 1  # decrease unsatisfied_conditional_indent by 1 if end of indent block
+
+            return line_index, line_index + 1
+
+    def find_loop_lines(self, loop_start_index):
+        indent_val = 0  # starting indent value of zero to be increased by the
+        loop_end_index = -1  # return all lines after loop if no ending bracket is found in the loop below
+
+        # loop through all lines starting from loop until ending bracket is found
+        for loop_line_index, loop_line in enumerate(self.lines_to_execute[loop_start_index:]):
+            line_first_word = loop_line.strip().split(' ')[0].lower()
+
+            if loop_line.strip() == '}':
+                indent_val -= 1
+            elif ('if' in line_first_word) and ('{' in loop_line):
+                indent_val += 1
+            elif ('loop' in line_first_word) and ('{' in loop_line):
+                indent_val += 1
+
+            if indent_val == 0:  # ending bracket is found
+                loop_end_index = loop_start_index + loop_line_index
+                break  # stop loop
+
+        loop_lines = self.lines_to_execute[loop_start_index + 1:loop_end_index]
+        return loop_lines, loop_end_index
 
     def abort(self):
         self.mouse_listener.stop()
