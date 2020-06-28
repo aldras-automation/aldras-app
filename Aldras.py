@@ -2139,7 +2139,7 @@ class EditFrame(wx.Frame):
         self.no_right_spacer = False
 
         if new_action == 'Comment':
-            self.lines[index] = '#'
+            self.lines[index] = f'#{self.lines[index]}'
             self.create_comment_row(self.lines[index], sizer)
 
         elif new_action == 'Mouse button':
