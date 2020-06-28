@@ -19,7 +19,7 @@ from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates
+    eliminate_duplicates, block_end_index
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
@@ -660,7 +660,6 @@ class EditFrame(wx.Frame):
         self.conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥', '≤']
         self.loop_behaviors = ['Forever', 'Multiple times',
                                'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
-        self.command_sizers_to_delete_after_ingest = []
 
         # read workflow hardware id
         workflow_hardware_id = None
@@ -795,9 +794,6 @@ class EditFrame(wx.Frame):
         # all tracker lists must be modified when altering command order or adding/deleting
         self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
 
-        for sizer_to_delete in self.command_sizers_to_delete_after_ingest:
-            self.delete_command(sizer_to_delete)
-
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
 
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
@@ -875,6 +871,27 @@ class EditFrame(wx.Frame):
         except IndexError:
             pass
 
+        # add missing ending brackets and remove extra ending brackets
+        end_bracket_expected = False
+        extra_end_bracket_indices = []
+        for index, line in enumerate(self.lines):
+            line_first_word = line.strip().split(' ')[0].lower()
+            if ('if' in line_first_word and '{' in line) or ('loop' in line_first_word and '{' in line):
+                # add ending bracket at end of workflow if block ending bracket cannot be found
+                if block_end_index(self.lines, index) == -1:
+                    self.lines.append('}')
+                end_bracket_expected = True
+
+            elif line_first_word == '}' and end_bracket_expected:
+                end_bracket_expected = False
+
+            elif line_first_word == '}' and not end_bracket_expected:
+                extra_end_bracket_indices.append(index)
+
+        # delete extra ending bracket lines (must be done in reverse order)
+        for index in sorted(extra_end_bracket_indices, reverse=True):
+            del self.lines[index]
+
         # clear indent pattern
         self.indents = [0]
         self.next_indent = 0
@@ -934,9 +951,7 @@ class EditFrame(wx.Frame):
             if self.line.strip() == '}':  # do not add row for ending indent bracket
                 self.next_indent -= 1
                 if self.next_indent < 0:
-                    self.next_indent = 0
-                    self.command_sizers_to_delete_after_ingest.append(
-                        self.hbox_edit)  # mark for deletion right after ingest
+                    print('Extra end bracket was rendered but should have been caught on ingest in render_lines().')
                     raise ValueError
                 end_indent = True
             else:
@@ -1059,7 +1074,7 @@ class EditFrame(wx.Frame):
             edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.insert(index, edit_row_vbox)
-        self.vbox_edit.Insert(index, edit_row_vbox, 0, wx.EXPAND)
+        self.vbox_edit.Insert(index, edit_row_vbox, 0, wx.EXPAND)  # TODO investigate why .Insert() and not .Add()
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)

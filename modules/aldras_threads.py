@@ -9,7 +9,7 @@ from ctypes import WinDLL
 import math
 import time
 from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
-    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in
+    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, block_end_index
 
 
 class ListenerThread(threading.Thread):
@@ -540,7 +540,8 @@ class ExecutionThread(threading.Thread):
                         self.unsatisfied_conditional_indent = 1
 
                 elif ('loop' in line_first_word) and ('{' in line):
-                    loop_lines, loop_end_index = self.find_loop_lines(line_index)
+                    loop_end_index = block_end_index(self.lines_to_execute, line_index)
+                    loop_lines = self.lines_to_execute[line_index + 1:loop_end_index]
 
                     if 'multiple' in line:
                         num_times_to_loop = int(float_in(line))
@@ -550,7 +551,7 @@ class ExecutionThread(threading.Thread):
 
                             # reset lines_should_be_executed for lines in loop block to be executed below
                             self.lines_should_be_executed[line_index:loop_end_index] = [True] * (
-                                        loop_end_index - line_index)
+                                    loop_end_index - line_index)
 
                             for loop_line in loop_lines:
                                 loop_line_index += 1
@@ -573,30 +574,6 @@ class ExecutionThread(threading.Thread):
                     self.unsatisfied_conditional_indent -= 1  # decrease unsatisfied_conditional_indent by 1 if end of indent block
 
             return line_index, line_index + 1
-
-    def find_loop_lines(self, loop_start_index):
-        indent_val = 0  # starting indent value of zero to be increased by the
-        loop_end_index = -1  # return index for all lines after loop if no ending bracket is found in the loop below
-
-        # loop through all lines starting from loop until ending bracket is found
-        for loop_line_index, loop_line in enumerate(self.lines_to_execute[loop_start_index:]):
-            line_first_word = loop_line.strip().split(' ')[0].lower()
-
-            if loop_line.strip() == '}':
-                indent_val -= 1
-            elif ('if' in line_first_word) and ('{' in loop_line):
-                # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
-                indent_val += 1
-            elif ('loop' in line_first_word) and ('{' in loop_line):
-                # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
-                indent_val += 1
-
-            if indent_val == 0:  # if ending bracket for block of interest is found
-                loop_end_index = loop_start_index + loop_line_index
-                break  # stop loop
-
-        loop_lines = self.lines_to_execute[loop_start_index + 1:loop_end_index]
-        return loop_lines, loop_end_index
 
     def abort(self):
         self.mouse_listener.stop()

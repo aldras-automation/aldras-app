@@ -126,3 +126,27 @@ def textctrl_tab_trigger_nav(event):
     if event.GetKeyCode() == wx.WXK_TAB:
         event.EventObject.Navigate()
     event.Skip()
+
+
+def block_end_index(lines, loop_start_index):
+    indent_val = 0  # starting indent value of zero to be increased by the
+    loop_end_index = -1  # return index for all lines after loop if no ending bracket is found in the loop below
+
+    # loop through all lines starting from loop until ending bracket is found
+    for loop_line_index, loop_line in enumerate(lines[loop_start_index:]):
+        line_first_word = loop_line.strip().split(' ')[0].lower()
+
+        if loop_line.strip() == '}':
+            indent_val -= 1
+        elif ('if' in line_first_word) and ('{' in loop_line):
+            # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
+            indent_val += 1
+        elif ('loop' in line_first_word) and ('{' in loop_line):
+            # increase by 1 for new indent block to account for the corresponding ending bracket that should not signal end of block of interest
+            indent_val += 1
+
+        if indent_val == 0:  # if ending bracket for block of interest is found
+            loop_end_index = loop_start_index + loop_line_index
+            break  # stop loop
+
+    return loop_end_index
