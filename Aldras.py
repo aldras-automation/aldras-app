@@ -654,7 +654,8 @@ class EditFrame(wx.Frame):
 
         global hardware_id
         self.x_range, self.y_range, hardware_id = get_system_parameters()
-        self.coord_width = 10 * max([len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
+        self.coord_width = 10 * max(
+            [len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
 
         self.conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥', '≤']
         self.loop_behaviors = ['Forever', 'Multiple times',
@@ -803,7 +804,9 @@ class EditFrame(wx.Frame):
 
         # compare system hardware id to workflow hardware id
         if hardware_id != workflow_hardware_id:
-            wx.MessageDialog(self, 'Your hardware configuration is different from the system that last made changes to this workflow.\n\nMouse coordinates and other features may not work as intended.', 'Different Hardware Configuration', wx.OK | wx.ICON_INFORMATION).ShowModal()
+            wx.MessageDialog(self,
+                             'Your hardware configuration is different from the system that last made changes to this workflow.\n\nMouse coordinates and other features may not work as intended.',
+                             'Different Hardware Configuration', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
     def create_bitmap_btn(self, parent, size, bitmap, hover_keyword, description, tooltip='', focus_change=True):
         size = (int(size[0]), int(size[1]))  # convert to integers
@@ -884,6 +887,7 @@ class EditFrame(wx.Frame):
             self.loading_dlg.SetIcon(
                 wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # doesn't seem to have effect
 
+        self.Freeze()
         for index, line_orig in enumerate(self.lines):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
@@ -913,6 +917,7 @@ class EditFrame(wx.Frame):
             except IndexError:
                 pass
         self.Layout()
+        self.Thaw()
 
     def create_command_sizer(self, index, line_orig):
         self.line = line_orig.lower()
@@ -930,7 +935,8 @@ class EditFrame(wx.Frame):
                 self.next_indent -= 1
                 if self.next_indent < 0:
                     self.next_indent = 0
-                    self.command_sizers_to_delete_after_ingest.append(self.hbox_edit)  # mark for deletion right after ingest
+                    self.command_sizers_to_delete_after_ingest.append(
+                        self.hbox_edit)  # mark for deletion right after ingest
                     raise ValueError
                 end_indent = True
             else:
@@ -1547,11 +1553,9 @@ class EditFrame(wx.Frame):
             indices_to_delete = delete_dlg.get_selections()
             if indices_to_delete:  # if indices_to_delete is not empty
                 for index in sorted(indices_to_delete, reverse=True):
-                    for list_to_change in self.tracker_lists:  # delete records from tracker_lists
-                        del (list_to_change[index])
-                    self.vbox_edit.Show(index, False)
-                    self.vbox_edit.Remove(index)
-                self.vbox_edit.Layout()
+                    # cannot only delete ending bracket, must delete entire block or move ending bracket down
+                    if self.lines[index].strip() != '}':
+                        self.delete_command(index)
                 self.Layout()
 
     def add_command(self):
@@ -1737,7 +1741,9 @@ class EditFrame(wx.Frame):
                         self.vbox_inner.AddSpacer(20)
 
                         # add documentation description
-                        docs_description = wx.StaticText(self, label='For more including information about\nconditionals and loops...', style=wx.ALIGN_CENTRE_HORIZONTAL)
+                        docs_description = wx.StaticText(self,
+                                                         label='For more including information about\nconditionals and loops...',
+                                                         style=wx.ALIGN_CENTRE_HORIZONTAL)
                         change_font(docs_description, size=10, family=wx.DECORATIVE, color=3 * (100,))
                         self.vbox_inner.Add(docs_description, 0, wx.CENTER | wx.SOUTH, 8)
 
@@ -1884,13 +1890,41 @@ class EditFrame(wx.Frame):
             loop_list_string = "`'`".join(loop_list_values)
             self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
 
-    def delete_command(self, sizer):
-        index = self.edit_row_widget_sizers.index(sizer)
+    def delete_command(self, sizer_or_index):
+        if isinstance(sizer_or_index, wx.Sizer):
+            index = self.edit_row_widget_sizers.index(sizer_or_index)
+        elif isinstance(sizer_or_index, int):  # this is the case when called from delete dialog
+            index = sizer_or_index
 
-        for list_to_change in self.tracker_lists:  # delete records from tracker_lists
+        line = self.lines[index]
+        line_first_word = line.strip().split(' ')[0].lower()
+        self.Freeze()
+
+        # if deleting indent block, decrease indents and delete ending bracket
+        if ('if' in line_first_word and '{' in line) or ('loop' in line_first_word and '{' in line):
+            # find index of last element of indented block
+            next_same_indent_offset = self.indents[index + 1:].index(
+                self.indents[index])  # distance between indent start and end
+            end_bracket_indent = index + next_same_indent_offset
+
+            for indent_index in range(index, end_bracket_indent + 1):  # decrease indent of entire indent block
+                self.indents[indent_index] -= 1
+
+            for indent_index in range(index, end_bracket_indent + 1):  # reset indents of indent block
+                self.set_indent(indent_index)
+
+            # only delete index of less indent if it is an end bracket
+            # only not called from delete dialog where end bracket is deleted before beginning of indent block
+            if self.lines[end_bracket_indent].strip() == '}':
+                for list_to_change in self.tracker_lists:  # delete end bracket from tracker_lists
+                    del (list_to_change[end_bracket_indent])
+
+                self.vbox_edit.Show(end_bracket_indent, False)
+                self.vbox_edit.Remove(end_bracket_indent)
+
+        for list_to_change in self.tracker_lists:  # delete command from tracker_lists
             del (list_to_change[index])
 
-        self.Freeze()
         self.refresh_move_buttons()
         self.vbox_edit.Show(index, False)
         self.vbox_edit.Remove(index)
@@ -1955,16 +1989,20 @@ class EditFrame(wx.Frame):
                 # find index of last element of indented block
                 next_same_indent_offset = self.indents[index + 1:].index(
                     self.indents[index])  # distance between indent start and end
-                detachment_index = index + next_same_indent_offset  # index of end bracket, insertion occurs before this value
+                detachment_index = index + next_same_indent_offset  # index of end bracket, detachment occurs at this value
 
                 if self.indents[index] > self.indents[
                     detachment_index + 2]:  # if moving out of surrounding indent block
+
                     for ii in range(index, detachment_index + 1):
                         self.indents[ii] -= 1  # decrease indent of entire indent block
+
                 elif self.indents[index] < self.indents[
                     detachment_index + 2]:  # if moving into surrounding indent block
+
                     for ii in range(index, detachment_index + 1):
                         self.indents[ii] += 1  # increase indent of entire indent block
+
                 for indent_index in range(index, detachment_index):
                     self.set_indent(indent_index)  # reset indents of indent block
 
@@ -2727,7 +2765,8 @@ class EditFrame(wx.Frame):
             return
         else:
             try:
-                return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[up_down_index].GetWindow().Show(show)
+                return command_row_sizeritem.GetChildren()[0].GetSizer().GetChildren()[1].GetSizer().GetChildren()[
+                    up_down_index].GetWindow().Show(show)
             except AttributeError:
                 print('AttributeError')
 
@@ -2861,8 +2900,11 @@ class SelectionFrame(wx.Frame):
                     'Triple-click at ("x", "y")': ['Triple-click at (284, 531)', 'Simulates triple left click']
                 }
                 self.advanced_edit_guide_commands_pro = {
-                    'Assign {{~"Variable"~}}="value"': ['Assign {{~Name~}}=John Smith', 'Assigns value to variable that can be referenced later'],
-                    'If {{~"variable"~}} "operation" ~"comparison"~ {\n\t"commands"\n  }': ['If {{~diameter~}} < ~10~ {\n     Type:The circle is small.\n   }', 'Executes containing commands if conditional is satisfied']
+                    'Assign {{~"Variable"~}}="value"': ['Assign {{~Name~}}=John Smith',
+                                                        'Assigns value to variable that can be referenced later'],
+                    'If {{~"variable"~}} "operation" ~"comparison"~ {\n\t"commands"\n  }': [
+                        'If {{~diameter~}} < ~10~ {\n     Type:The circle is small.\n   }',
+                        'Executes containing commands if conditional is satisfied']
                 }
                 self.advanced_edit_guide_commands.update(self.advanced_edit_guide_commands_pro)
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
