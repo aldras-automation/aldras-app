@@ -405,17 +405,16 @@ def setup_frame(self, status_bar=False):
     # set up the insert menu
     if self.GetName() == 'edit_frame':
         insert_menu = wx.Menu()
-        variables_menu = wx.Menu()
-        builtin_variables_menu = wx.Menu()
+        self.variables_menu = wx.Menu()
+        menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
 
-        internet_connection = builtin_variables_menu.Append(wx.ID_ANY, 'internet.connection',
-                                                            f'Boolean value evaluating if connected to internet.')
-        # self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
+        internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
+                                                         'Boolean value evaluating if connected to internet (True or False).')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, internet_connection), internet_connection)
 
-        variables_menu.AppendSubMenu(builtin_variables_menu, 'Built-In')
-        insert_menu.AppendSubMenu(variables_menu, 'Variables')
-
-        menu_bar.Append(insert_menu, 'Insert')  # add the insert menu to the menu bar
+        clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
+                                               'Variable containing the clipboard text content.')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, clipboard), clipboard)
 
     ############
     # set up the tools menu
@@ -642,6 +641,9 @@ class EditFrame(wx.Frame):
         self.parent = parent
         self.lines = lines
         self.variables = dict()
+        self.variables_menu_items = dict()
+        self.variable_insertion_window = None
+        self.variables_menu = None
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}',
                           name='edit_frame')
         setup_frame(self, status_bar=True)
@@ -1275,8 +1277,25 @@ class EditFrame(wx.Frame):
         text_value = str(line).replace('type:', '').replace('Type:', '').replace('``nl``', '\n')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'type'))
+        text_to_type.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
+        text_to_type.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
+
+    def insert_variable(self, event, menu_item):
+        if self.variable_insertion_window:
+            self.variable_insertion_window.WriteText(f'{{{{~{menu_item.GetItemLabelText()}~}}}}')
+        event.Skip()
+
+    def enable_variable_insertion(self, enable_boolean, sizer, event):
+        index = self.edit_row_widget_sizers.index(sizer)
+        if enable_boolean:
+            self.variable_insertion_window = event.GetEventObject()
+        else:
+            self.variable_insertion_window = None
+        print(index)
+
+        event.Skip()
 
     def create_wait_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -1418,6 +1437,15 @@ class EditFrame(wx.Frame):
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
+
+        # add variable to menu
+        if self.variables_menu.GetMenuItemCount() <= 2:  # add separator between built-ins and custom variables
+            self.variables_menu.AppendSeparator()
+
+        self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
+                                                                                   f'Variable containing the content of {variable_name_text}.')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
+                  self.variables_menu_items[variable_name_text])
 
     def create_conditional_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -2378,14 +2406,27 @@ class EditFrame(wx.Frame):
         elif command_type == 'comment':
             self.lines[index] = f'#{input_one_lined}'
         elif command_type == 'assign_var_name':
-            old_variable_name = variable_names_in(self.lines[index])[0]
             new_variable_name = event.GetString()
-            variable_value = assignment_variable_value_in(self.lines[index])
 
-            self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
+            if new_variable_name:
+                old_variable_name = variable_names_in(self.lines[index])[0]
+                variable_value = assignment_variable_value_in(self.lines[index])
 
-            self.variables.pop(old_variable_name, None)  # remove old variable
-            self.variables[new_variable_name] = variable_value  # add new variable
+                self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
+
+                self.variables.pop(old_variable_name, None)  # remove old variable
+                self.variables[new_variable_name] = variable_value  # add new variable
+
+                # rename menu item
+                self.variables_menu_items[new_variable_name] = self.variables_menu_items.pop(old_variable_name)
+                self.variables_menu_items[new_variable_name].SetItemLabel(new_variable_name)
+
+                # rebind menu item
+                self.Unbind(wx.EVT_MENU, self.variables_menu_items[new_variable_name])
+                self.Bind(wx.EVT_MENU,
+                          lambda evt: self.insert_variable(evt, self.variables_menu_items[new_variable_name]),
+                          self.variables_menu_items[new_variable_name])
+
         elif command_type == 'assign_var_value':
             variable_name = variable_names_in(self.lines[index])[0]
             new_variable_value = input_one_lined
