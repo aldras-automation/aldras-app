@@ -2337,7 +2337,7 @@ class EditFrame(wx.Frame):
                         x_coord = command_change
                     else:
                         x_coord = '0'
-                    if not self.x_range[0] < int(x_coord) < self.x_range[1]:
+                    if not self.x_range[0] <= int(x_coord) <= self.x_range[1]:
                         invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0].split("(")[0]}({x_coord},{line_split_on_comma[1]}'
@@ -2347,7 +2347,7 @@ class EditFrame(wx.Frame):
                         y_coord = command_change
                     else:
                         y_coord = '0'
-                    if not self.y_range[0] < int(y_coord) < self.y_range[1]:
+                    if not self.y_range[0] <= int(y_coord) <= self.y_range[1]:
                         invalid_range = True
                         raise ValueError()
                     self.lines[index] = f'{line_split_on_comma[0]}, {y_coord})'
