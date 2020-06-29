@@ -1961,7 +1961,7 @@ class EditFrame(wx.Frame):
             index = self.edit_row_widget_sizers.index(sizer_or_index)
 
         line = self.lines[index]
-        line_first_word = line.strip().split(' ')[0].lower()[:6]
+        line_first_word = line.strip().split(' ')[0][:6].lower()
         self.Freeze()
 
         # if deleting indent block, decrease indents and delete ending bracket
@@ -1986,6 +1986,9 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.Show(end_bracket_indent, False)
                 self.vbox_edit.Remove(end_bracket_indent)
 
+        elif 'assign' in line_first_word and '{{~' in line and '~}}' in line:
+            self.remove_variable_menu_item(line)
+
         for list_to_change in self.tracker_lists:  # delete command from tracker_lists
             del (list_to_change[index])
 
@@ -1994,6 +1997,21 @@ class EditFrame(wx.Frame):
         self.vbox_edit.Remove(index)
         self.Layout()
         self.Thaw()
+
+    def remove_variable_menu_item(self, line):
+        variable_name = variable_names_in(line)[0]
+
+        if variable_name in self.duplicate_variables:
+            self.duplicate_variables.remove(
+                variable_name)  # remove variable from duplicate record if present in case future variable attempts to use the same name
+
+        else:
+            self.variables_menu.DestroyItem(self.variables_menu_items[variable_name])  # destroy menu item
+            self.variables_menu_items.pop(variable_name)  # remove variable from menu items record
+
+        # destroy separator if there are not custom variables
+        if self.variables_menu.GetMenuItems()[-1].GetKind() == wx.ITEM_SEPARATOR:
+            self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[-1])
 
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
@@ -2270,6 +2288,9 @@ class EditFrame(wx.Frame):
                 self.set_indent(indent_index)
 
             self.refresh_move_buttons()
+
+        elif old_action == 'Assign':
+            self.remove_variable_menu_item(line_orig)
 
         self.Layout()
         self.Thaw()
