@@ -402,21 +402,6 @@ def setup_frame(self, status_bar=False):
     menu_bar.Append(file_menu, 'File')  # add the file menu to the menu bar
 
     ############
-    # set up the insert menu
-    if self.GetName() == 'edit_frame':
-        insert_menu = wx.Menu()
-        self.variables_menu = wx.Menu()
-        menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
-
-        internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
-                                                         'Boolean value evaluating if connected to internet (True or False).')
-        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, internet_connection), internet_connection)
-
-        clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
-                                               'Variable containing the clipboard text content.')
-        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, clipboard), clipboard)
-
-    ############
     # set up the tools menu
     tools_menu = wx.Menu()
 
@@ -425,6 +410,21 @@ def setup_frame(self, status_bar=False):
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
     menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
+
+    ############
+    # set up the insert menu
+    if self.GetName() == 'edit_frame':
+        insert_menu = wx.Menu()
+        self.variables_menu = wx.Menu()
+        menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
+
+        internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
+                                                         'Insert boolean value evaluating if connected to internet (True or False).')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, internet_connection), internet_connection)
+
+        clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
+                                               'Insert variable containing the clipboard text content.')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, clipboard), clipboard)
 
     ############
     # set up the help menu
@@ -640,10 +640,10 @@ class EditFrame(wx.Frame):
         self.workflow_name_when_launched = parent.workflow_name
         self.parent = parent
         self.lines = lines
-        self.variables = dict()
         self.variables_menu_items = dict()
         self.variable_insertion_window = None
         self.variables_menu = None
+        self.duplicate_variables = list()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name}: Edit - {self.workflow_name}',
                           name='edit_frame')
         setup_frame(self, status_bar=True)
@@ -1293,7 +1293,7 @@ class EditFrame(wx.Frame):
             self.variable_insertion_window = event.GetEventObject()
         else:
             self.variable_insertion_window = None
-        print(index)
+        # print(index)
 
         event.Skip()
 
@@ -1438,14 +1438,18 @@ class EditFrame(wx.Frame):
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
-        # add variable to menu
         if self.variables_menu.GetMenuItemCount() <= 2:  # add separator between built-ins and custom variables
             self.variables_menu.AppendSeparator()
 
-        self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
-                                                                                   f'Variable containing the content of {variable_name_text}.')
-        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
-                  self.variables_menu_items[variable_name_text])
+        # add variable to menu
+        if variable_name_text not in self.variables_menu_items:  # only add unique variable names on ingest
+            self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
+                                                                                       f'Insert variable {variable_name_text}.')
+            self.Bind(wx.EVT_MENU,
+                      lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
+                      self.variables_menu_items[variable_name_text])
+        else:
+            self.duplicate_variables.append(variable_name_text)
 
     def create_conditional_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
@@ -2213,7 +2217,6 @@ class EditFrame(wx.Frame):
 
         elif new_action == 'Assign':
             self.lines[index] = 'Assign {{~Var~}}=value'
-            self.variables['Var'] = 'value'
             self.create_assign_var_row(self.lines[index], sizer)
 
         elif new_action == 'Conditional':
@@ -2408,30 +2411,42 @@ class EditFrame(wx.Frame):
         elif command_type == 'assign_var_name':
             new_variable_name = event.GetString()
 
-            if new_variable_name:
+            if new_variable_name:  # do nothing if variable name is empty
+
                 old_variable_name = variable_names_in(self.lines[index])[0]
                 variable_value = assignment_variable_value_in(self.lines[index])
 
                 self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
 
-                self.variables.pop(old_variable_name, None)  # remove old variable
-                self.variables[new_variable_name] = variable_value  # add new variable
+                # process for variable menu
+                if new_variable_name not in self.variables_menu_items:  # if variable name is unique
+                    if old_variable_name in self.duplicate_variables:
+                        # add new variable to menu if old variable existed duplicated in another assign command
+                        self.variables_menu_items[new_variable_name] = self.variables_menu.Append(wx.ID_ANY,
+                                                                                                  new_variable_name)
+                        self.duplicate_variables.remove(old_variable_name)
+                    else:
+                        # rename menu item
+                        self.variables_menu_items[new_variable_name] = self.variables_menu_items.pop(old_variable_name)
 
-                # rename menu item
-                self.variables_menu_items[new_variable_name] = self.variables_menu_items.pop(old_variable_name)
-                self.variables_menu_items[new_variable_name].SetItemLabel(new_variable_name)
+                    self.variables_menu_items[new_variable_name].SetItemLabel(new_variable_name)
+                    self.variables_menu_items[new_variable_name].SetHelp(f'Insert variable {new_variable_name}.')
 
-                # rebind menu item
-                self.Unbind(wx.EVT_MENU, self.variables_menu_items[new_variable_name])
-                self.Bind(wx.EVT_MENU,
-                          lambda evt: self.insert_variable(evt, self.variables_menu_items[new_variable_name]),
-                          self.variables_menu_items[new_variable_name])
+                    # rebind menu item
+                    self.Unbind(wx.EVT_MENU, self.variables_menu_items[new_variable_name])
+                    self.Bind(wx.EVT_MENU,
+                              lambda evt: self.insert_variable(evt, self.variables_menu_items[new_variable_name]),
+                              self.variables_menu_items[new_variable_name])
+                else:
+                    self.variables_menu.DestroyItem(self.variables_menu_items[old_variable_name])  # destroy menu item
+                    self.variables_menu_items.pop(old_variable_name)  # remove old variable from menu items record
+                    self.duplicate_variables.append(
+                        new_variable_name)  # add new (duplicate) variable to duplicate record
 
         elif command_type == 'assign_var_value':
             variable_name = variable_names_in(self.lines[index])[0]
             new_variable_value = input_one_lined
             self.lines[index] = f'Assign {{{{~{variable_name}~}}}}={new_variable_value}'
-            self.variables[variable_name] = new_variable_value
         elif command_type == 'conditional_var_name':
             variable_name = event.GetString()
             self.lines[
@@ -2934,7 +2949,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self):
                 self.name = 'Aldras'
-                self.version = '2020.1.4 Alpha'
+                self.version = '2020.1.5 Alpha'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
