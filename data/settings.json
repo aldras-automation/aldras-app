@@ -4,10 +4,10 @@
   "Record pause": "All pauses",
   "Record pause over duration": 0.88,
   "Record method": "Overwrite",
-  "Execute pause between commands": 1.0,
-  "Execute pause between commands checked": false,
+  "Execute pause between commands": 0.25,
+  "Execute pause between commands checked": true,
   "Execute mouse command duration": 1.0,
   "Execute mouse command duration checked": true,
-  "Interval between text character outputs": 0.02,
+  "Interval between text character outputs": 0.05,
   "Interval between text character outputs checked": true
 }

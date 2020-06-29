@@ -523,26 +523,36 @@ class ExecutionThread(threading.Thread):
                 loop_end_index = block_end_index(self.lines_to_execute, line_index)
                 loop_lines = self.lines_to_execute[line_index + 1:loop_end_index]
 
+                def execute_loop_block_lines(num_loop_iterations):
+                    # reset lines_should_be_executed for lines in loop block to be executed below
+                    self.lines_should_be_executed[line_index:loop_end_index] = [True] * (
+                            loop_end_index - line_index)
+
+                    loop_line_index = 0
+                    for loop_line in loop_lines:
+                        loop_line_index += 1
+                        if self.lines_should_be_executed[line_index + loop_line_index]:
+                            _, nested_loop_end_index = self.execute_line(loop_line,
+                                                                         line_index + loop_line_index)
+
+                            if loop_iteration == num_loop_iterations - 1:  # if last iteration has completed
+                                # prevent future execution of lines that have already been executed by the loop logic
+                                self.lines_should_be_executed[line_index:nested_loop_end_index] = [False] * (
+                                        nested_loop_end_index - line_index)
+
                 if 'multiple' in line:
                     num_times_to_loop = int(float_in(line))
-
                     for loop_iteration in range(num_times_to_loop):
-                        loop_line_index = 0
+                        execute_loop_block_lines(num_times_to_loop)
 
-                        # reset lines_should_be_executed for lines in loop block to be executed below
-                        self.lines_should_be_executed[line_index:loop_end_index] = [True] * (
-                                loop_end_index - line_index)
+                if 'for each element in list' in line:
+                    loop_list_text = line_orig[line_orig.find('[') + 1:line_orig.rfind(
+                        ']')]  # find text between first '[' and last ']'
+                    loop_list_values = loop_list_text.split("`'`")  # split based on delimiter
 
-                        for loop_line in loop_lines:
-                            loop_line_index += 1
-                            if self.lines_should_be_executed[line_index + loop_line_index]:
-                                _, nested_loop_end_index = self.execute_line(loop_line,
-                                                                             line_index + loop_line_index)
-
-                                if loop_iteration == num_times_to_loop - 1:  # if last iteration has completed
-                                    # prevent future execution of lines that have already been executed by the loop logic
-                                    self.lines_should_be_executed[line_index:nested_loop_end_index] = [False] * (
-                                            nested_loop_end_index - line_index)
+                    for loop_iteration, loop_list_value in enumerate(loop_list_values):
+                        self.variables['loop.list.var'] = loop_list_value
+                        execute_loop_block_lines(len(loop_list_values))
 
                 return line_index, loop_end_index
 
