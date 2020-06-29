@@ -414,17 +414,17 @@ def setup_frame(self, status_bar=False):
     ############
     # set up the insert menu
     if self.GetName() == 'edit_frame':
-        insert_menu = wx.Menu()
         self.variables_menu = wx.Menu()
         menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
 
-        internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
-                                                         'Insert boolean value evaluating if connected to internet (True or False).')
-        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, internet_connection), internet_connection)
+        self.internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
+                                                              'Insert variable that outputs if connect to the internet (True or False).')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.internet_connection),
+                  self.internet_connection)
 
-        clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
-                                               'Insert variable containing the clipboard text content.')
-        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, clipboard), clipboard)
+        self.clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
+                                                    'Insert variable that outputs the clipboard text content.')
+        self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.clipboard), self.clipboard)
 
     ############
     # set up the help menu
@@ -792,6 +792,10 @@ class EditFrame(wx.Frame):
         self.edit.Freeze()
         self.render_lines()
         self.edit.Thaw()
+
+        # disable all variable menu items for them to be re-enabled when focus is bestowed upon appropriate window
+        for variable_menu_item in self.variables_menu.GetMenuItems():
+            variable_menu_item.Enable(False)
 
         # all tracker lists must be modified when altering command order or adding/deleting
         self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
@@ -1291,9 +1295,22 @@ class EditFrame(wx.Frame):
         index = self.edit_row_widget_sizers.index(sizer)
         if enable_boolean:
             self.variable_insertion_window = event.GetEventObject()
+
+            # enable built-in variables in variable insertion menu
+            self.internet_connection.Enable(True)
+            self.clipboard.Enable(True)
+
+            # enable custom variables in variable insertion menu
+            for line in self.lines[:index]:
+                if 'assign' in line.strip().split(' ')[0][:6].lower() and '{{~' in line and '~}}' in line:
+                    variable_name = variable_names_in(line)[0]
+                    self.variables_menu_items[variable_name].Enable(True)
         else:
             self.variable_insertion_window = None
-        # print(index)
+
+            # disable all variable menu items for them to be re-enabled when focus is bestowed upon appropriate window
+            for variable_menu_item in self.variables_menu.GetMenuItems():
+                variable_menu_item.Enable(False)
 
         event.Skip()
 
