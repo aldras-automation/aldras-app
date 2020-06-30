@@ -1247,6 +1247,14 @@ class EditFrame(wx.Frame):
         x_val = coords_of(line)[0]
         y_val = coords_of(line)[1]
 
+        def correct_coord_input(event):
+            text_ctrl = event.GetEventObject()
+
+            # set coord to integer of float found in input, eliminating leading zeros
+            text_ctrl.SetValue(str(int(float_in(text_ctrl.GetValue()))))
+
+            event.Skip()
+
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.coord_width, -1),
                                    value=str(x_val),
@@ -1254,6 +1262,7 @@ class EditFrame(wx.Frame):
         self.x_coord.SetMaxLength(max([len(str(x)) for x in self.x_range]))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        self.x_coord.Bind(wx.EVT_KILL_FOCUS, correct_coord_input)
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.coord_width, -1),
@@ -1262,6 +1271,7 @@ class EditFrame(wx.Frame):
         self.y_coord.SetMaxLength(max([len(str(y)) for y in self.y_range]))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        self.y_coord.Bind(wx.EVT_KILL_FOCUS, correct_coord_input)
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(non_flickering_static_text(self.edit, ' , '), 0, wx.ALIGN_CENTER_VERTICAL)
