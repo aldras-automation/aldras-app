@@ -384,7 +384,7 @@ def setup_frame(self, status_bar=False):
     # self.Bind(wx.EVT_MENU, ???, menu_open)
 
     menu_save = file_menu.Append(wx.ID_ANY, 'Save', f'   Save {self.software_info.name} workflow')
-    self.Bind(wx.EVT_MENU, lambda event: self.save_workflow(), menu_save)  # call EditFrame self.save_workflow()
+    self.Bind(wx.EVT_MENU, lambda event: self.save_to_file(), menu_save)  # call EditFrame self.save_workflow()
     if self.GetName() != 'edit_frame':
         menu_save.Enable(False)
 
@@ -2970,6 +2970,26 @@ class EditFrame(wx.Frame):
         """Function to bind events to be disabled."""
         pass  # TODO replace with scrolling functionality of panel at some point
 
+    def save_to_file(self):
+        """Write to workflow file"""
+
+        workflow_path_when_launched = f'{self.parent.workflow_directory}{self.workflow_name_when_launched}.txt'
+
+        with open(workflow_path_when_launched, 'w') as record_file:
+            record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
+            for line in self.lines:
+                record_file.write(f'{line}\n')
+
+        if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
+            workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
+            os.rename(workflow_path_when_launched, workflow_path_new)
+            self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
+            self.parent.recent_workflows.remove(workflow_path_when_launched)
+            self.parent.recent_workflows.insert(0, workflow_path_new)
+            self.parent.update_recent_workflows()
+
+        self.lines_when_launched = self.lines
+
     def save_workflow(self):
         if self.lines_when_launched != self.lines or self.workflow_name_when_launched != self.workflow_name:
             # confirm save intent when closing with changes
@@ -3018,26 +3038,9 @@ class EditFrame(wx.Frame):
                 def on_no_save(self, _):
                     self.EndModal(20)  # terminate dialog with exit code 20
 
-            workflow_path_when_launched = f'{self.parent.workflow_directory}{self.workflow_name_when_launched}.txt'
-
             save_dlg = SaveDialog(self).ShowModal()
             if save_dlg == wx.ID_OK:
-                # write to workflow file
-                with open(workflow_path_when_launched, 'w') as record_file:
-                    record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
-                    for line in self.lines:
-                        record_file.write(f'{line}\n')
-
-                if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
-                    workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
-                    os.rename(workflow_path_when_launched, workflow_path_new)
-                    self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
-                    self.parent.recent_workflows.remove(workflow_path_when_launched)
-                    self.parent.recent_workflows.insert(0, workflow_path_new)
-                    self.parent.update_recent_workflows()
-
-                self.lines_when_launched = self.lines
-
+                self.save_to_file()
             elif save_dlg == 20:  # 'don't save' button
                 pass
             else:  # cancel button
