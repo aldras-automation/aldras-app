@@ -1311,12 +1311,17 @@ class EditFrame(wx.Frame):
             self.clipboard.Enable(True)
 
             # enable custom variables in variable insertion menu
-            for line in self.lines[:index]:
-                if 'assign' in line.strip().split(' ')[0][:6].lower() and '{{~' in line and '~}}' in line:
+            for line_index, line in enumerate(self.lines[:index]):
+                line_first_word = line.strip().split(' ')[0][:6].lower()
+
+                if 'assign' in line_first_word and '{{~' in line and '~}}' in line:
                     variable_name = variable_names_in(line)[0]
                     self.variables_menu_items[variable_name].Enable(True)
 
-                # TODO enable loop.list.var where appropriate
+                if 'loop' in line_first_word and 'for each element in list' in line[:40].lower() and '{' in line:
+                    loop_list_end_index = block_end_index(self.lines, line_index)
+                    if index < loop_list_end_index:  # only enable loop.list.var insertion if line is before end of loop
+                        self.variables_menu_items['loop.list.var'].Enable(True)
 
         else:
             self.variable_insertion_window = None
