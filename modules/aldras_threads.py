@@ -386,16 +386,6 @@ class ExecutionThread(threading.Thread):
         self.keep_running = True
 
         try:
-            def on_move(x, y):
-                """Process mouse move listener for ExecutionThread instances."""
-                # TODO revisit failsafe triggers
-                if x < 5 and y < 5:
-                    self.keep_running = False
-
-            self.mouse_listener = mouse.Listener(
-                on_move=on_move)  # monitor mouse position to stop execution if failsafe detected
-            self.mouse_listener.start()
-
             time.sleep(0.5)  # wait for last activating CTRL key to be released fully
 
             self.lines_should_be_executed = [True] * len(self.lines_to_execute)
@@ -581,7 +571,6 @@ class ExecutionThread(threading.Thread):
             return line_index, line_index + 1
 
     def abort(self):
-        self.mouse_listener.stop()
         self.keep_running = False
         pyauto.FAILSAFE = False
         pyauto.PAUSE = 0.001

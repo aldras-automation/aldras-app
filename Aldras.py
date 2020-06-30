@@ -420,7 +420,7 @@ def setup_frame(self, status_bar=False):
     # set up the insert menu
     if self.GetName() == 'edit_frame':
         self.variables_menu = wx.Menu()
-        menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
+        menu_bar.Append(self.variables_menu, 'Variables')  # add the insert menu to the menu bar
 
         self.internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
                                                               '   Insert variable that outputs if connected to the internet (True or False).')
@@ -976,7 +976,7 @@ class EditFrame(wx.Frame):
                 self.hbox_edit.Add(self.vbox_move, 0, wx.ALIGN_CENTER_VERTICAL | wx.WEST | wx.EAST, 8)
                 # ----------------------------------------------------------------------------------------------------------
 
-                self.line_first_word = self.line.strip().split(' ')[0][:6]
+                self.line_first_word = self.line.strip().split(' ')[0][:10]
 
                 if not self.line:  # if line is empty, insert spacers
                     self.hbox_edit.Insert(0, 0, 50, 1)
@@ -2185,7 +2185,7 @@ class EditFrame(wx.Frame):
         new_action = event.GetString()
         line_orig = self.lines[index]
         line = line_orig.lower().strip()
-        line_first_word = line.split(' ')[0][:6]
+        line_first_word = line.split(' ')[0][:15]
 
         old_coords = self.default_coords
         old_action = ''
