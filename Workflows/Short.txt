@@ -1,6 +1,6 @@
 HardwareID: 17650
-Key Win Tap
-Assign {{~Var~}}=value
-Key Shift Press
-Assign {{~Var~}}=value
+Loop multiple times 1 {
+}
+Left-mouse click at (10, 10)
+Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)

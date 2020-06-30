@@ -797,9 +797,6 @@ class EditFrame(wx.Frame):
         self.render_lines()
         self.edit.Thaw()
 
-        # all tracker lists must be modified when altering command order or adding/deleting
-        self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
-
         self.lines_when_launched = self.lines.copy()  # used for comparison when closing
 
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
@@ -940,6 +937,10 @@ class EditFrame(wx.Frame):
                             text_ctrl.SetValue(text_ctrl.GetValue())  # trigger wx.EVT_TEXT events to validate entry
             except IndexError:
                 pass
+
+        # all tracker lists must be modified when altering command order or adding/deleting
+        self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
+
         self.refresh_move_buttons()
         self.Layout()
         self.Thaw()
@@ -1082,7 +1083,7 @@ class EditFrame(wx.Frame):
             edit_row_vbox.Add(wx.StaticLine(self.edit), 0, wx.EXPAND)
 
         self.edit_row_container_sizers.insert(index, edit_row_vbox)
-        self.vbox_edit.Insert(index, edit_row_vbox, 0, wx.EXPAND)  # TODO investigate why .Insert() and not .Add()
+        self.vbox_edit.Insert(index, edit_row_vbox, 0, wx.EXPAND)
 
     def create_delete_x_btn(self, sizer):
         sizer.AddSpacer(15)
@@ -2251,6 +2252,7 @@ class EditFrame(wx.Frame):
             old_coords = coords_of(line)
 
         if old_action == new_action:  # do nothing as not to reset existing parameters
+            self.Thaw()
             return
 
         # determine index of command combobox to hide all widgets after it
