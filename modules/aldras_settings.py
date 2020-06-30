@@ -95,6 +95,34 @@ def save_settings(settings):
         json.dump(settings, json_file, indent=4)
 
 
+def open_settings(parent_window):
+    settings_dlg = SettingsDialog(parent_window)
+    if settings_dlg.ShowModal() == wx.ID_OK:
+        settings_old = import_settings()
+        save_settings(settings_dlg.settings)
+
+        # prompt user to restart Aldras if settings were changed affecting SelectionFrame or EditFrame
+        if settings_old['Number of recent workflows displayed'] != settings_dlg.settings[
+            'Number of recent workflows displayed']:
+            settings_restart_dlg = wx.MessageDialog(settings_dlg,
+                                                    'Aldras must be restarted for changes to be fully applied',
+                                                    'Restart Aldras to apply changes', wx.YES_NO | wx.ICON_WARNING)
+            settings_restart_dlg.SetYesNoLabels('Restart',
+                                                'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
+
+            if settings_restart_dlg.ShowModal() == wx.ID_YES:
+                # relaunch SelectionFrame
+                if parent_window.GetName() == 'edit_frame':  # close EditFrame and save workflow if needed
+                    parent_window.Close()
+                    parent_window.parent.restart()
+                elif parent_window.GetName() == 'selection_frame':
+                    parent_window.restart()
+
+            settings_restart_dlg.Destroy()
+
+    settings_dlg.Destroy()
+
+
 class SettingsDialog(wx.Dialog):
     """Main frame to select workflow."""
 

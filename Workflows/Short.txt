@@ -1,3 +1,3 @@
 HardwareID: 17650
-Loop multiple times 1 {
-}
+Key Backspace Tap
+Left-mouse click at (10, 10)
