@@ -1916,7 +1916,12 @@ class EditFrame(wx.Frame):
                 # create sizer for grid
                 self.vbox_table = wx.BoxSizer(wx.VERTICAL)
 
-                self.grid = CustomGrid(self, table_size=(40, 1), can_change_num_cols=False)
+                if len(list_values) > 40:
+                    num_elements = (len(list_values) + 9) // 10 * 10  # round number of elements up to nearest 10
+                    self.grid = CustomGrid(self, table_size=(num_elements, 1), can_change_num_cols=False)
+                else:
+                    self.grid = CustomGrid(self, table_size=(40, 1), can_change_num_cols=False)
+
                 self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
                 self.grid.DisableColResize(0)
 
