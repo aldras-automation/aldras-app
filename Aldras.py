@@ -393,6 +393,11 @@ def setup_frame(self, status_bar=False):
     if self.GetName() != 'edit_frame':
         menu_save_as.Enable(False)
 
+    menu_refresh = file_menu.Append(wx.ID_ANY, 'Refresh', f'   Refresh {self.software_info.name} workflow editor')
+    self.Bind(wx.EVT_MENU, lambda event: self.full_refresh(), menu_refresh)
+    if self.GetName() != 'edit_frame':
+        menu_refresh.Enable(False)
+
     menu_settings = file_menu.Append(wx.ID_ANY, 'Settings', f'   {self.software_info.name} settings')
     self.Bind(wx.EVT_MENU, lambda event: open_settings(self), menu_settings)
 
@@ -637,7 +642,7 @@ class CustomGrid(wx.grid.Grid):
 class EditFrame(wx.Frame):
     """Frame to edit specific workflow."""
 
-    def __init__(self, parent, lines):
+    def __init__(self, parent, lines, show_frame=True, previous_lines_when_launched=None):
         t0 = time.time()
         self.software_info = parent.software_info
         self.workflow_name = parent.workflow_name
@@ -670,9 +675,9 @@ class EditFrame(wx.Frame):
                                'For each element in list']  # TODO add later___, 'For each row in table', 'For each column in table']
 
         # read workflow hardware id
-        workflow_hardware_id = None
+        self.workflow_hardware_id = None
         if 'hardware' in self.lines[0].strip().split(' ')[0].lower():  # if 'hardware' in first word of first line
-            workflow_hardware_id = int(re.search(r'\d+', self.lines[0]).group())
+            self.workflow_hardware_id = int(re.search(r'\d+', self.lines[0]).group())
             del self.lines[0]
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
@@ -792,19 +797,24 @@ class EditFrame(wx.Frame):
         self.SetSizer(self.vbox_container)
         self.Center()
         self.Bind(wx.EVT_CLOSE, lambda event: self.close_window(quitall=True))
-        self.Show()
+        if show_frame:
+            self.Show()
 
         # add command widgets
         self.edit.Freeze()
         self.render_lines()
         self.edit.Thaw()
 
-        self.lines_when_launched = self.lines.copy()  # used for comparison when closing
+        # used for comparison when closing
+        if previous_lines_when_launched:
+            self.lines_when_launched = previous_lines_when_launched
+        else:
+            self.lines_when_launched = self.lines.copy()
 
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
         # compare system hardware id to workflow hardware id
-        if hardware_id != workflow_hardware_id:
+        if hardware_id != self.workflow_hardware_id:
             wx.MessageDialog(self,
                              'Your hardware configuration is different from the system that last made changes to this workflow.\n\nMouse coordinates and other features may not work as intended.',
                              'Different Hardware Configuration', wx.OK | wx.ICON_INFORMATION).ShowModal()
@@ -1541,7 +1551,7 @@ class EditFrame(wx.Frame):
         def add_loop_details(loop_sizer, action, modification):
             self.no_right_spacer = False
 
-            index = None
+            index, old_loop_behavior = None, None
             if sizer in self.edit_row_widget_sizers:  # if changing loop_details, sizer will be in self.edit_row_widget_sizers
                 index = self.edit_row_widget_sizers.index(sizer)
                 old_loop_behavior = \
@@ -3032,6 +3042,15 @@ class EditFrame(wx.Frame):
                 pass
             else:  # cancel button
                 return 'cancel'
+
+    def full_refresh(self):
+        """Relaunch EditFrame with same workflow lines"""
+        new_edit_frame = EditFrame(self.parent, [f'HardwareID: {self.workflow_hardware_id}'] + self.lines,
+                                   show_frame=False, previous_lines_when_launched=self.lines_when_launched)
+        new_edit_frame.Size = self.Size
+        new_edit_frame.Position = self.Position
+        new_edit_frame.Show()
+        self.Destroy()
 
     def close_window(self, _=None, quitall=False):
         if self.save_workflow() == 'cancel':
