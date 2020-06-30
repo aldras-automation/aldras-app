@@ -2513,6 +2513,8 @@ class EditFrame(wx.Frame):
             self.lines[index] = f'Loop multiple times {input_one_lined} {{'
         # TODO loop parameters changes
 
+        self.edit.ScrollChildIntoView(event.GetEventObject())
+
         event.Skip()
 
     def on_record(self):
