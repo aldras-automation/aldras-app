@@ -23,7 +23,7 @@ from modules.aldras_core import get_system_parameters, float_in, variable_names_
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
-from modules.aldras_settings import SettingsDialog, import_settings, save_settings
+from modules.aldras_settings import import_settings, open_settings
 
 
 # TODO comments
@@ -338,7 +338,7 @@ def setup_frame(self, status_bar=False):
                                     self.freezes.append([str((x, y)), 'R-CTRL'])
                                     update_monitor(x, y, freeze='ctrl')
 
-                            self.key_listener = keyboard.Listener(on_release=on_key_press)
+                            self.key_listener = keyboard.Listener(on_press=on_key_press)
                             self.key_listener.start()
 
                         def abort(self):
@@ -375,15 +375,15 @@ def setup_frame(self, status_bar=False):
     menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f'   Information about {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_about, menu_about)
 
-    menu_new = file_menu.Append(wx.ID_ANY, 'New...', f'   Create new {self.software_info.name} workflow')
+    menu_new = file_menu.Append(wx.ID_ANY, 'New...\tCtrl+N', f'   Create new {self.software_info.name} workflow')
     self.Bind(wx.EVT_MENU, lambda event: self.close_window(), menu_new)  # go back to selection from edit frame
     if self.GetName() != 'edit_frame':
         menu_new.Enable(False)
 
-    menu_open = file_menu.Append(wx.ID_ANY, 'Open...', f'   Open existing {self.software_info.name} workflow')
+    menu_open = file_menu.Append(wx.ID_ANY, 'Open...\tCtrl+O', f'   Open existing {self.software_info.name} workflow')
     # self.Bind(wx.EVT_MENU, ???, menu_open)
 
-    menu_save = file_menu.Append(wx.ID_ANY, 'Save', f'   Save {self.software_info.name} workflow')
+    menu_save = file_menu.Append(wx.ID_ANY, 'Save\tCtrl+S', f'   Save {self.software_info.name} workflow')
     self.Bind(wx.EVT_MENU, lambda event: self.save_to_file(), menu_save)  # call EditFrame self.save_workflow()
     if self.GetName() != 'edit_frame':
         menu_save.Enable(False)
@@ -398,7 +398,7 @@ def setup_frame(self, status_bar=False):
     if self.GetName() != 'edit_frame':
         menu_refresh.Enable(False)
 
-    menu_settings = file_menu.Append(wx.ID_ANY, 'Settings', f'   {self.software_info.name} settings')
+    menu_settings = file_menu.Append(wx.ID_ANY, 'Settings\tCtrl+,', f'   {self.software_info.name} settings')
     self.Bind(wx.EVT_MENU, lambda event: open_settings(self), menu_settings)
 
     menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f'   Exit {self.software_info.name}')
@@ -410,7 +410,7 @@ def setup_frame(self, status_bar=False):
     # set up the tools menu
     tools_menu = wx.Menu()
 
-    menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor',
+    menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor\tCtrl+M',
                                            f'   {self.software_info.name} mouse monitoring tool')
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
@@ -456,33 +456,6 @@ def setup_frame(self, status_bar=False):
     self.SetMenuBar(menu_bar)  # adding the menu bar to the Frame)
     self.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))  # assign icon
     self.SetBackgroundColour('white')  # set background color
-
-    def open_settings(parent_window):
-        settings_dlg = SettingsDialog(parent_window)
-        if settings_dlg.ShowModal() == wx.ID_OK:
-            settings_old = import_settings()
-            save_settings(settings_dlg.settings)
-
-            # prompt user to restart Aldras if settings were changed affecting SelectionFrame or EditFrame
-            if settings_old['Number of recent workflows displayed'] != settings_dlg.settings[
-                'Number of recent workflows displayed']:
-                settings_restart_dlg = wx.MessageDialog(settings_dlg,
-                                                        'Aldras must be restarted for changes to be fully applied',
-                                                        'Restart Aldras to apply changes', wx.YES_NO | wx.ICON_WARNING)
-                settings_restart_dlg.SetYesNoLabels('Restart',
-                                                    'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
-
-                if settings_restart_dlg.ShowModal() == wx.ID_YES:
-                    # relaunch selection_frame
-                    if parent_window.GetName() == 'edit_frame':  # close EditFrame and save workflow if needed
-                        parent_window.Close()
-                    global selection_frame
-                    selection_frame.Close()
-                    selection_frame = SelectionFrame(None)
-
-                settings_restart_dlg.Destroy()
-
-        settings_dlg.Destroy()
 
 
 def change_font(widget, size=None, family=None, style=None, weight=None, color=None):
@@ -558,14 +531,14 @@ class CustomGrid(wx.grid.Grid):
         if event.ControlDown() and (event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_DELETE):
             self.clear_cells()
 
-        elif event.ControlDown() and event.GetKeyCode() == 86:  # if CTRL+v
+        elif event.ControlDown() and event.GetKeyCode() == 86:  # if CTRL+V
             self.paste_clipboard()
 
-        elif event.ControlDown() and event.GetKeyCode() == 67:  # if CTRL+c
+        elif event.ControlDown() and event.GetKeyCode() == 67:  # if CTRL+C
             # TODO process copy events
             pass
 
-        elif event.ControlDown() and event.GetKeyCode() == 90:  # if CTRL+z
+        elif event.ControlDown() and event.GetKeyCode() == 90:  # if CTRL+Z
             # TODO process undo events
             pass
 
@@ -3317,6 +3290,10 @@ class SelectionFrame(wx.Frame):
         self.vbox_outer.SetSizeHints(self)
         self.Fit()
 
+    def restart(self):
+        SelectionFrame(None)
+        self.Destroy()
+
     def on_exit(self, _):
         # trigger close event
         self.Close(True)
@@ -3350,5 +3327,5 @@ if __name__ == '__main__':
     print(f'system_platform: {system_platform()}')
 
     app = wx.App(False)
-    selection_frame = SelectionFrame(None)
+    SelectionFrame(None)
     app.MainLoop()
