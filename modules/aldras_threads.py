@@ -425,6 +425,8 @@ class ExecutionThread(threading.Thread):
 
             if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
+
+                # replace variable names defined so far with values
                 for var_to_type in variable_names_in(line_orig):
                     if var_to_type in self.variables:
                         line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])

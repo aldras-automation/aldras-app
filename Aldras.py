@@ -1315,6 +1315,9 @@ class EditFrame(wx.Frame):
                 if 'assign' in line.strip().split(' ')[0][:6].lower() and '{{~' in line and '~}}' in line:
                     variable_name = variable_names_in(line)[0]
                     self.variables_menu_items[variable_name].Enable(True)
+
+                # TODO enable loop.list.var where appropriate
+
         else:
             self.variable_insertion_window = None
 
@@ -2064,6 +2067,10 @@ class EditFrame(wx.Frame):
         if self.variables_menu.GetMenuItems()[-1].GetKind() == wx.ITEM_SEPARATOR:
             self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[-1])
 
+        # remove extra separator when removing loop.list.var.
+        if self.variables_menu.GetMenuItems()[3].GetKind() == wx.ITEM_SEPARATOR:
+            self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[3])
+
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
 
@@ -2553,7 +2560,6 @@ class EditFrame(wx.Frame):
                 index] = f'If {{{{~{variable_names_in(self.lines[index])[0]}~}}}} {conditional_operation_in(self.lines[index], self.conditional_operations)} ~{comparison_value}~ {{'
         elif command_type == 'loop_multiple_times_number':
             self.lines[index] = f'Loop multiple times {input_one_lined} {{'
-        # TODO loop parameters changes
 
         self.edit.ScrollChildIntoView(event.GetEventObject())
 
@@ -3149,7 +3155,7 @@ class SelectionFrame(wx.Frame):
         # add recent workflow title
         self.vbox_recent = wx.BoxSizer(wx.VERTICAL)
         self.recent_title = wx.StaticText(self.workflow_panel, label='Recent')
-        change_font(self.recent_title, size=10, style=wx.ITALIC, color=3 * (150,))
+        change_font(self.recent_title, size=10, style=wx.ITALIC, color=3 * (120,))
         self.recent_title.Show(False)  # hide until know there are recent workflows
         self.vbox_recent.Add(self.recent_title, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
 
