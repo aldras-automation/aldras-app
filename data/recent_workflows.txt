@@ -1,7 +1,5 @@
-Workflows/Asdf.txt
 Workflows/Testz.txt
+Workflows/Asdf.txt
+Workflows/Short.txt
 Workflows/Testy.txt
 Workflows/Workflow.txt
-Workflows/Kahoot.txt
-Workflows/Ctec.txt
-Workflows/Short.txt

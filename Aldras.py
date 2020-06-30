@@ -1465,11 +1465,12 @@ class EditFrame(wx.Frame):
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
-        if self.variables_menu.GetMenuItemCount() <= 2:  # add separator between built-ins and custom variables
-            self.variables_menu.AppendSeparator()
-
         # add variable to menu
         if variable_name_text not in self.variables_menu_items:  # only add unique variable names on ingest
+            # if the lowest variable menu item is a built-in variable (contains '.')
+            if '.' in self.variables_menu.GetMenuItems()[-1].GetItemLabelText():
+                self.variables_menu.AppendSeparator()  # add separator above custom variables
+
             self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
                                                                                        f'Insert variable {variable_name_text}.')
             self.variables_menu_items[variable_name_text].Enable(
@@ -1532,6 +1533,8 @@ class EditFrame(wx.Frame):
             index = None
             if sizer in self.edit_row_widget_sizers:  # if changing loop_details, sizer will be in self.edit_row_widget_sizers
                 index = self.edit_row_widget_sizers.index(sizer)
+                old_loop_behavior = \
+                [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
 
             for child in reversed(loop_sizer.GetChildren()):
                 if child.GetWindow() == matching_widget_in_edit_row(loop_sizer, 'loop_behavior'):
@@ -1559,15 +1562,41 @@ class EditFrame(wx.Frame):
                 loop_sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
 
             elif action == 'For each element in list':
+                loop_line = line
                 if index is not None:
                     self.lines[index] = "Loop for each element in list [1`'`2`'`3`'`4`'`5] {"
+                    loop_line = self.lines[index]
+
                 list_btn = wx.Button(self.edit, label='List')
                 list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(sizer))
-                loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+                loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
-                # TODO add num of loop iterations statictext
+                loop_list_text = loop_line[loop_line.find('[') + 1:loop_line.rfind(
+                    ']')]  # find text between first '[' and last ']'
+                loop_list_values = loop_list_text.split("`'`")  # split based on delimiter
+                loop_list_length = wx.StaticText(self.edit, label=f'{len(loop_list_values)} iterations',
+                                                 name='loop_list_length')
+                change_font(loop_list_length, style=wx.ITALIC, color=3 * (100,))
+                loop_sizer.Add(loop_list_length, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                # add variable to menu
+                if 'loop.list.var' not in self.variables_menu_items:  # only add unique variable names on ingest
+                    self.variables_menu.InsertSeparator(2)
+                    self.variables_menu_items['loop.list.var'] = self.variables_menu.Insert(3, wx.ID_ANY,
+                                                                                            'loop.list.var',
+                                                                                            'Insert variable loop list variable created by the most recent loop list.')
+                    self.variables_menu_items['loop.list.var'].Enable(
+                        False)  # to be re-enabled when focus is bestowed upon appropriate window
+                    self.Bind(wx.EVT_MENU,
+                              lambda event: self.insert_variable(event, self.variables_menu_items['loop.list.var']),
+                              self.variables_menu_items['loop.list.var'])
+                else:
+                    self.duplicate_variables.append('loop.list.var')
 
             if modification:
+                if old_loop_behavior == 'For each element in list':
+                    self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+
                 self.create_delete_x_btn(loop_sizer)
                 self.Layout()
 
@@ -1967,6 +1996,8 @@ class EditFrame(wx.Frame):
             loop_list_string = "`'`".join(loop_list_values)
             self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
 
+            matching_widget_in_edit_row(sizer, 'loop_list_length').SetLabel(f'{len(loop_list_values)} iterations')
+
     def delete_command(self, sizer_or_index):
         index = sizer_or_index  # this is the case when called from delete dialog
         if isinstance(sizer_or_index, wx.Sizer):
@@ -1998,8 +2029,11 @@ class EditFrame(wx.Frame):
                 self.vbox_edit.Show(end_bracket_indent, False)
                 self.vbox_edit.Remove(end_bracket_indent)
 
-        elif 'assign' in line_first_word and '{{~' in line and '~}}' in line:
+        if 'assign' in line_first_word and '{{~' in line and '~}}' in line:
             self.remove_variable_menu_item(line)
+
+        if 'loop' in line_first_word and 'for each element in list' in line[:40].lower() and '{' in line:
+            self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
 
         for list_to_change in self.tracker_lists:  # delete command from tracker_lists
             del (list_to_change[index])
@@ -2469,8 +2503,8 @@ class EditFrame(wx.Frame):
                 self.lines[index] = f'Assign {{{{~{new_variable_name}~}}}}={variable_value}'
 
                 # process for variable menu
-                if new_variable_name not in self.variables_menu_items:  # if variable name is unique
-                    if old_variable_name in self.duplicate_variables:
+                if new_variable_name not in self.variables_menu_items:  # if variable menu item does not exist
+                    if old_variable_name in self.duplicate_variables:  # if variable name is unique
                         # add new variable to menu if old variable existed duplicated in another assign command
                         self.variables_menu_items[new_variable_name] = self.variables_menu.Append(wx.ID_ANY,
                                                                                                   new_variable_name)
@@ -2481,6 +2515,9 @@ class EditFrame(wx.Frame):
 
                     self.variables_menu_items[new_variable_name].SetItemLabel(new_variable_name)
                     self.variables_menu_items[new_variable_name].SetHelp(f'Insert variable {new_variable_name}.')
+
+                    self.variables_menu_items[new_variable_name].Enable(
+                        False)  # to be re-enabled when focus is bestowed upon appropriate window
 
                     # rebind menu item
                     self.Unbind(wx.EVT_MENU, self.variables_menu_items[new_variable_name])
