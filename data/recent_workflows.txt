@@ -1,5 +1,5 @@
-Workflows/Asdf.txt
 Workflows/Testz.txt
-Workflows/Short.txt
 Workflows/Testy.txt
+Workflows/Asdf.txt
+Workflows/Short.txt
 Workflows/Workflow.txt

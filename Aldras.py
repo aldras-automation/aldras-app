@@ -721,7 +721,7 @@ class EditFrame(wx.Frame):
         # add plus command button
         self.plus_btn = wx.Button(self, label='+', size=(20, -1))
         self.plus_btn.Bind(wx.EVT_BUTTON, lambda event: self.add_command())
-        config_status_and_tooltip(self, self.plus_btn, 'Add commands', 'Add commands')
+        config_status_and_tooltip(self, self.plus_btn, 'Add command', 'Add command')
         self.hbox_line_mods.Add(self.plus_btn, 1)
 
         self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND | wx.SOUTH, 5)
@@ -1110,6 +1110,7 @@ class EditFrame(wx.Frame):
         self.command.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         self.command.Bind(wx.EVT_COMBOBOX,
                           lambda event, sizer_trap=self.hbox_edit: self.command_combobox_change(sizer_trap, event))
+        config_status_and_tooltip(self, self.command, 'Command action')
         self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
         self.hbox_edit.AddSpacer(10)
 
@@ -1202,6 +1203,7 @@ class EditFrame(wx.Frame):
                                    style=wx.CB_READONLY)
         mouse_button.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         mouse_button.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'mouse'))
+        config_status_and_tooltip(self, mouse_button, 'Mouse button')
 
         if 'click' in line:
             action = 'Click'
@@ -1216,6 +1218,7 @@ class EditFrame(wx.Frame):
                                    style=wx.CB_READONLY)
         mouse_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
         mouse_action.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'mouse'))
+        config_status_and_tooltip(self, mouse_action, 'Mouse action')
 
         sizer.Add(mouse_button, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(10)
@@ -1249,6 +1252,7 @@ class EditFrame(wx.Frame):
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         self.x_coord.Bind(wx.EVT_KILL_FOCUS, correct_coord_input)
+        config_status_and_tooltip(self, self.x_coord, 'Mouse coordinate in the horizontal, x direction')
 
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.coord_width, -1),
@@ -1258,6 +1262,7 @@ class EditFrame(wx.Frame):
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         self.y_coord.Bind(wx.EVT_KILL_FOCUS, correct_coord_input)
+        config_status_and_tooltip(self, self.y_coord, 'Mouse coordinate in the vertical, y direction')
 
         sizer.Add(self.x_coord, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(non_flickering_static_text(self.edit, ' , '), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1279,6 +1284,7 @@ class EditFrame(wx.Frame):
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'type'))
         text_to_type.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
         text_to_type.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
+        config_status_and_tooltip(self, text_to_type, 'Text to type')
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1329,6 +1335,7 @@ class EditFrame(wx.Frame):
                                  validator=self.CharValidator('only_digit', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'wait'))
         wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        config_status_and_tooltip(self, wait_entry, 'Time to wait (seconds)')
         sizer.Add(wait_entry, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(30)
         self.error_display = non_flickering_static_text(self.edit, '')
@@ -1354,6 +1361,7 @@ class EditFrame(wx.Frame):
         key = wx.ComboBox(self.edit, value=str(key_in), choices=choices, style=wx.CB_READONLY)
         key.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'key'))
         key.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        config_status_and_tooltip(self, key, 'Key')
 
         if 'tap' in line:
             action = 'Tap'
@@ -1366,6 +1374,7 @@ class EditFrame(wx.Frame):
         key_action = wx.ComboBox(self.edit, value=action, choices=self.software_info.key_actions, style=wx.CB_READONLY)
         key_action.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'key_action'))
         key_action.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        config_status_and_tooltip(self, key_action, 'Key action')
 
         sizer.Add(key, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(10)
@@ -1386,6 +1395,7 @@ class EditFrame(wx.Frame):
                                     style=wx.CB_READONLY)
             hotkey_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.command_parameter_change(sizer, event, 'hotkey'))
             hotkey_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+            config_status_and_tooltip(self, hotkey_cb, 'Hotkey')
             sizer.Add(hotkey_cb, 0, wx.ALIGN_CENTER_VERTICAL)
 
             if index < len(combination) - 1:
@@ -1427,6 +1437,7 @@ class EditFrame(wx.Frame):
         comment.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                      lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
         comment.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'comment'))
+        config_status_and_tooltip(self, comment, 'Comment')
         sizer.Add(comment, 2, wx.EXPAND)
         self.no_right_spacer = True
 
@@ -1443,6 +1454,7 @@ class EditFrame(wx.Frame):
         variable_name_entry.Bind(wx.EVT_TEXT,
                                  lambda event: self.command_parameter_change(sizer, event, 'assign_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        config_status_and_tooltip(self, variable_name_entry, 'Assignment variable name')
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL)
 
         equals_text = non_flickering_static_text(self.edit, '  =  ')
@@ -1456,6 +1468,7 @@ class EditFrame(wx.Frame):
                                   lambda event: self.command_parameter_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        config_status_and_tooltip(self, variable_value_entry, 'Assignment variable value')
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
 
@@ -1491,15 +1504,17 @@ class EditFrame(wx.Frame):
         variable_name_entry.Bind(wx.EVT_TEXT,
                                  lambda event: self.command_parameter_change(sizer, event, 'conditional_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        config_status_and_tooltip(self, variable_name_entry, 'Conditional variable name')
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
-        operation = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations),
-                                choices=self.conditional_operations, style=wx.CB_READONLY)
-        operation.Bind(wx.EVT_TEXT,
-                       lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_operator'))
+        comparator = wx.ComboBox(self.edit, value=conditional_operation_in(line, self.conditional_operations),
+                                 choices=self.conditional_operations, style=wx.CB_READONLY)
+        comparator.Bind(wx.EVT_TEXT,
+                        lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_operator'))
+        config_status_and_tooltip(self, comparator, 'Conditional comparator')
 
-        operation.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
-        sizer.Add(operation, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
+        comparator.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        sizer.Add(comparator, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
         comparison_entry = wx.lib.expando.ExpandoTextCtrl(self.edit,
                                                           value=conditional_comparison_in(line).replace('``nl``', '\n'))
@@ -1507,6 +1522,7 @@ class EditFrame(wx.Frame):
                               lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                               lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        config_status_and_tooltip(self, comparison_entry, 'Conditional value')
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
         self.next_indent += 1
@@ -1553,6 +1569,7 @@ class EditFrame(wx.Frame):
                 loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event,
                                                                                                     'loop_multiple_times_number'))  # TODO add functionality
                 loop_iteration_number.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+                config_status_and_tooltip(self, loop_iteration_number, 'Number of times to loop')
                 loop_sizer.Add(loop_iteration_number, 0, wx.ALIGN_CENTER_VERTICAL)
 
             elif action == 'For each element in list':
@@ -1564,6 +1581,7 @@ class EditFrame(wx.Frame):
                 list_btn = wx.Button(self.edit, label='List')
                 list_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_list_grid(sizer))
                 loop_sizer.Add(list_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+                config_status_and_tooltip(self, list_btn, 'Loop list editor')
 
                 loop_list_text = loop_line[loop_line.find('[') + 1:loop_line.rfind(
                     ']')]  # find text between first '[' and last ']'
@@ -1600,6 +1618,7 @@ class EditFrame(wx.Frame):
                          lambda event, sizer_trap=sizer: add_loop_details(sizer_trap, event.GetString(),
                                                                           modification=True))
         behavior_cb.Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)  # disable mouse wheel
+        config_status_and_tooltip(self, behavior_cb, 'Loop behavior')
         sizer.Add(behavior_cb, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
 
         add_loop_details(sizer, behavior_value, modification=False)

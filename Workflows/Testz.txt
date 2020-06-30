@@ -3,3 +3,8 @@ Left-mouse click at (3755, 950)
 Loop for each element in list [John Smith`'`Carla Jones`'`Andrew Hanson`'`Ben Higgins`'`Hullabahoo`'`Ya yeet] {
 Type:The customer name is {{~loop.list.var~}}``nl``
 }
+Wait
+Key Backspace Tap
+Mouse-move to (10, 10)
+Hotkey
+Assign {{~Var~}}=value
