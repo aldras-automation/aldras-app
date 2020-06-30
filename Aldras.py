@@ -426,6 +426,10 @@ def setup_frame(self, status_bar=False):
                                                     'Insert variable that outputs the clipboard text content.')
         self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.clipboard), self.clipboard)
 
+        # disable all variable menu items for them to be re-enabled when focus is bestowed upon appropriate window
+        for variable_menu_item in self.variables_menu.GetMenuItems():
+            variable_menu_item.Enable(False)
+
     ############
     # set up the help menu
     help_menu = wx.Menu()
@@ -792,10 +796,6 @@ class EditFrame(wx.Frame):
         self.edit.Freeze()
         self.render_lines()
         self.edit.Thaw()
-
-        # disable all variable menu items for them to be re-enabled when focus is bestowed upon appropriate window
-        for variable_menu_item in self.variables_menu.GetMenuItems():
-            variable_menu_item.Enable(False)
 
         # all tracker lists must be modified when altering command order or adding/deleting
         self.tracker_lists = [self.lines, self.edit_row_container_sizers, self.edit_row_widget_sizers, self.indents]
@@ -1472,6 +1472,8 @@ class EditFrame(wx.Frame):
         if variable_name_text not in self.variables_menu_items:  # only add unique variable names on ingest
             self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
                                                                                        f'Insert variable {variable_name_text}.')
+            self.variables_menu_items[variable_name_text].Enable(
+                False)  # to be re-enabled when focus is bestowed upon appropriate window
             self.Bind(wx.EVT_MENU,
                       lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
                       self.variables_menu_items[variable_name_text])
