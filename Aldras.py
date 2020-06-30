@@ -644,6 +644,8 @@ class EditFrame(wx.Frame):
         self.workflow_name_when_launched = parent.workflow_name
         self.parent = parent
         self.lines = lines
+        self.internet_connection = None
+        self.clipboard = None
         self.variables_menu_items = dict()
         self.variable_insertion_window = None
         self.variables_menu = None
@@ -2074,8 +2076,9 @@ class EditFrame(wx.Frame):
             self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[-1])
 
         # remove extra separator when removing loop.list.var.
-        if self.variables_menu.GetMenuItems()[3].GetKind() == wx.ITEM_SEPARATOR:
-            self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[3])
+        if self.variables_menu.GetMenuItemCount() > 2:
+            if self.variables_menu.GetMenuItems()[3].GetKind() == wx.ITEM_SEPARATOR:
+                self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[3])
 
     def move_command_up(self, sizer):
         index = self.edit_row_widget_sizers.index(sizer)
