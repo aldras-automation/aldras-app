@@ -372,31 +372,31 @@ def setup_frame(self, status_bar=False):
     # set up the file menu
     file_menu = wx.Menu()
 
-    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f' Information about {self.software_info.name}')
+    menu_about = file_menu.Append(wx.ID_ABOUT, 'About', f'   Information about {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_about, menu_about)
 
-    menu_new = file_menu.Append(wx.ID_ANY, 'New...', f' Create new {self.software_info.name} workflow')
+    menu_new = file_menu.Append(wx.ID_ANY, 'New...', f'   Create new {self.software_info.name} workflow')
     self.Bind(wx.EVT_MENU, lambda event: self.close_window(), menu_new)  # go back to selection from edit frame
     if self.GetName() != 'edit_frame':
         menu_new.Enable(False)
 
-    menu_open = file_menu.Append(wx.ID_ANY, 'Open...', f' Open existing {self.software_info.name} workflow')
+    menu_open = file_menu.Append(wx.ID_ANY, 'Open...', f'   Open existing {self.software_info.name} workflow')
     # self.Bind(wx.EVT_MENU, ???, menu_open)
 
-    menu_save = file_menu.Append(wx.ID_ANY, 'Save', f' Save {self.software_info.name} workflow')
+    menu_save = file_menu.Append(wx.ID_ANY, 'Save', f'   Save {self.software_info.name} workflow')
     self.Bind(wx.EVT_MENU, lambda event: self.save_workflow(), menu_save)  # call EditFrame self.save_workflow()
     if self.GetName() != 'edit_frame':
         menu_save.Enable(False)
 
-    menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f' Save {self.software_info.name} workflow as...')
+    menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f'   Save {self.software_info.name} workflow as...')
     # self.Bind(wx.EVT_MENU, ???, menu_save_as)
     if self.GetName() != 'edit_frame':
         menu_save_as.Enable(False)
 
-    menu_settings = file_menu.Append(wx.ID_ANY, 'Settings', f' {self.software_info.name} settings')
+    menu_settings = file_menu.Append(wx.ID_ANY, 'Settings', f'   {self.software_info.name} settings')
     self.Bind(wx.EVT_MENU, lambda event: open_settings(self), menu_settings)
 
-    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f' Exit {self.software_info.name}')
+    menu_exit = file_menu.Append(wx.ID_EXIT, 'Exit', f'   Exit {self.software_info.name}')
     self.Bind(wx.EVT_MENU, on_exit, menu_exit)
 
     menu_bar.Append(file_menu, 'File')  # add the file menu to the menu bar
@@ -406,7 +406,7 @@ def setup_frame(self, status_bar=False):
     tools_menu = wx.Menu()
 
     menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor',
-                                           f' {self.software_info.name} mouse monitoring tool')
+                                           f'   {self.software_info.name} mouse monitoring tool')
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
     menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
@@ -418,12 +418,12 @@ def setup_frame(self, status_bar=False):
         menu_bar.Append(self.variables_menu, 'Variable')  # add the insert menu to the menu bar
 
         self.internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
-                                                              'Insert variable that outputs if connect to the internet (True or False).')
+                                                              '   Insert variable that outputs if connected to the internet (True or False).')
         self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.internet_connection),
                   self.internet_connection)
 
         self.clipboard = self.variables_menu.Append(wx.ID_ANY, 'clipboard.value',
-                                                    'Insert variable that outputs the clipboard text content.')
+                                                    '   Insert variable that outputs the clipboard text content.')
         self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.clipboard), self.clipboard)
 
         # disable all variable menu items for them to be re-enabled when focus is bestowed upon appropriate window
@@ -434,14 +434,14 @@ def setup_frame(self, status_bar=False):
     # set up the help menu
     help_menu = wx.Menu()
 
-    menu_tutorial = help_menu.Append(wx.ID_ANY, 'Tutorial', f' {self.software_info.name} tutorial')
+    menu_tutorial = help_menu.Append(wx.ID_ANY, 'Tutorial', f'   {self.software_info.name} tutorial')
     # self.Bind(wx.EVT_MENU, ???, menu_tutorial)
 
-    menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f' {self.software_info.name} edit guide')
+    menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f'   {self.software_info.name} edit guide')
     # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
 
     menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
-                                     f' Submit feedback to the {self.software_info.name} team')
+                                     f'   Submit feedback to {self.software_info.name}')
     # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
 
     menu_bar.Append(help_menu, 'Help')  # add the insert menu to the menu bar
@@ -1472,7 +1472,7 @@ class EditFrame(wx.Frame):
                 self.variables_menu.AppendSeparator()  # add separator above custom variables
 
             self.variables_menu_items[variable_name_text] = self.variables_menu.Append(wx.ID_ANY, variable_name_text,
-                                                                                       f'Insert variable {variable_name_text}.')
+                                                                                       f'   Insert variable {variable_name_text}.')
             self.variables_menu_items[variable_name_text].Enable(
                 False)  # to be re-enabled when focus is bestowed upon appropriate window
             self.Bind(wx.EVT_MENU,
@@ -1584,7 +1584,7 @@ class EditFrame(wx.Frame):
                     self.variables_menu.InsertSeparator(2)
                     self.variables_menu_items['loop.list.var'] = self.variables_menu.Insert(3, wx.ID_ANY,
                                                                                             'loop.list.var',
-                                                                                            'Insert variable loop list variable created by the most recent loop list.')
+                                                                                            '   Insert variable loop list variable created by the most recent loop list.')
                     self.variables_menu_items['loop.list.var'].Enable(
                         False)  # to be re-enabled when focus is bestowed upon appropriate window
                     self.Bind(wx.EVT_MENU,
@@ -2519,7 +2519,7 @@ class EditFrame(wx.Frame):
                         self.variables_menu_items[new_variable_name] = self.variables_menu_items.pop(old_variable_name)
 
                     self.variables_menu_items[new_variable_name].SetItemLabel(new_variable_name)
-                    self.variables_menu_items[new_variable_name].SetHelp(f'Insert variable {new_variable_name}.')
+                    self.variables_menu_items[new_variable_name].SetHelp(f'   Insert variable {new_variable_name}.')
 
                     self.variables_menu_items[new_variable_name].Enable(
                         False)  # to be re-enabled when focus is bestowed upon appropriate window
