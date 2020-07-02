@@ -649,9 +649,10 @@ class EditFrame(wx.Frame):
 
         # read workflow hardware id
         self.workflow_hardware_id = None
-        if 'hardware' in self.lines[0].strip().split(' ')[0].lower():  # if 'hardware' in first word of first line
-            self.workflow_hardware_id = int(re.search(r'\d+', self.lines[0]).group())
-            del self.lines[0]
+        if self.lines:
+            if 'hardware' in self.lines[0].strip().split(' ')[0].lower():  # if 'hardware' in first word of first line
+                self.workflow_hardware_id = int(re.search(r'\d+', self.lines[0]).group())
+                del self.lines[0]
 
         def create_bitmaps(source_file_name: str, size: tuple, default_contrast=100, flip=False, hover_red=False):
             # manipulate default image
@@ -787,7 +788,7 @@ class EditFrame(wx.Frame):
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 
         # compare system hardware id to workflow hardware id
-        if hardware_id != self.workflow_hardware_id:
+        if hardware_id != self.workflow_hardware_id and self.lines:
             wx.MessageDialog(self,
                              'Your hardware configuration is different from the system that last made changes to this workflow.\n\nMouse coordinates and other features may not work as intended.',
                              'Different Hardware Configuration', wx.OK | wx.ICON_INFORMATION).ShowModal()
