@@ -1,6 +1,7 @@
 """Aldras module containing core objects used across classes"""
 import re
 import wx
+import os
 from screeninfo import get_monitors
 import math
 from operator import add

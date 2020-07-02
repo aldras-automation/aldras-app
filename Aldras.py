@@ -706,8 +706,10 @@ class EditFrame(wx.Frame):
         # add workflow title
         self.title = wx.Button(self, label=self.workflow_name, style=wx.BORDER_NONE | wx.BU_EXACTFIT)
         self.title.SetBackgroundColour(wx.WHITE)
-        self.title.Bind(wx.EVT_BUTTON, self.rename_workflow)
         change_font(self.title, size=18, color=3 * (60,))
+        self.title.Bind(wx.EVT_BUTTON, self.rename_workflow)
+        self.title.Bind(wx.EVT_ENTER_WINDOW, lambda event: change_font(self.title, size=18, color=3 * (120,)))
+        self.title.Bind(wx.EVT_LEAVE_WINDOW, lambda event: change_font(self.title, size=18, color=3 * (60,)))
         self.hbox_top.Add(self.title, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.vbox_action = wx.BoxSizer(wx.VERTICAL)  # sizer for action sidebar
@@ -2945,6 +2947,7 @@ class EditFrame(wx.Frame):
             self.parent.recent_workflows.remove(workflow_path_when_launched)
             self.parent.recent_workflows.insert(0, workflow_path_new)
             self.parent.update_recent_workflows()
+            self.workflow_name_when_launched = self.workflow_name
 
         self.lines_when_launched = self.lines
 
