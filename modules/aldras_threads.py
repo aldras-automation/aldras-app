@@ -273,7 +273,8 @@ class ListenerThread(threading.Thread):
                             elif 'release' in line:
                                 if key in pressed_keys:
                                     # execute hotkey
-                                    if len(pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
+                                    if check_single_chars or len(
+                                            pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
                                         if self.debug:
                                             print('\t\tregister hotkey: ', check_alphabet_letters)
                                         if 'shift' in pressed_keys and check_single_chars and (

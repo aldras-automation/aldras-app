@@ -730,11 +730,11 @@ class EditFrame(wx.Frame):
 
         self.vbox_action.Add(self.hbox_line_mods, 0, wx.EXPAND | wx.SOUTH, 5)
 
-        # add reorder commands button
-        self.reorder_btn = wx.Button(self, label='Reorder')
-        self.reorder_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
-        config_status_and_tooltip(self, self.reorder_btn, 'Reorder commands', 'Reorder commands')
-        self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND | wx.SOUTH, 10)
+        # # add reorder commands button
+        # self.reorder_btn = wx.Button(self, label='Reorder')
+        # self.reorder_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
+        # config_status_and_tooltip(self, self.reorder_btn, 'Reorder commands', 'Reorder commands')
+        # self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
         # add advanced command button
         self.advanced_btn = wx.Button(self, label='Advanced')
