@@ -13,7 +13,7 @@ from modules.aldras_core import coords_of, eliminate_duplicates, float_in, varia
 
 
 class ListenerThread(threading.Thread):
-    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False):
+    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False, record_pause=None):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         self.parent = parent
@@ -21,6 +21,7 @@ class ListenerThread(threading.Thread):
         self.listen_to_mouse = listen_to_mouse
         self.record = record
         self.debug = debug
+        self.record_pause = record_pause
         self.in_action = False
         if self.record:
             self.recording_lines = []
@@ -39,25 +40,22 @@ class ListenerThread(threading.Thread):
     def run(self):
         """Run worker thread."""
         self.ctrls = 0
+        self.time_last_input = None
 
-        def output_to_file_bkup(output='', end='\n'):
-            """Print string and write to file."""
-
-            # TODO function still needed?
+        def save_command(output=''):
+            """Save recording line."""
 
             if self.record:
+                if self.record_pause:
+                    # add pause since last input
+                    if self.time_last_input:
+                        record_interval = round(time.time() - self.time_last_input, 2)
+                        if record_interval > self.record_pause:  # only consider pauses longer than pause parameter
+                            self.recording_lines.append(f'Wait {record_interval}')
+
                 self.recording_lines.append(output)
-                if self.debug:
-                    # print(f'self.recording_lines: {self.recording_lines}')
-                    pass
 
-            # output = (output + end)
-            # print(output)
-
-            # Will add back when recording is enabled
-            # with open(workflow_name+'_bkup.txt', 'a') as record_file:
-            #     record_file.write(''.join(output))
-            # print(output, end='')
+                self.time_last_input = time.time()
 
         if self.listen_to_key:
             def process_keystroke(key, key_action):
@@ -94,7 +92,7 @@ class ListenerThread(threading.Thread):
                         output = f'{output} at {tuple(pyauto.position())}'
 
                     if 'ctrl_r' not in output:  # ignore right ctrl trigger keystrokes
-                        output_to_file_bkup(output)
+                        save_command(output)
 
                 # process right ctrls
                 if key_action == 'press':
@@ -141,7 +139,7 @@ class ListenerThread(threading.Thread):
                 """Process click for mouse listener for ListenerThread instances."""
                 if self.in_action:
                     button = str(button).replace('Button.', '').capitalize()
-                    output_to_file_bkup(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
+                    save_command(f'{button}-mouse {"press" if pressed else "release"} at {(x, y)}')
 
             self.mouse_listener = mouse.Listener(on_click=process_click)
             self.mouse_listener.start()
@@ -182,10 +180,12 @@ class ListenerThread(threading.Thread):
             'ctrl': ['ctrl_l', 'ctrl_r'],
             'alt': ['alt_gr', 'alt_l', 'alt_r'],
             'shift': ['shift_l', 'shift_r'],
-            'cmd': ['cmd_l', 'cmd_r'],
+            'win': ['cmd_l', 'cmd_r'],
+            'win': ['cmd']
         }
+        # # manual lines example for testing
         # lines = ['Key n press', 'Key o press', 'Key n release','Key v press', 'Key o release', 'Key v release', '']
-        for index, line in enumerate(lines[:-1]):  # loop through all lines except last one (should be release)
+        for index, line in enumerate(lines):  # loop through all lines
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
                 key = line.split(' ')[1]
@@ -193,8 +193,14 @@ class ListenerThread(threading.Thread):
                     print(f'\tline: {line}')
                     print(f'\tkey: {key}')
 
-                if not pressed_keys and lines[index].replace('press', '') == lines[index + 1].replace('release',
-                                                                                                      ''):  # if line press is same as next line release
+                # determine if the line indicates a tap if the next line matches (must catch last line since there is not line after the last line)
+                only_tap = False
+                try:
+                    only_tap = lines[index].replace('press', '') == lines[index + 1].replace('release', '')
+                except IndexError:
+                    pass
+
+                if not pressed_keys and only_tap:  # if line press is same as next line release
                     if self.debug:
                         print('\tONLY TAP')
 
@@ -223,68 +229,79 @@ class ListenerThread(threading.Thread):
                     if self.debug:
                         print('\tNOT TAP')
 
-                    if 'Key' in line:
-                        check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
-                            1}  # all hotkeys are single chars
-                        check_alphabet_letters = {(x.isalpha() and len(x) == 1) for x in pressed_keys if (x != 'shift' and x not in symbol_chars)} == {
-                            True}  # all hotkeys are single alphabetic characters
-                        check_symbol_chars = {x for x in pressed_keys if
-                                              x in symbol_chars}  # any hotkeys are symbols
+                    # determine if the next line contains a wait command (must catch last line since there is not line after the last line)
+                    next_line_wait = False
+                    try:
+                        if 'wait' in lines[index + 1].lower():
+                            next_line_wait = True
+                    except IndexError:
+                        pass
 
-                        if 'press' in line:
-                            if index != len(lines) - 1:
-                                if check_alphabet_letters and len(key) == 1 and key.isalpha():
-                                    line = f'Type:{"".join(pressed_keys)}{key}'
-                                    pressed_keys.clear()
-                                else:
-                                    pressed_keys.append(key)
-                                    pressed_keys = eliminate_duplicates(pressed_keys)
-                                    line = ''
+                    if next_line_wait:  # if the next line is a wait command, process current line as is
+                        processed_line = f'{break_code}{line}{break_code}'
+                    else:
+                        if 'Key' in line:
+                            check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
+                                1}  # all hotkeys are single chars
+                            check_alphabet_letters = {(x.isalpha() and len(x) == 1) for x in pressed_keys if
+                                                      (x != 'shift' and x not in symbol_chars)} == {
+                                                         True}  # all hotkeys are single alphabetic characters
+                            check_symbol_chars = {x for x in pressed_keys if
+                                                  x in symbol_chars}  # any hotkeys are symbols
 
-                        elif 'release' in line:
-                            if key in pressed_keys:
-                                # execute hotkey
-                                if pressed_keys:
-                                    if self.debug:
-                                        print('\t\tregister hotkey: ', check_alphabet_letters)
-                                    if 'shift' in pressed_keys and check_single_chars and (
-                                            check_alphabet_letters or check_symbol_chars):
-                                        line = f'Type:{"".join([x.capitalize() for x in pressed_keys if x != "shift"])}'
+                            if 'press' in line:
+                                if index != len(lines) - 1:
+                                    if check_alphabet_letters and len(key) == 1 and key.isalpha():
+                                        line = f'Type:{"".join(pressed_keys)}{key}'
                                         pressed_keys.clear()
-                                        # pressed_keys = []
-                                    elif check_alphabet_letters:  # process release of key if pressed keys are alphabetic
+                                    else:
+                                        pressed_keys.append(key)
+                                        pressed_keys = eliminate_duplicates(pressed_keys)
+                                        line = ''
+
+                            elif 'release' in line:
+                                if key in pressed_keys:
+                                    # execute hotkey
+                                    if len(pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
+                                        if self.debug:
+                                            print('\t\tregister hotkey: ', check_alphabet_letters)
+                                        if 'shift' in pressed_keys and check_single_chars and (
+                                                check_alphabet_letters or check_symbol_chars):
+                                            line = f'Type:{"".join([x.capitalize() for x in pressed_keys if x != "shift"])}'
+                                            pressed_keys.clear()
+                                            # pressed_keys = []
+                                        elif check_alphabet_letters:  # process release of key if pressed keys are alphabetic
+                                            if key in pressed_keys:
+                                                # pressed_keys.remove(key)
+                                                if pressed_keys:
+                                                    line = f'Type:{"".join(pressed_keys)}'
+                                                pressed_keys.clear()
+                                            else:
+                                                line = ''
+                                        else:
+                                            line = f"Hotkey {' + '.join(pressed_keys)}"
+                                    else:  # release with only one key pressed
+                                        pass
+                                    if key in pressed_keys:
+                                        pressed_keys.remove(key)
+
+                                else:
+                                    line = ''
+                                    if check_alphabet_letters:  # process release of key if pressed keys are alphabetic
                                         if key in pressed_keys:
                                             # pressed_keys.remove(key)
                                             if pressed_keys:
                                                 line = f'Type:{"".join(pressed_keys)}'
+
                                             pressed_keys.clear()
-                                        else:
-                                            line = ''
-                                    else:
-                                        line = f"Hotkey {' + '.join(pressed_keys)}"
-                                else:
-                                    line = ''
-                                if key in pressed_keys:
-                                    pressed_keys.remove(key)
 
-                            else:
-                                line = ''
-                                if check_alphabet_letters:  # process release of key if pressed keys are alphabetic
-                                    if key in pressed_keys:
-                                        # pressed_keys.remove(key)
-                                        if pressed_keys:
-                                            line = f'Type:{"".join(pressed_keys)}'
+                            if self.debug:
+                                print(f'\tpressed_keys: {pressed_keys}')
 
-                                        pressed_keys.clear()
-
-                        if self.debug:
-                            print(f'\tpressed_keys: {pressed_keys}')
-
-                    # else:
-                    if line:
-                        processed_line = f'{break_code}{line}{break_code}'
-                    else:
-                        processed_line = ''
+                        if line:
+                            processed_line = f'{break_code}{line}{break_code}'
+                        else:
+                            processed_line = ''
 
                 for master_key, replacement_keys in replacement_keys_ref.items():
                     for replacement_key in replacement_keys:
@@ -296,7 +313,6 @@ class ListenerThread(threading.Thread):
             else:
                 skip = False
 
-        # processed_lines.append(break_code + lines[-1])
         if self.debug:
             print(f'processed_lines: {processed_lines}\n\n')
         processed_lines = ''.join(processed_lines).split(break_code)  # join lines and split on break_code
@@ -393,7 +409,7 @@ class ExecutionThread(threading.Thread):
                 if self.lines_should_be_executed[line_index]:
                     executed_start_index, executed_end_index = self.execute_line(line_orig, line_index)
                     self.lines_should_be_executed[executed_start_index:executed_end_index] = [False] * (
-                                executed_end_index - executed_start_index)
+                            executed_end_index - executed_start_index)
 
         except pyauto.FailSafeException:
             self.keep_running = False
@@ -509,7 +525,7 @@ class ExecutionThread(threading.Thread):
                 if not conditional_satisfied:
                     end_bracket_index = block_end_index(self.lines_to_execute, line_index)
                     self.lines_should_be_executed[line_index:end_bracket_index] = [False] * (
-                                end_bracket_index - line_index)
+                            end_bracket_index - line_index)
 
             elif ('loop' in line_first_word) and ('{' in line):
                 loop_end_index = block_end_index(self.lines_to_execute, line_index)
@@ -596,6 +612,6 @@ if __name__ == '__main__':  # debugging capability by running module file as mai
     wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
 
     # test listener_thread
-    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
+    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True, record_pause=0.5)
     listener_thread.start()
     listener_thread.join()

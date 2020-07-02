@@ -2583,6 +2583,15 @@ class EditFrame(wx.Frame):
 
         if record_dlg.ShowModal() == wx.ID_OK:
 
+            # # get recording parameters
+            #
+            # if record_dlg.FindWindowByName('No pauses').GetValue():
+            #     record_pause = None
+            # elif record_dlg.FindWindowByName('All pauses').GetValue():
+            #     record_pause = 0
+            # elif record_dlg.FindWindowByName('Pauses over').GetValue():
+            #     record_pause = float_in(record_dlg.FindWindowByName('some_sleep_thresh').GetValue())
+
             class RecordCtrlCounterDialog(wx.Dialog):
                 def __init__(self, parent, caption, parent_dialog):
                     wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
@@ -2590,6 +2599,7 @@ class EditFrame(wx.Frame):
                     self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                     self.SetBackgroundColour('white')
                     self.parent = parent
+                    self.parent_dialog = parent_dialog
                     self.done = False
 
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2655,13 +2665,22 @@ class EditFrame(wx.Frame):
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
-                                     parent_dialog.Position[1])
+                    self.Position = (
+                    int(self.parent_dialog.Position[0] + ((self.parent_dialog.Size[0] - self.Size[0]) / 2)),
+                    self.parent_dialog.Position[1])
+
+                    record_pause = None  # no pauses default
+                    if record_dlg.FindWindowByName('All pauses over 0.5').GetValue():
+                        record_pause = 0.5
+                    elif record_dlg.FindWindowByName('Pauses over').GetValue():
+                        record_pause = float_in(self.parent_dialog.FindWindowByName('some_sleep_thresh').GetValue())
+                        if record_pause < 0.5:
+                            record_pause = 0.5
 
                     self.thread_event_id = wx.NewIdRef()
                     self.Connect(-1, -1, int(self.thread_event_id),
                                  self.read_thread_event_input)  # Process message events from threads
-                    self.listener_thread = ListenerThread(self, record=True)
+                    self.listener_thread = ListenerThread(self, record=True, record_pause=record_pause)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
 
@@ -2726,7 +2745,11 @@ class EditFrame(wx.Frame):
                 def finish(self, _):
                     lines_recorded = self.listener_thread.abort()
                     if lines_recorded:
-                        self.parent.lines = lines_recorded
+                        record_method = self.parent_dialog.FindWindowByName('Record method').GetStringSelection()
+                        if record_method == 'Overwrite':
+                            self.parent.lines = lines_recorded  # overwrite lines
+                        else:
+                            self.parent.lines += lines_recorded  # append lines
                         self.parent.create_edit_panel()
                     else:
                         # raise warning if no actions recorded

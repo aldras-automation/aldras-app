@@ -27,7 +27,7 @@ def create_record_options(parent_frame, settings_frame=False):
     record_no_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: not_some_sleep_pressed())
     sleep_sizer.Add(record_no_sleep, 0, wx.ALL, 4)
 
-    record_all_sleep = wx.RadioButton(parent_frame, wx.ID_ANY, 'All pauses')
+    record_all_sleep = wx.RadioButton(parent_frame, wx.ID_ANY, 'All pauses over 0.5')
     record_all_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: not_some_sleep_pressed())
     sleep_sizer.Add(record_all_sleep, 0, wx.ALL, 4)
 
@@ -72,15 +72,15 @@ class RecordDialog(wx.Dialog):
 
         # setup sizers
         vbox = wx.BoxSizer(wx.VERTICAL)
-        
-        hbox_options = create_record_options(self)
+
+        self.hbox_options = create_record_options(self)
 
         # set defaults from settings
         self.FindWindowByLabel(settings['Record pause']).SetValue(True)
         self.FindWindowByName('Record method').SetSelection(
             self.FindWindowByName('Record method').FindString(settings['Record method']))
 
-        vbox.Add(hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         vbox.AddSpacer(10)
 
         # add buttons
