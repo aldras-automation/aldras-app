@@ -6,7 +6,7 @@ import threading
 import time
 import webbrowser
 from platform import system as system_platform
-
+import sys
 import numpy as np
 import pyautogui as pyauto
 import pyperclip
@@ -19,7 +19,7 @@ from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index
+    eliminate_duplicates, block_end_index, exception_handler
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
@@ -3365,6 +3365,7 @@ class SelectionFrame(wx.Frame):
 
 if __name__ == '__main__':
     mouse_monitor_frame = None
+    sys.excepthook = exception_handler
 
     # get system platform
     print(f'system_platform: {system_platform()}')

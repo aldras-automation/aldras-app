@@ -76,7 +76,7 @@ class RecordDialog(wx.Dialog):
         self.hbox_options = create_record_options(self)
 
         # set defaults from settings
-        self.FindWindowByLabel(settings['Record pause']).SetValue(True)
+        self.FindWindowByLabel(settings['Record pauseXXX']).SetValue(True)
         self.FindWindowByName('Record method').SetSelection(
             self.FindWindowByName('Record method').FindString(settings['Record method']))
 

@@ -6,6 +6,7 @@ import math
 from operator import add
 import subprocess
 import hashlib
+import traceback
 
 
 def get_system_parameters():
@@ -150,3 +151,19 @@ def block_end_index(lines, loop_start_index):
             break  # stop loop
 
     return loop_end_index
+
+
+def exception_handler(error_type, value, trace):
+    """Handler for all unhandled exceptions."""
+
+    exception = "".join(traceback.format_exception(error_type, value, trace))
+
+    error_dlg = wx.MessageDialog(None, exception, 'An Error Occurred', wx.YES_NO | wx.CANCEL | wx.ICON_ERROR)
+    error_dlg.SetYesNoCancelLabels('Report', 'Quit', 'Return')
+    errror_dlg_response = error_dlg.ShowModal()
+
+    if errror_dlg_response == wx.ID_YES:
+        import webbrowser
+        webbrowser.open('https://www.aldras.com/')
+    elif errror_dlg_response == wx.ID_NO:
+        raise SystemExit()
