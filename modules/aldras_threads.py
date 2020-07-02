@@ -180,11 +180,10 @@ class ListenerThread(threading.Thread):
             'ctrl': ['ctrl_l', 'ctrl_r'],
             'alt': ['alt_gr', 'alt_l', 'alt_r'],
             'shift': ['shift_l', 'shift_r'],
-            'win': ['cmd_l', 'cmd_r'],
-            'win': ['cmd']
+            'win': ['cmd_l', 'cmd_r', 'cmd']
         }
         # # manual lines example for testing
-        # lines = ['Key n press', 'Key o press', 'Key n release','Key v press', 'Key o release', 'Key v release', '']
+        # lines = ['Key ctrl_l press at (2681, 64)', 'Key ctrl_l release at (2681, 69)']
         for index, line in enumerate(lines):  # loop through all lines
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
@@ -197,6 +196,18 @@ class ListenerThread(threading.Thread):
                 only_tap = False
                 try:
                     only_tap = lines[index].replace('press', '') == lines[index + 1].replace('release', '')
+
+                    # if not yet tap and the first 10 characters match and there are brackets in the line
+                    if not only_tap and lines[index].replace('press', '')[:12] == lines[index + 1].replace('release',
+                                                                                                           '')[
+                                                                                  :12] and '(' in line and ')' in line:
+                        press_coord = coords_of(line)
+                        release_coord = coords_of(lines[index + 1])
+                        distance = abs(abs(press_coord[0] - release_coord[0]) + abs(press_coord[1] - release_coord[1]))
+
+                        if distance <= 10:  # process commands with low distance as only taps
+                            only_tap = True
+
                 except IndexError:
                     pass
 
