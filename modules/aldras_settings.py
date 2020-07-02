@@ -1,11 +1,14 @@
 """Aldras module containing settings objects"""
 import wx
 import json
+from modules.aldras_core import CharValidator
 
 settings_possibilities = {
-    'Number of recent workflows displayed': [str(ii) for ii in list(range(0, 6))],  # one to five
+    'Number of recent workflows displayed': [str(ii) for ii in list(range(0, 6))],  # zero to five
     'Freeze method': ['None', 'Click', 'Ctrl', 'Click or ctrl'],
-    'Record pause': ['No pauses', 'All pauses', 'Pauses over'],
+    'Number of hotkeys': ['2', '3', '4'],
+    'Notifications': ['Banners', 'Windows'],
+    'Record pause': ['No pauses', 'All pauses over 0.5', 'Pauses over'],
     'Record method': ['Overwrite', 'Append'],
 }
 
@@ -15,9 +18,12 @@ def validate_settings(settings_unvalidated):
     factory_settings = {
         "Number of recent workflows displayed": 3,
         "Freeze method": "Click or Ctrl",
-        "Record pause": "No pauses",
-        "Record pause over duration": 0.2,
-        "Record method": "Overwrite",
+        "Number of hotkeys": 3,
+        "Large lines number": 100,
+        "Notifications": "Banners",
+        "Record pause": "Pauses over",
+        "Record pause over duration": 5,
+        "Record method": "Append",
         "Execute pause between commands": 0.2,
         "Execute pause between commands checked": "True",
         "Execute mouse command duration": 0.5,
@@ -31,6 +37,9 @@ def validate_settings(settings_unvalidated):
         'Number of recent workflows displayed': lambda x: str(x) in settings_possibilities[
             'Number of recent workflows displayed'],
         'Freeze method': lambda x: x.lower() in [y.lower() for y in settings_possibilities['Freeze method']],
+        'Number of hotkeys': lambda x: 2 <= x <= 4,
+        'Large lines number': lambda x: 15 <= x <= 200,
+        'Notifications': lambda x: x.lower() in [y.lower() for y in settings_possibilities['Notifications']],
         'Record pause': lambda x: x.lower() in [y.lower() for y in settings_possibilities['Record pause']],
         'Record pause over duration': lambda x: x > 0,
         'Record method': lambda x: x.lower() in [y.lower() for y in settings_possibilities['Record method']],
@@ -101,11 +110,17 @@ def open_settings(parent_window):
         settings_old = import_settings()
         save_settings(settings_dlg.settings)
 
-        # prompt user to restart Aldras if settings were changed affecting SelectionFrame or EditFrame
-        if settings_old['Number of recent workflows displayed'] != settings_dlg.settings[
-            'Number of recent workflows displayed']:
+        # prompt user to restart Aldras if parameters were changed affecting SelectionFrame or EditFrame
+        difference = False
+        for parameter in ['Number of recent workflows displayed', 'Number of hotkeys', 'Large lines number',
+                          'Notifications']:
+            if settings_old[parameter] != settings_dlg.settings[parameter]:
+                difference = True
+                break
+
+        if difference:
             settings_restart_dlg = wx.MessageDialog(settings_dlg,
-                                                    'Aldras must be restarted for changes to be fully applied',
+                                                    'Aldras may need to be restarted for changes to be fully applied',
                                                     'Restart Aldras to apply changes', wx.YES_NO | wx.ICON_WARNING)
             settings_restart_dlg.SetYesNoLabels('Restart',
                                                 'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
@@ -141,8 +156,8 @@ class SettingsDialog(wx.Dialog):
         self.settings = import_settings()
         self.settings_as_imported = self.settings.copy()
 
-        static_boxsizer_inner_padding = 10
-        static_boxsizer_outer_spacing = 20
+        static_boxsizer_inner_padding = 5
+        static_boxsizer_outer_spacing = 12
 
         # create sizers
         vbox_outer = wx.BoxSizer(wx.VERTICAL)
@@ -154,10 +169,8 @@ class SettingsDialog(wx.Dialog):
         selection_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Workflow Selection'), wx.VERTICAL)  # ------
 
         num_recent_workflows_hbox = wx.BoxSizer(wx.HORIZONTAL)
-
         num_recent_workflows_st = wx.StaticText(panel, label='Number of recent workflows displayed:')
         num_recent_workflows_hbox.Add(num_recent_workflows_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-
         num_recent_workflows_cb = setting_cb('Number of recent workflows displayed')
         num_recent_workflows_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.setting_change(event.GetString(),
                                                                                         'Number of recent workflows displayed'))
@@ -182,6 +195,43 @@ class SettingsDialog(wx.Dialog):
 
         mouse_monitor_sizer.Add(mouse_monitor_freeze_mthd_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
         vbox_container.Add(mouse_monitor_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # -------------
+
+        #
+
+        editor_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Editor'), wx.VERTICAL)  # -------
+
+        editor_number_of_hotkeys_hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        editor_number_of_hotkeys_st = wx.StaticText(panel, label='Number of hotkeys:')
+        editor_number_of_hotkeys_hbox.Add(editor_number_of_hotkeys_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        editor_number_of_hotkeys_cb = setting_cb('Number of hotkeys')
+        editor_number_of_hotkeys_cb.Bind(wx.EVT_COMBOBOX,
+                                         lambda event: self.setting_change(event.GetString(), 'Number of hotkeys'))
+        editor_number_of_hotkeys_hbox.Add(editor_number_of_hotkeys_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+        editor_sizer.Add(editor_number_of_hotkeys_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
+
+        editor_number_many_lines_hbox = wx.BoxSizer(wx.HORIZONTAL)
+        editor_number_many_lines_st = wx.StaticText(panel, label='Number of large number of lines to trigger warning:')
+        editor_number_many_lines_hbox.Add(editor_number_many_lines_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        editor_number_many_lines_cb = wx.TextCtrl(panel, style=wx.TE_CENTRE,
+                                                  value=str(self.settings['Large lines number']), size=wx.Size(40, -1),
+                                                  validator=CharValidator('only_integer', self))
+        editor_number_many_lines_cb.SetMaxLength(3)
+        editor_number_many_lines_cb.Bind(wx.EVT_TEXT,
+                                         lambda event: self.setting_change(event.GetString(), 'Large lines number'))
+        editor_number_many_lines_hbox.Add(editor_number_many_lines_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+        editor_sizer.Add(editor_number_many_lines_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
+
+        editor_notifications_hbox = wx.BoxSizer(wx.HORIZONTAL)
+        editor_notifications_st = wx.StaticText(panel, label='Notifications:')
+        editor_notifications_hbox.Add(editor_notifications_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        editor_notifications_cb = setting_cb('Notifications')
+        editor_notifications_cb.Bind(wx.EVT_COMBOBOX,
+                                     lambda event: self.setting_change(event.GetString(), 'Notifications'))
+        editor_notifications_hbox.Add(editor_notifications_cb, 0, wx.ALIGN_CENTER_VERTICAL)
+        editor_sizer.Add(editor_notifications_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
+
+        vbox_container.Add(editor_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # -------------
 
         #
 

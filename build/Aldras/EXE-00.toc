@@ -1,5 +1,5 @@
 ('C:\\Users\\Noah Baculi\\Documents\\Git\\aldras\\build\\Aldras\\Aldras.exe',
- False,
+ True,
  False,
  True,
  'data\\Aldras.ico',
@@ -54,8 +54,8 @@
  [],
  False,
  False,
- 1593647937,
- [('runw.exe',
+ 1593717738,
+ [('run.exe',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\run.exe',
    'EXECUTABLE')])

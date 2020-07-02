@@ -19,7 +19,7 @@ from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index, exception_handler
+    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
@@ -633,8 +633,9 @@ class EditFrame(wx.Frame):
         setup_frame(self, status_bar=True)
 
         # set parameters
+        self.settings = import_settings()
         self.margin = 10
-        self.num_hotkeys = 3  # TODO to be set by preferences
+        self.num_hotkeys = self.settings['Number of hotkeys']
         self.default_coords = (10, 10)
         self.loading_dlg_line_thresh = 25
 
@@ -814,7 +815,7 @@ class EditFrame(wx.Frame):
         rename_dlg = wx.TextEntryDialog(self, f'Enter Your New Name for "{self.workflow_name}"', 'Rename Workflow')
         rename_dlg.SetMaxLength(self.char_limit)
         text_ctrl = rename_dlg.FindWindowById(3000)
-        text_ctrl.Validator = self.CharValidator('file_name', self)  # assign validator for filename
+        text_ctrl.Validator = CharValidator('file_name', self)  # assign validator for filename
 
         if rename_dlg.ShowModal() == wx.ID_OK:
             if rename_dlg.GetValue().strip():  # if the entry is not empty or only spaces
@@ -1115,80 +1116,6 @@ class EditFrame(wx.Frame):
         self.hbox_edit.Add(self.command, 0, wx.ALIGN_CENTER_VERTICAL)
         self.hbox_edit.AddSpacer(10)
 
-    class CharValidator(wx.Validator):
-        """ Validates data as it is entered into the text controls. """
-
-        def __init__(self, flag, parent):
-            wx.Validator.__init__(self)
-            self.flag = flag
-            self.parent = parent
-            self.Bind(wx.EVT_CHAR, self.on_char)
-
-        def Clone(self):
-            """Required Validator method"""
-            return self.parent.CharValidator(self.flag, self.parent)
-
-        def TransferToWindow(self):
-            return True
-
-        def TransferFromWindow(self):
-            return True
-
-        def Validate(self, win):  # used when transferred to window
-            if self.flag == 'file_name':
-                valid = True
-                text_ctrl = self.Window
-                value = text_ctrl.Value.capitalize()
-                proposed_file_name = f'{self.parent.parent.workflow_directory}/{value}.txt'
-
-                if not value.strip():  # if empty string or only spaces
-                    valid = False
-                    wx.MessageDialog(None, 'Enter a file name or cancel',
-                                     'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
-
-                try:
-                    if os.path.exists(proposed_file_name):
-                        valid = False
-                        wx.MessageDialog(None, f'Enter a file name for a file that does not already exist',
-                                         'Taken file name', wx.OK | wx.ICON_WARNING).ShowModal()
-                    else:
-                        with open(proposed_file_name, 'w') as _:  # try to create file to validate file name
-                            pass
-                        os.remove(proposed_file_name)
-                except OSError:
-                    valid = False
-                    wx.MessageDialog(None, f'Enter a valid file name for your operating system',
-                                     'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
-                return valid
-            else:
-                raise ValueError('Validator flag not defined')
-
-        def on_char(self, event):
-            # process character
-            keycode = int(event.GetKeyCode())
-            if keycode < 256 and not keycode in [8, 127]:  # don't ignore backspace(8) or delete(127)
-                key = chr(keycode)
-                # return and do not process key if conditions are met
-                if self.flag == 'no_alpha' and key in string.ascii_letters:
-                    return
-                if self.flag == 'only_digit' and not (key.isdecimal() or key == '.'):
-                    return
-                if self.flag == 'only_integer' and not key.isdecimal():
-                    return
-                if self.flag == 'coordinate' and not (key.isdecimal() or key == '-'):
-                    return
-                if self.flag == 'file_name':
-                    invalid_file_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*']
-                    if key in invalid_file_characters:
-                        return
-                if self.flag == 'variable_name':
-                    invalid_variable_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*', '.']
-                    if key in invalid_variable_characters:
-                        return
-
-            event.Skip()
-            return
-
     def create_mouse_row(self, line, sizer=None):
         # sizer only passed to update, otherwise, function is called during initial panel creation
         if not sizer:
@@ -1248,7 +1175,7 @@ class EditFrame(wx.Frame):
         self.x_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.coord_width, -1),
                                    value=str(x_val),
-                                   validator=self.CharValidator('coordinate', self))
+                                   validator=CharValidator('coordinate', self))
         self.x_coord.SetMaxLength(max([len(str(x)) for x in self.x_range]))
         self.x_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_x'))
         self.x_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
@@ -1258,7 +1185,7 @@ class EditFrame(wx.Frame):
         self.y_coord = wx.TextCtrl(self.edit, style=wx.TE_CENTRE | wx.TE_RICH,
                                    size=wx.Size(self.coord_width, -1),
                                    value=str(y_val),
-                                   validator=self.CharValidator('coordinate', self))
+                                   validator=CharValidator('coordinate', self))
         self.y_coord.SetMaxLength(max([len(str(y)) for y in self.y_range]))
         self.y_coord.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'coord_y'))
         self.y_coord.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
@@ -1333,7 +1260,7 @@ class EditFrame(wx.Frame):
             value = line.replace('wait', '').replace(' ', '')
 
         wait_entry = wx.TextCtrl(self.edit, value=value, style=wx.TE_RICH,
-                                 validator=self.CharValidator('only_digit', self))
+                                 validator=CharValidator('only_digit', self))
         wait_entry.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'wait'))
         wait_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
         config_status_and_tooltip(self, wait_entry, 'Time to wait (seconds)')
@@ -1449,7 +1376,7 @@ class EditFrame(wx.Frame):
 
         variable_name_text = variable_names_in(line)[0]
         variable_name_entry = wx.TextCtrl(self.edit, value=variable_name_text, style=wx.TE_RICH | wx.TE_RIGHT,
-                                          validator=self.CharValidator('variable_name', self))
+                                          validator=CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
         variable_name_entry.Bind(wx.EVT_TEXT,
@@ -1499,7 +1426,7 @@ class EditFrame(wx.Frame):
         sizer.Add(if_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 8)
 
         variable_name_entry = wx.TextCtrl(self.edit, value=variable_names_in(line)[0], style=wx.TE_RICH | wx.TE_RIGHT,
-                                          validator=self.CharValidator('variable_name', self))
+                                          validator=CharValidator('variable_name', self))
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
         variable_name_entry.Bind(wx.EVT_TEXT,
@@ -1565,7 +1492,7 @@ class EditFrame(wx.Frame):
                     loop_num = str(int(float_in(line)))
                 loop_iteration_number = wx.TextCtrl(self.edit, value=loop_num, size=wx.Size(self.coord_width, -1),
                                                     style=wx.TE_RICH | wx.TE_CENTRE,
-                                                    validator=self.CharValidator('only_integer', self))
+                                                    validator=CharValidator('only_integer', self))
                 loop_iteration_number.SetMaxLength(4)
                 loop_iteration_number.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event,
                                                                                                     'loop_multiple_times_number'))  # TODO add functionality
@@ -2713,6 +2640,9 @@ class EditFrame(wx.Frame):
                             self.recording_message_a.Show(True)
                             self.recording_message_b.Show(True)
 
+                            if self.parent.settings['Notifications'] == 'Banners':
+                                show_notification(self, 'Recording started', 'Perform actions to record them in Aldras')
+
                         elif event.data == 'Stopping in 3':
                             self.countdown_light.SetLabel(' 2 1')
 
@@ -2861,6 +2791,10 @@ class EditFrame(wx.Frame):
                     self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
                                      int(parent_dialog.Position[1]))
 
+                    if self.parent.settings['Notifications'] == 'Banners':
+                        show_notification(self, 'Execution primed',
+                                          f'Press right CTRL three times to trigger {self.parent.workflow_name} execution')
+
                     # Process message events from threads
                     self.thread_event_id = wx.NewIdRef()
                     self.Connect(-1, -1, int(self.thread_event_id), self.read_thread_event_input)
@@ -2918,6 +2852,10 @@ class EditFrame(wx.Frame):
                             self.finish_btn.Show(True)
                             self.done = True
 
+                            if self.parent.settings['Notifications'] == 'Banners':
+                                show_notification(self, 'Execution completed',
+                                                  f'Aldras has completed {self.parent.workflow_name}')
+
                         elif event.data == 'Failsafe triggered':
                             self.execution_thread.abort()
                             self.directions_a.Show(False)
@@ -2930,6 +2868,10 @@ class EditFrame(wx.Frame):
                             self.spacer_a.Show(True)
                             self.finish_btn.Show(True)
                             self.done = True
+
+                            if self.parent.settings['Notifications'] == 'Banners':
+                                show_notification(self, 'Failsafe triggered',
+                                                  f'{self.parent.workflow_name} execution has been halted')
 
                         self.vbox.Layout()
                         self.vbox_outer.Layout()
@@ -3155,6 +3097,8 @@ class SelectionFrame(wx.Frame):
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
 
+        # notif = wx.adv.NotificationMessage('Yeet title', 'Message', self, flags=wx.ICON_INFORMATION)
+        # notif.Show()
         # Creates directories if do not exist --------------------------------------------------------------------------
         self.workflow_directory = 'Workflows/'
         if not os.path.exists(self.workflow_directory):
@@ -3312,9 +3256,10 @@ class SelectionFrame(wx.Frame):
                 lines = []
         lines = [line.replace('\n', '') for line in lines]
 
-        if len(lines) > 100:
+        too_many_lines_thresh = self.settings['Large lines number']
+        if len(lines) > too_many_lines_thresh:
             confirm_long_workflow_dlg = wx.MessageDialog(None,
-                                                         f'"{self.workflow_name}" has {len(lines)} lines.\n\nWe recommend using loops and other tools to optimize workflows to less than 100 lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
+                                                         f'"{self.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
                                                          'Long Workflow Warning',
                                                          wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
 

@@ -1,7 +1,7 @@
 {
   "Number of recent workflows displayed": 4,
   "Freeze method": "Ctrl",
-  "Record pause": "All pauses",
+  "Record pause": "All pauses over 0.5",
   "Record pause over duration": 0.88,
   "Record method": "Overwrite",
   "Execute pause between commands": 0.25,

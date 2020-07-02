@@ -163,7 +163,89 @@ def exception_handler(error_type, value, trace):
     errror_dlg_response = error_dlg.ShowModal()
 
     if errror_dlg_response == wx.ID_YES:
+        # TODO add feedback submission link
         import webbrowser
         webbrowser.open('https://www.aldras.com/')
     elif errror_dlg_response == wx.ID_NO:
         raise SystemExit()
+
+
+class CharValidator(wx.Validator):
+    """ Validates data as it is entered into the text controls. """
+
+    def __init__(self, flag, parent):
+        wx.Validator.__init__(self)
+        self.flag = flag
+        self.parent = parent
+        self.Bind(wx.EVT_CHAR, self.on_char)
+
+    def Clone(self):
+        """Required Validator method"""
+        return CharValidator(self.flag, self.parent)
+
+    def TransferToWindow(self):
+        return True
+
+    def TransferFromWindow(self):
+        return True
+
+    def Validate(self, win):  # used when transferred to window
+        if self.flag == 'file_name':
+            valid = True
+            text_ctrl = self.Window
+            value = text_ctrl.Value.capitalize()
+            proposed_file_name = f'{self.parent.parent.workflow_directory}/{value}.txt'
+
+            if not value.strip():  # if empty string or only spaces
+                valid = False
+                wx.MessageDialog(None, 'Enter a file name or cancel',
+                                 'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
+
+            try:
+                if os.path.exists(proposed_file_name):
+                    valid = False
+                    wx.MessageDialog(None, f'Enter a file name for a file that does not already exist',
+                                     'Taken file name', wx.OK | wx.ICON_WARNING).ShowModal()
+                else:
+                    with open(proposed_file_name, 'w') as _:  # try to create file to validate file name
+                        pass
+                    os.remove(proposed_file_name)
+            except OSError:
+                valid = False
+                wx.MessageDialog(None, f'Enter a valid file name for your operating system',
+                                 'Invalid file name', wx.OK | wx.ICON_WARNING).ShowModal()
+            return valid
+        else:
+            return True
+
+    def on_char(self, event):
+        # process character
+        keycode = int(event.GetKeyCode())
+        if keycode < 256 and not keycode in [8, 127]:  # don't ignore backspace(8) or delete(127)
+            key = chr(keycode)
+            # return and do not process key if conditions are met
+            if self.flag == 'no_alpha' and key in string.ascii_letters:
+                return
+            if self.flag == 'only_digit' and not (key.isdecimal() or key == '.'):
+                return
+            if self.flag == 'only_integer' and not key.isdecimal():
+                return
+            if self.flag == 'coordinate' and not (key.isdecimal() or key == '-'):
+                return
+            if self.flag == 'file_name':
+                invalid_file_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*']
+                if key in invalid_file_characters:
+                    return
+            if self.flag == 'variable_name':
+                invalid_variable_characters = ['<', '>', ':', '\"', '\\', '/', '|', '?', '*', '.']
+                if key in invalid_variable_characters:
+                    return
+
+        event.Skip()
+        return
+
+
+def show_notification(parent, title, message):
+    notification = wx.adv.NotificationMessage(title, message, parent)
+    notification.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+    notification.Show()
