@@ -411,7 +411,7 @@ class ExecutionThread(threading.Thread):
     def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
-            line_first_word = line.strip().split(' ')[0][:6]
+            line_first_word = line.strip().split(' ')[0][:10]
 
             if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
@@ -595,7 +595,7 @@ class ResultEvent(wx.PyEvent):
 if __name__ == '__main__':  # debugging capability by running module file as main
     wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
 
-    # # test listener_thread
-    # listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
-    # listener_thread.start()
-    # listener_thread.join()
+    # test listener_thread
+    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True)
+    listener_thread.start()
+    listener_thread.join()

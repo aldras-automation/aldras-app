@@ -1,4 +1,4 @@
 HardwareID: 17650
-Mouse-move to (463, 224)
-Wait 0.5
-Mouse-move to (10, 10)
+Left-mouse click at (3753, 923)
+Type:this is a test of how much I think it can take
+Key enter tap
