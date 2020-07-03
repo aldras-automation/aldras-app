@@ -3311,6 +3311,171 @@ class SelectionFrame(wx.Frame):
     # dlg.Destroy()
 
 
+class LicenseFrame(wx.Dialog):
+    """Frame to verify license."""
+
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, title=f'License - Aldras', name='license_frame')
+        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+        self.SetBackgroundColour('white')
+        self.license_panel = wx.Panel(self)
+
+        self.margin_y = 10
+        self.margin_x = 15
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)  # ------------------------------------------------------------------------
+
+        self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
+
+        # add rescaled logo image
+        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(70, 70, quality=wx.IMAGE_QUALITY_HIGH)
+        self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+        self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
+
+        # add program name text
+        self.program_name = wx.StaticText(self, label=f'Aldras Automation')
+        change_font(self.program_name, size=16, color=3 * (20,))
+        self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        # add program version text
+        self.program_version = wx.StaticText(self, label=f'Version 2020')
+        change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
+        self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
+
+        # add program name text
+        self.license_description = wx.StaticText(self.license_panel,
+                                                 label='Please enter your license or trial key to activate.')
+        # change_font(self.license_description, size=12)#, color=3 * (60,))
+        self.vbox.Add(self.license_description, 0, wx.SOUTH, 5)
+
+        # add text directing users to licenses
+        self.hbox_more_licenses = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.hbox_more_licenses.Add(
+            wx.StaticText(self.license_panel, label='If you do not have a license or trial key, '))
+        self.hbox_more_licenses.Add(
+            wx.adv.HyperlinkCtrl(self.license_panel, wx.ID_ANY, label='start your trial', url='www.aldras.com'))
+        self.hbox_more_licenses.Add(wx.StaticText(self.license_panel, label=' or '))
+        self.hbox_more_licenses.Add(
+            wx.adv.HyperlinkCtrl(self.license_panel, wx.ID_ANY, label='contact us', url='www.aldras.com'))
+        self.hbox_more_licenses.Add(wx.StaticText(self.license_panel, label='.'))
+
+        self.vbox.Add(self.hbox_more_licenses, 0, wx.SOUTH, 20)
+
+        # add input field for the license key
+        self.hbox_key_input = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.hbox_key_input.Add(wx.StaticText(self.license_panel, label='License key:'), 0,
+                                wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+
+        self.license_key_input = PlaceholderTextCtrl(self.license_panel, wx.ID_ANY, placeholder='Key', size=(320, -1),
+                                                     style=wx.TE_PROCESS_ENTER | wx.TE_CENTRE)
+        # self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.license_key_input)
+        self.hbox_key_input.Add(self.license_key_input, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.vbox.Add(self.hbox_key_input, 0, wx.SOUTH, 20)
+
+        # add buttons
+        self.button_array = wx.StdDialogButtonSizer()
+        self.activate_btn = wx.Button(self.license_panel, label='Activate')
+        # self.activate_btn.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.button_array.Add(self.activate_btn)
+        self.button_array.AddSpacer(5)
+        self.close_btn = wx.Button(self.license_panel, label='Close')
+        # self.exit_btn.Bind(wx.EVT_BUTTON, self.close_btn)
+        self.button_array.Add(self.close_btn)
+        self.vbox.Add(self.button_array, 0, wx.ALIGN_RIGHT | wx.SOUTH, 10)
+
+        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_outer.AddSpacer(self.margin_y)  # north margin
+        self.vbox_outer.Add(self.vbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, self.margin_x)
+
+        # display frame
+        self.license_panel.SetSizerAndFit(self.vbox_outer)
+        self.vbox_outer.SetSizeHints(self)
+        self.activate_btn.SetFocus()
+        self.Center()
+        self.Show()
+
+    # def on_ok(self, _):
+    #     if self.workflow_name_input.GetValue() == '':
+    #         # error warning if entry is empty
+    #         wx.MessageDialog(self, 'Invalid file name.\nPlease try again.', 'Invalid File Name',
+    #                          wx.OK | wx.ICON_EXCLAMATION).ShowModal()
+    #
+    #     else:
+    #         # workflow confirmation if entry is default 'Workflow'
+    #         confirm_workflow_dlg = wx.MessageDialog(None,
+    #                                                 f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.',
+    #                                                 f'{self.software_info.name} Workflow Confirmation',
+    #                                                 wx.YES_NO | wx.ICON_INFORMATION)
+    #
+    #         if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
+    #             self.launch_workflow(
+    #                 workflow_path_name=f'{self.workflow_directory}{self.workflow_name_input.GetValue().capitalize()}.txt')
+    #
+    # def launch_workflow(self, workflow_path_name, recent_launch=False):
+    #     if recent_launch:
+    #         # when launching recent workflow, make sure it still exists and read lines
+    #         try:
+    #             with open(workflow_path_name, 'r') as record_file:
+    #                 pass
+    #         except FileNotFoundError:
+    #             wx.MessageDialog(self,
+    #                              f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.',
+    #                              'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
+    #
+    #             self.recent_workflows = eliminate_duplicates(self.recent_workflows)
+    #             self.recent_workflows.remove(workflow_path_name)
+    #             self.update_recent_workflows()
+    #             return
+    #
+    #     self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+    #     self.workflow_path_name = workflow_path_name
+    #
+    #     # read or create workflow file
+    #     try:
+    #         with open(f'{self.workflow_directory}{self.workflow_name}.txt', 'r') as record_file:
+    #             lines = record_file.readlines()
+    #     except FileNotFoundError:  # create file if not found
+    #         with open(f'{self.workflow_directory}{self.workflow_name}.txt', 'w'):
+    #             lines = []
+    #     lines = [line.replace('\n', '') for line in lines]
+    #
+    #     too_many_lines_thresh = self.settings['Large lines number']
+    #     if len(lines) > too_many_lines_thresh:
+    #         confirm_long_workflow_dlg = wx.MessageDialog(None,
+    #                                                      f'"{self.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
+    #                                                      'Long Workflow Warning',
+    #                                                      wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+    #
+    #         if confirm_long_workflow_dlg.ShowModal() == wx.ID_NO:
+    #             return
+    #
+    #     self.Hide()
+    #     EditFrame(self, lines)
+    #
+    #     # add recently launched workflow to history
+    #     self.recent_workflows.insert(0, self.workflow_path_name)
+    #
+    #     # update frame
+    #     self.update_recent_workflows()
+    #     self.workflow_panel.SetSizerAndFit(self.vbox_outer)
+    #     self.vbox_outer.SetSizeHints(self)
+    #     self.Fit()
+    #
+    # def restart(self):
+    #     SelectionFrame(None)
+    #     self.Destroy()
+    #
+    # def on_exit(self, _):
+    #     # trigger close event
+    #     self.Close(True)
+
+
 if __name__ == '__main__':
     mouse_monitor_frame = None
     sys.excepthook = exception_handler
@@ -3319,5 +3484,6 @@ if __name__ == '__main__':
     print(f'system_platform: {system_platform()}')
 
     app = wx.App(False)
-    SelectionFrame(None)
+    LicenseFrame(None)
+    # SelectionFrame(None)
     app.MainLoop()
