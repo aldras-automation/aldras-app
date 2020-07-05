@@ -1,0 +1,11 @@
+HardwareID: 17650
+Left-mouse click at (1200, 350)
+Type:John Smith
+Key tab tap
+Type:johnsmith@email.com
+Loop for each element in list [1`'`2`'`3`'`4`'`5] {
+Left-mouse click at (1620, 760)
+Hotkey ctrl + c
+Left-mouse click at (300, 560)
+Hotkey ctrl + v
+}
