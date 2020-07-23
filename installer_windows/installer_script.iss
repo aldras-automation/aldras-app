@@ -10,7 +10,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E3935E84-16D7-44C4-BF60-BADCEC789FC3}
+AppId={{F49A6057-F3F6-474E-9D93-AAA96A11542E}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -24,7 +24,7 @@ LicenseFile=C:\Users\Noah Baculi\Documents\aldras\data\license.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=aldras-installer-2020-1
+OutputBaseFilename=aldras-setup-2020-1
 SetupIconFile=C:\Users\Noah Baculi\Documents\aldras\data\aldras.ico
 Compression=lzma
 SolidCompression=yes

@@ -7,6 +7,7 @@ rm -rf Aldras.spec
 # pyinstaller --add-data 'LexActivator.dll;.' --add-data './data;data' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico Aldras.py -y
 
 # package with obfuscation (pass pyinstaller flags in parentheses after -e)
+# https://pyarmor.readthedocs.io/en/latest/man.html#pack
 pyarmor pack -e "--add-data 'LexActivator.dll;.' --add-data './data;data' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico" Aldras.py
 
 # delete old data files

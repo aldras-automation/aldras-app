@@ -2,6 +2,8 @@ from flask import Flask, request
 import json
 import requests
 
+# webhook listener on pythonanywhere.com. To listen for webhooks from Stripe and then call Cryptlex API and create licenses
+
 
 def output_to_debugging_webhook(message):
     # send output to debugging webhook at webhook.site
@@ -37,9 +39,10 @@ def foo():
     }'''
 
     try:
-        cryptlex_response = requests.post(cryptlex_url, headers=cryptlex_headers, data=cryptlex_data)
+        # cryptlex_response = requests.post(cryptlex_url, headers=json.dumps(cryptlex_headers), data=json.dumps(cryptlex_data))
+        cryptlex_response = requests.post(cryptlex_url, data=json.dumps(cryptlex_data))
     except Exception as e:
-        output_to_debugging_webhook(f'{{"error": {e}}}')
+        output_to_debugging_webhook(f'error: {e}')
 
     output_to_debugging_webhook(stripe_data)
 
