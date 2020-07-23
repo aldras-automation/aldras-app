@@ -104,7 +104,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox_top.Add(self.program_link, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 15)
 
                 # add copyright
-                self.program_copyright = wx.StaticText(self, label=f'© {self.parent.software_info.copyright}')
+                self.program_copyright = wx.StaticText(self, label=f'Copyright {self.parent.software_info.copyright}')
                 self.vbox_top.Add(self.program_copyright, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH, 10)
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -902,8 +902,7 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[
-                    0]:
+                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()
@@ -3417,8 +3416,8 @@ if __name__ == '__main__':
     app = wx.App(False)
 
     if system_platform() == 'Windows':
-        LicenseDialog(None)
-        # SelectionFrame(None)
+        # LicenseDialog(None)
+        SelectionFrame(None)
     else:
         wx.MessageDialog(None,
                          'Unfortunately at this time, Aldras has only\nbeen tested and released for use on Windows.',
