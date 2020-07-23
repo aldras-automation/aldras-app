@@ -1,49 +1,13 @@
-from flask import Flask, request
-import json
+personal_access_token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJhY2NvdW50OnJlYWQiLCJhY2NvdW50OndyaXRlIiwiYWN0aXZhdGlvbjpyZWFkIiwiYW5hbHl0aWNzOnJlYWQiLCJlbWFpbFRlbXBsYXRlOnJlYWQiLCJlbWFpbFRlbXBsYXRlOndyaXRlIiwiZXZlbnRMb2c6cmVhZCIsImludm9pY2U6cmVhZCIsImxpY2Vuc2U6cmVhZCIsImxpY2Vuc2U6d3JpdGUiLCJsaWNlbnNlUG9saWN5OnJlYWQiLCJsaWNlbnNlUG9saWN5OndyaXRlIiwicGF5bWVudE1ldGhvZDpyZWFkIiwicGF5bWVudE1ldGhvZDp3cml0ZSIsInBlcnNvbmFsQWNjZXNzVG9rZW46d3JpdGUiLCJwcm9kdWN0OnJlYWQiLCJwcm9kdWN0OndyaXRlIiwicmVmZXJyYWxzOnJlYWQiLCJyZWZlcnJhbHM6d3JpdGUiLCJyZWxlYXNlOnJlYWQiLCJyZWxlYXNlOndyaXRlIiwicm9sZTpyZWFkIiwicm9sZTp3cml0ZSIsInRhZzpyZWFkIiwidGFnOndyaXRlIiwidHJpYWxBY3RpdmF0aW9uOnJlYWQiLCJ0cmlhbEFjdGl2YXRpb246d3JpdGUiLCJ0cmlhbFBvbGljeTpyZWFkIiwidHJpYWxQb2xpY3k6d3JpdGUiLCJ1c2VyOnJlYWQiLCJ1c2VyOndyaXRlIiwid2ViaG9vazpyZWFkIiwid2ViaG9vazp3cml0ZSJdLCJzdWIiOiI5ZDBhMzE5Zi1hMjA5LTRjNmEtYTUxMi03OWU5YmNlZmE4MjIiLCJlbWFpbCI6ImVuZ2luZWVyaW5nQGFsZHJhcy5jb20iLCJqdGkiOiI0YWU4N2E4Ny03OTc2LTQ1MTktOWJjOS1mMmVhMzliZTI1NmUiLCJpYXQiOjE1OTU1MzgwMTYsInRva2VuX3VzYWdlIjoicGVyc29uYWxfYWNjZXNzX3Rva2VuIiwidGVuYW50aWQiOiI1OWQ1ZDViMS03ZjIwLTQwNzctOGI3Yi1jOGEwNjgzNTllZGEiLCJhdWQiOiJodHRwczovL2FwaS5jcnlwdGxleC5jb20ifQ.eyhuvBhBQrspJ2utt7UgKBcXzze_HChXg74j_NQ-GAuOgNNpuZTcmYwU40SycC8cUWkBu4nDC--UKA_mUmqKifsI733pXHtFfAAaT3GixQkSY0XIlRXKRP_gZQvtPquDiAsfWzP8yQd_P1Ty8nl4Nzbgy3G1wm27xw5yyihb04n9rdKVjXQinVqFzxI0eUwnqN2QZPNnWR6drh27tdHG92z7PN0lBtrHKNv5Oavnr7LzrCz67r7JGkTamheJNdNs9nFUFzHXmncOL97GJhgI14ImdcDi7S4xetqHXVTIqlU4P68WJjXzfLbMbTkTgeSV1AnI7IvnmtpV0ogIxQMVLA'
+
+product_id = 'c1f701ce-2ad7-4505-a186-cd9e3eb89416'
+
 import requests
 
-# webhook listener on pythonanywhere.com. To listen for webhooks from Stripe and then call Cryptlex API and create licenses
+cryptlex_url = "https://api.cryptlex.com/v3/licenses"
+headers = {"Authorization": "Bearer " + personal_access_token}
 
+# response = requests.post(cryptlex_url, data={"productId": product_id}, headers=headers)
+response = requests.post("https://api.cryptlex.com/v3/license-policies", headers=headers)
 
-def output_to_debugging_webhook(message):
-    # send output to debugging webhook at webhook.site
-
-    webhook_url = 'https://webhook.site/68d72c9a-233d-4d18-8373-09e9108c6276'
-
-    if isinstance(message, dict):
-        response = requests.post( webhook_url, data=json.dumps(message), headers={'Content-Type': 'application/json'})
-    else:  # debugging other than dictionary
-        response = requests.post(webhook_url, data=message, headers={'Content-Type': 'application/txt'})
-
-    if response.status_code != 200:
-        raise ValueError(
-            'Request to slack returned an error %s, the response is:\n%s'
-            % (response.status_code, response.text)
-        )
-
-app = Flask(__name__)
-
-# listen to webhooks
-@app.route('/', methods=['POST'])
-def foo():
-    stripe_data = json.loads(request.data)
-
-    cryptlex_url = 'https://api.cryptlex.com/v3/licenses'
-
-    cryptlex_headers = '''{
-      "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJsaWNlbnNlOndyaXRlIiwidHJpYWxBY3RpdmF0aW9uOndyaXRlIl0sInN1YiI6IjlkMGEzMTlmLWEyMDktNGM2YS1hNTEyLTc5ZTliY2VmYTgyMiIsImVtYWlsIjoiZW5naW5lZXJpbmdAYWxkcmFzLmNvbSIsImp0aSI6IjNlMDRkMGJmLThjMGQtNDYwMy05YTQzLTQxZDY3N2ZmNWNjYiIsImlhdCI6MTU5NTUyMjA4OSwidG9rZW5fdXNhZ2UiOiJwZXJzb25hbF9hY2Nlc3NfdG9rZW4iLCJ0ZW5hbnRpZCI6IjU5ZDVkNWIxLTdmMjAtNDA3Ny04YjdiLWM4YTA2ODM1OWVkYSIsImF1ZCI6Imh0dHBzOi8vYXBpLmNyeXB0bGV4LmNvbSJ9.tPlke-U6BYzB_YQc6sxWIXA_AZh5JUnJWdj4qluSCca3RVjC0BWnTMqz3g5zbwWm1FBkvWdAVb6mhEw0YDeN9qcGxMksq2wtv1FzD855SDTwRSPTI0xo_zzLzyRBh3sC2MCteruTHGd50pAYG1jgmzawkWnIqJbZtLpfTJF0Szhji9AFWcxoJZha4WaiIeqXsIlNIOtk-cAQPtC6uBlGS1itBY4VIIHwCmNsrgGPtaynxmYvlcojA9gGrgNbCCA73MIKpRKYDlUvxdhgbRPK3807adGc08GMFnj6AH88S1QMu7cCQZHJgaA9qhCD6_BHD_8L1NBYrheSQG2ojsiAKA"
-    }'''
-
-    cryptlex_data = '''{
-      "productId": "080cc28d-307d-4705-94b4-c9d1f1b5cdc8"
-    }'''
-
-    try:
-        # cryptlex_response = requests.post(cryptlex_url, headers=json.dumps(cryptlex_headers), data=json.dumps(cryptlex_data))
-        cryptlex_response = requests.post(cryptlex_url, data=json.dumps(cryptlex_data))
-    except Exception as e:
-        output_to_debugging_webhook(f'error: {e}')
-
-    output_to_debugging_webhook(stripe_data)
-
-    return stripe_data
+print(response, response.text)
