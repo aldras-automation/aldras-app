@@ -16,7 +16,7 @@ import wx.grid
 import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
-from cryptlex.lexactivator import *
+# from cryptlex.lexactivator import *
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
@@ -3500,15 +3500,25 @@ def verify_license():
                          f'Unforunately, an error occurred.\n\nPlease report it to us at aldras.com/contact or support@aldras.com.\n\nError code JYUX6\n\n{exception.code}\n\n{exception.message}',
                          'Aldras: Error JYUX6', wx.OK | wx.ICON_ERROR).ShowModal()
 
+    SelectionFrame(None)
+
 
 if __name__ == '__main__':
     mouse_monitor_frame = None
     sys.excepthook = exception_handler
 
+    # try:
+    #     from cryptlex.lexactivator import *
+    #     print('Cryptlex successfully imported')
+    # except Exception as e:
+    #     print('Cryptlex unsuccessfully imported', e)
+    #     input('Press enter to continue: ')
+
     app = wx.App(False)
 
     if system_platform() == 'Windows':
-        verify_license()
+        # verify_license()
+        SelectionFrame(None)
     else:
         wx.MessageDialog(None,
                          'Unfortunately at this time, Aldras has only\nbeen tested and released for use on Windows.',

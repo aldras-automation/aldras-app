@@ -1,4 +1,8 @@
-from cryptlex.lexactivator import *
+try:
+    from cryptlex.lexactivator import *
+except Exception as e:
+    print(e)
+    input('Awaiting input: ')
 import wx
 
 LexActivator.SetProductData(
