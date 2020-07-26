@@ -11,6 +11,7 @@ else
 	read -p "Git commit message: " commit_msg_input
 	git add .
 	git commit -m "$commit_msg_input"
+	git push
 
 fi
 
