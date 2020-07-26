@@ -1,6 +1,6 @@
-cryptlex_file=C:\\Python38\\Lib\\site-packages\\cryptlex\\lexactivator\\libs\\win32\\x86\\LexActivator.dll
+cryptlex_file="C:\\Users\\Noah Baculi\\AppData\\Local\\Programs\\Python\\Python38-32\\Lib\\site-packages\\cryptlex\\lexactivator\\libs\\win32\\x86\\LexActivator.dll"
 
-if [ -f $cryptlex_file ]; then
+if [ -f "$cryptlex_file" ]; then
 	# only execute if cryptlex LexActivator.dll can be located
 	echo "The Cryptlex LexActivator.dll was located, proceeding with packing..."
 
@@ -22,14 +22,14 @@ if [ -f $cryptlex_file ]; then
 		if [[ $obfuscate_input == *"n"* ]]; then
 			echo "Packaging without obfuscation..."
 			# package without obfuscation
-			pyinstaller --clean --add-data './data;data' --add-data $cryptlex_file';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico Aldras.py -y
+			pyinstaller --clean --add-data './data;data' --add-data "$cryptlex_file"';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico Aldras.py -y
 		
 		else
 			echo "Packaging with obfuscation..."
 
 			# package with obfuscation (pass pyinstaller flags in parentheses after -e)
 			# https://pyarmor.readthedocs.io/en/latest/man.html#pack
-			pyarmor pack -e "--add-data './data;data' --add-data $cryptlex_file';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico" Aldras.py
+			pyarmor pack -e "--add-data './data;data' --add-data "$cryptlex_file"';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico" Aldras.py
 		fi
 
 	else
@@ -38,14 +38,14 @@ if [ -f $cryptlex_file ]; then
 		if [[ $obfuscate_input == *"n"* ]]; then
 			echo "Packaging without obfuscation..."
 			# package without obfuscation
-			pyinstaller --clean -w --add-data './data;data' --add-data $cryptlex_file';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico Aldras.py -y
+			pyinstaller --clean -w --add-data './data;data' --add-data "$cryptlex_file"';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico Aldras.py -y
 		
 		else
 			echo "Packaging with obfuscation..."
 
 			# package with obfuscation (pass pyinstaller flags in parentheses after -e)
 			# https://pyarmor.readthedocs.io/en/latest/man.html#pack
-			pyarmor pack -e "-w --add-data './data;data' --add-data $cryptlex_file';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico" Aldras.py
+			pyarmor pack -e "-w --add-data './data;data' --add-data "$cryptlex_file" ';.' --hidden-import='pkg_resources.py2_warn' --icon=data/Aldras.ico" Aldras.py
 
 		fi
 	fi
@@ -64,4 +64,4 @@ else
 	echo "Please verify Cryptlex LexActivator installation and correct path in packaging script."
 fi
 
-read input_var  # wait for user to press enter before exiting
+read -p "Press Enter to exit " # wait for user to press enter before exiting
