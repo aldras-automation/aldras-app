@@ -1,4 +1,4 @@
-('C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test\\PKG-00.pkg',
+('C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test-patched\\PKG-00.pkg',
  {'BINARY': 1,
   'DATA': 1,
   'EXECUTABLE': 1,
@@ -7,7 +7,7 @@
   'PYSOURCE': 1,
   'PYZ': 0},
  [('PYZ-00.pyz',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test\\PYZ-00.pyz',
+   'C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test-patched\\PYZ-00.pyz',
    'PYZ'),
   ('struct',
    'c:\\users\\noah '
@@ -29,9 +29,12 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
    'PYSOURCE'),
-  ('test', 'C:\\Users\\Noah Baculi\\Documents\\aldras\\test.py', 'PYSOURCE'),
+  ('test',
+   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\test.py',
+   'PYSOURCE'),
   ('test.exe.manifest',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test\\test.exe.manifest',
+   'C:\\Users\\Noah '
+   'Baculi\\Documents\\aldras\\build\\test-patched\\test-patched.exe.manifest',
    'BINARY')],
  True,
  False,

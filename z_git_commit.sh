@@ -9,6 +9,7 @@ if [[ $obfuscate_input == *"n"* ]]; then
 else
 	echo "Committing all..."
 	read -p "Git commit message: " commit_msg_input
+	pigar
 	git add .
 	git commit -m "$commit_msg_input"
 	git push

@@ -64,4 +64,4 @@ else
 	echo "Please verify Cryptlex LexActivator installation and correct path in packaging script."
 fi
 
-read -p "Press Enter to exit " # wait for user to press enter before exiting
+read -p "Press Enter to exit" # wait for user to press enter before exiting

@@ -1,8 +1,9 @@
-(['C:\\Users\\Noah Baculi\\Documents\\aldras\\test.py'],
+(['test.py'],
  ['C:\\Users\\Noah Baculi\\Documents\\aldras',
+  'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\temp',
   'C:\\Users\\Noah Baculi\\Documents\\aldras'],
- ['codecs'],
- [],
+ ['pkg_resources.py2_warn', 'pytransform', 'codecs'],
+ ['dist\\obf\\temp'],
  [],
  [],
  False,
@@ -10,13 +11,16 @@
  '3.6.0 (v3.6.0:41df79263a11, Dec 23 2016, 08:06:12) [MSC v.1900 64 bit '
  '(AMD64)]',
  [('test', 'C:\\Users\\Noah Baculi\\Documents\\aldras\\test.py', 'PYSOURCE')],
- [('_dummy_thread',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_dummy_thread.py',
+ [('pytransform',
+   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\temp\\pytransform.py',
    'PYMODULE'),
   ('_strptime',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_strptime.py',
+   'PYMODULE'),
+  ('_dummy_thread',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_dummy_thread.py',
    'PYMODULE'),
   ('datetime',
    'c:\\users\\noah '
@@ -34,357 +38,53 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\gettext.py',
    'PYMODULE'),
-  ('struct',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\struct.py',
-   'PYMODULE'),
   ('textwrap',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\textwrap.py',
-   'PYMODULE'),
-  ('os',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\os.py',
-   'PYMODULE'),
-  ('subprocess',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\subprocess.py',
-   'PYMODULE'),
-  ('dummy_threading',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\dummy_threading.py',
-   'PYMODULE'),
-  ('selectors',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\selectors.py',
-   'PYMODULE'),
-  ('threading',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\threading.py',
-   'PYMODULE'),
-  ('_threading_local',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_threading_local.py',
-   'PYMODULE'),
-  ('contextlib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\contextlib.py',
-   'PYMODULE'),
-  ('signal',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\signal.py',
-   'PYMODULE'),
-  ('ntpath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ntpath.py',
-   'PYMODULE'),
-  ('string',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\string.py',
-   'PYMODULE'),
-  ('genericpath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\genericpath.py',
-   'PYMODULE'),
-  ('posixpath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\posixpath.py',
-   'PYMODULE'),
-  ('stat',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\stat.py',
    'PYMODULE'),
   ('copy',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\copy.py',
    'PYMODULE'),
-  ('base64',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\base64.py',
-   'PYMODULE'),
-  ('getopt',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\getopt.py',
-   'PYMODULE'),
-  ('bz2',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\bz2.py',
-   'PYMODULE'),
-  ('_compression',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_compression.py',
-   'PYMODULE'),
-  ('stringprep',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\stringprep.py',
-   'PYMODULE'),
-  ('quopri',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\quopri.py',
-   'PYMODULE'),
-  ('tokenize',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tokenize.py',
-   'PYMODULE'),
-  ('token',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\token.py',
-   'PYMODULE'),
-  ('doctest',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\doctest.py',
-   'PYMODULE'),
-  ('unittest',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\__init__.py',
-   'PYMODULE'),
-  ('unittest.signals',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\signals.py',
-   'PYMODULE'),
-  ('unittest.main',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\main.py',
-   'PYMODULE'),
-  ('unittest.runner',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\runner.py',
-   'PYMODULE'),
-  ('unittest.loader',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\loader.py',
-   'PYMODULE'),
   ('fnmatch',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\fnmatch.py',
    'PYMODULE'),
-  ('unittest.suite',
+  ('posixpath',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\suite.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\posixpath.py',
    'PYMODULE'),
-  ('unittest.case',
+  ('genericpath',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\case.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\genericpath.py',
    'PYMODULE'),
-  ('pprint',
+  ('stat',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pprint.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\stat.py',
    'PYMODULE'),
-  ('logging',
+  ('ctypes',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\logging\\__init__.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ctypes\\__init__.py',
    'PYMODULE'),
-  ('unittest.result',
+  ('ctypes._endian',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\result.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ctypes\\_endian.py',
    'PYMODULE'),
-  ('unittest.util',
+  ('struct',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\util.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\struct.py',
    'PYMODULE'),
-  ('pdb',
+  ('platform',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pdb.py',
-   'PYMODULE'),
-  ('pydoc',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc.py',
-   'PYMODULE'),
-  ('webbrowser',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\webbrowser.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\platform.py',
    'PYMODULE'),
   ('socket',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\socket.py',
    'PYMODULE'),
-  ('shutil',
+  ('selectors',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\shutil.py',
-   'PYMODULE'),
-  ('zipfile',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\zipfile.py',
-   'PYMODULE'),
-  ('py_compile',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\py_compile.py',
-   'PYMODULE'),
-  ('lzma',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\lzma.py',
-   'PYMODULE'),
-  ('tarfile',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tarfile.py',
-   'PYMODULE'),
-  ('gzip',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\gzip.py',
-   'PYMODULE'),
-  ('email.message',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\message.py',
-   'PYMODULE'),
-  ('email.policy',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\policy.py',
-   'PYMODULE'),
-  ('email.contentmanager',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\contentmanager.py',
-   'PYMODULE'),
-  ('email.quoprimime',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\quoprimime.py',
-   'PYMODULE'),
-  ('email.headerregistry',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\headerregistry.py',
-   'PYMODULE'),
-  ('email._header_value_parser',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_header_value_parser.py',
-   'PYMODULE'),
-  ('urllib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\urllib\\__init__.py',
-   'PYMODULE'),
-  ('email.iterators',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\iterators.py',
-   'PYMODULE'),
-  ('email.generator',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\generator.py',
-   'PYMODULE'),
-  ('random',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\random.py',
-   'PYMODULE'),
-  ('bisect',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\bisect.py',
-   'PYMODULE'),
-  ('hashlib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\hashlib.py',
-   'PYMODULE'),
-  ('email._encoded_words',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_encoded_words.py',
-   'PYMODULE'),
-  ('email.charset',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\charset.py',
-   'PYMODULE'),
-  ('email.encoders',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\encoders.py',
-   'PYMODULE'),
-  ('email.base64mime',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\base64mime.py',
-   'PYMODULE'),
-  ('email._policybase',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_policybase.py',
-   'PYMODULE'),
-  ('email.header',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\header.py',
-   'PYMODULE'),
-  ('email.errors',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\errors.py',
-   'PYMODULE'),
-  ('email.utils',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\utils.py',
-   'PYMODULE'),
-  ('email._parseaddr',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_parseaddr.py',
-   'PYMODULE'),
-  ('email',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\__init__.py',
-   'PYMODULE'),
-  ('email.parser',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\parser.py',
-   'PYMODULE'),
-  ('email.feedparser',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\feedparser.py',
-   'PYMODULE'),
-  ('uu',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\uu.py',
-   'PYMODULE'),
-  ('optparse',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\optparse.py',
-   'PYMODULE'),
-  ('http.server',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\server.py',
-   'PYMODULE'),
-  ('http',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\__init__.py',
-   'PYMODULE'),
-  ('socketserver',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\socketserver.py',
-   'PYMODULE'),
-  ('mimetypes',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\mimetypes.py',
-   'PYMODULE'),
-  ('http.client',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\client.py',
-   'PYMODULE'),
-  ('ssl',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ssl.py',
-   'PYMODULE'),
-  ('ipaddress',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ipaddress.py',
-   'PYMODULE'),
-  ('html',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\html\\__init__.py',
-   'PYMODULE'),
-  ('html.entities',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\html\\entities.py',
-   'PYMODULE'),
-  ('pydoc_data.topics',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc_data\\topics.py',
-   'PYMODULE'),
-  ('pydoc_data',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc_data\\__init__.py',
-   'PYMODULE'),
-  ('tty',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tty.py',
-   'PYMODULE'),
-  ('tempfile',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tempfile.py',
-   'PYMODULE'),
-  ('urllib.parse',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\urllib\\parse.py',
-   'PYMODULE'),
-  ('platform',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\platform.py',
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\selectors.py',
    'PYMODULE'),
   ('plistlib',
    'c:\\users\\noah '
@@ -430,9 +130,89 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\netrc.py',
    'PYMODULE'),
+  ('shlex',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\shlex.py',
+   'PYMODULE'),
+  ('mimetypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\mimetypes.py',
+   'PYMODULE'),
+  ('getopt',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\getopt.py',
+   'PYMODULE'),
+  ('email.utils',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\utils.py',
+   'PYMODULE'),
+  ('email.charset',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\charset.py',
+   'PYMODULE'),
+  ('email.encoders',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\encoders.py',
+   'PYMODULE'),
+  ('quopri',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\quopri.py',
+   'PYMODULE'),
+  ('email.errors',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\errors.py',
+   'PYMODULE'),
+  ('email.quoprimime',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\quoprimime.py',
+   'PYMODULE'),
+  ('email.base64mime',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\base64mime.py',
+   'PYMODULE'),
+  ('email._parseaddr',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_parseaddr.py',
+   'PYMODULE'),
+  ('random',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\random.py',
+   'PYMODULE'),
   ('http.cookiejar',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\cookiejar.py',
+   'PYMODULE'),
+  ('http',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\__init__.py',
+   'PYMODULE'),
+  ('logging',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\logging\\__init__.py',
+   'PYMODULE'),
+  ('dummy_threading',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\dummy_threading.py',
+   'PYMODULE'),
+  ('threading',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\threading.py',
+   'PYMODULE'),
+  ('_threading_local',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_threading_local.py',
+   'PYMODULE'),
+  ('urllib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\urllib\\__init__.py',
+   'PYMODULE'),
+  ('ssl',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ssl.py',
+   'PYMODULE'),
+  ('ipaddress',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ipaddress.py',
    'PYMODULE'),
   ('urllib.response',
    'c:\\users\\noah '
@@ -441,6 +221,162 @@
   ('urllib.error',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\urllib\\error.py',
+   'PYMODULE'),
+  ('tempfile',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tempfile.py',
+   'PYMODULE'),
+  ('shutil',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\shutil.py',
+   'PYMODULE'),
+  ('zipfile',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\zipfile.py',
+   'PYMODULE'),
+  ('py_compile',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\py_compile.py',
+   'PYMODULE'),
+  ('ntpath',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\ntpath.py',
+   'PYMODULE'),
+  ('importlib.machinery',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\machinery.py',
+   'PYMODULE'),
+  ('importlib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\__init__.py',
+   'PYMODULE'),
+  ('importlib.abc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\abc.py',
+   'PYMODULE'),
+  ('importlib._bootstrap',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\_bootstrap.py',
+   'PYMODULE'),
+  ('importlib._bootstrap_external',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\_bootstrap_external.py',
+   'PYMODULE'),
+  ('tokenize',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tokenize.py',
+   'PYMODULE'),
+  ('token',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\token.py',
+   'PYMODULE'),
+  ('importlib.util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\util.py',
+   'PYMODULE'),
+  ('lzma',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\lzma.py',
+   'PYMODULE'),
+  ('_compression',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_compression.py',
+   'PYMODULE'),
+  ('bz2',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\bz2.py',
+   'PYMODULE'),
+  ('tarfile',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tarfile.py',
+   'PYMODULE'),
+  ('gzip',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\gzip.py',
+   'PYMODULE'),
+  ('string',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\string.py',
+   'PYMODULE'),
+  ('http.client',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\client.py',
+   'PYMODULE'),
+  ('email.message',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\message.py',
+   'PYMODULE'),
+  ('email.policy',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\policy.py',
+   'PYMODULE'),
+  ('email.contentmanager',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\contentmanager.py',
+   'PYMODULE'),
+  ('email.headerregistry',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\headerregistry.py',
+   'PYMODULE'),
+  ('email._header_value_parser',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_header_value_parser.py',
+   'PYMODULE'),
+  ('email.iterators',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\iterators.py',
+   'PYMODULE'),
+  ('email.generator',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\generator.py',
+   'PYMODULE'),
+  ('email._encoded_words',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_encoded_words.py',
+   'PYMODULE'),
+  ('email._policybase',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\_policybase.py',
+   'PYMODULE'),
+  ('email.header',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\header.py',
+   'PYMODULE'),
+  ('uu',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\uu.py',
+   'PYMODULE'),
+  ('optparse',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\optparse.py',
+   'PYMODULE'),
+  ('email.parser',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\parser.py',
+   'PYMODULE'),
+  ('email.feedparser',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\feedparser.py',
+   'PYMODULE'),
+  ('hashlib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\hashlib.py',
+   'PYMODULE'),
+  ('email',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\email\\__init__.py',
+   'PYMODULE'),
+  ('bisect',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\bisect.py',
+   'PYMODULE'),
+  ('base64',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\base64.py',
+   'PYMODULE'),
+  ('urllib.parse',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\urllib\\parse.py',
    'PYMODULE'),
   ('xml.sax',
    'c:\\users\\noah '
@@ -458,37 +394,109 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\xml\\sax\\xmlreader.py',
    'PYMODULE'),
+  ('contextlib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\contextlib.py',
+   'PYMODULE'),
+  ('subprocess',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\subprocess.py',
+   'PYMODULE'),
+  ('signal',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\signal.py',
+   'PYMODULE'),
+  ('os',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\os.py',
+   'PYMODULE'),
+  ('doctest',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\doctest.py',
+   'PYMODULE'),
+  ('unittest',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\__init__.py',
+   'PYMODULE'),
+  ('unittest.signals',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\signals.py',
+   'PYMODULE'),
+  ('unittest.main',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\main.py',
+   'PYMODULE'),
+  ('unittest.runner',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\runner.py',
+   'PYMODULE'),
+  ('unittest.loader',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\loader.py',
+   'PYMODULE'),
+  ('unittest.suite',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\suite.py',
+   'PYMODULE'),
+  ('unittest.case',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\case.py',
+   'PYMODULE'),
+  ('pprint',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pprint.py',
+   'PYMODULE'),
+  ('unittest.result',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\result.py',
+   'PYMODULE'),
+  ('unittest.util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\unittest\\util.py',
+   'PYMODULE'),
+  ('pdb',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pdb.py',
+   'PYMODULE'),
+  ('pydoc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc.py',
+   'PYMODULE'),
+  ('webbrowser',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\webbrowser.py',
+   'PYMODULE'),
+  ('http.server',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\http\\server.py',
+   'PYMODULE'),
+  ('socketserver',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\socketserver.py',
+   'PYMODULE'),
+  ('html',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\html\\__init__.py',
+   'PYMODULE'),
+  ('html.entities',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\html\\entities.py',
+   'PYMODULE'),
+  ('pydoc_data.topics',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc_data\\topics.py',
+   'PYMODULE'),
+  ('pydoc_data',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pydoc_data\\__init__.py',
+   'PYMODULE'),
+  ('tty',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\tty.py',
+   'PYMODULE'),
   ('pkgutil',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\pkgutil.py',
-   'PYMODULE'),
-  ('importlib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\__init__.py',
-   'PYMODULE'),
-  ('importlib.abc',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\abc.py',
-   'PYMODULE'),
-  ('importlib.util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\util.py',
-   'PYMODULE'),
-  ('importlib.machinery',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\machinery.py',
-   'PYMODULE'),
-  ('importlib._bootstrap_external',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\_bootstrap_external.py',
-   'PYMODULE'),
-  ('importlib._bootstrap',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\importlib\\_bootstrap.py',
-   'PYMODULE'),
-  ('shlex',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\shlex.py',
    'PYMODULE'),
   ('glob',
    'c:\\users\\noah '
@@ -546,6 +554,10 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\_compat_pickle.py',
    'PYMODULE'),
+  ('stringprep',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\stringprep.py',
+   'PYMODULE'),
   ('wx',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\__init__.py',
@@ -582,45 +594,50 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\__version__.py',
    'PYMODULE')],
- [('VCRUNTIME140.dll',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\VCRUNTIME140.dll',
-   'BINARY'),
-  ('python36.dll',
+ [('python36.dll',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\python36.dll',
    'BINARY'),
+  ('VCRUNTIME140.dll',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\VCRUNTIME140.dll',
+   'BINARY'),
+  ('_pytransform.dll', 'dist\\obf\\_pytransform.dll', 'BINARY'),
+  ('_ctypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_ctypes.pyd',
+   'EXTENSION'),
   ('select',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\select.pyd',
-   'EXTENSION'),
-  ('_bz2',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_bz2.pyd',
-   'EXTENSION'),
-  ('unicodedata',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\unicodedata.pyd',
    'EXTENSION'),
   ('_socket',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_socket.pyd',
    'EXTENSION'),
+  ('_ssl',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_ssl.pyd',
+   'EXTENSION'),
   ('_lzma',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_lzma.pyd',
+   'EXTENSION'),
+  ('_bz2',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_bz2.pyd',
    'EXTENSION'),
   ('_hashlib',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_hashlib.pyd',
    'EXTENSION'),
-  ('_ssl',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\_ssl.pyd',
-   'EXTENSION'),
   ('pyexpat',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\pyexpat.pyd',
+   'EXTENSION'),
+  ('unicodedata',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\DLLs\\unicodedata.pyd',
    'EXTENSION'),
   ('wx._adv',
    'c:\\users\\noah '
@@ -642,29 +659,30 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\_core.cp36-win_amd64.pyd',
    'EXTENSION'),
-  ('wxbase314u_vc140_x64.dll',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\wxbase314u_vc140_x64.dll',
-   'BINARY'),
   ('wxmsw314u_core_vc140_x64.dll',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\wxmsw314u_core_vc140_x64.dll',
+   'BINARY'),
+  ('wxbase314u_vc140_x64.dll',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\wxbase314u_vc140_x64.dll',
    'BINARY'),
   ('wxmsw314u_html_vc140_x64.dll',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\wxmsw314u_html_vc140_x64.dll',
    'BINARY'),
-  ('MSVCP140.dll',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\MSVCP140.dll',
-   'BINARY'),
   ('wxbase314u_net_vc140_x64.dll',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\wxbase314u_net_vc140_x64.dll',
+   'BINARY'),
+  ('MSVCP140.dll',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\wx\\MSVCP140.dll',
    'BINARY')],
  [],
  [],
  [('base_library.zip',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\test\\base_library.zip',
+   'C:\\Users\\Noah '
+   'Baculi\\Documents\\aldras\\build\\test-patched\\base_library.zip',
    'DATA')],
  [])
