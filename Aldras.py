@@ -1,7 +1,5 @@
-import math
 import os
 import re
-import string
 import threading
 import time
 import webbrowser
@@ -903,8 +901,7 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(0.99 * (index + 1), f'Loading line {index + 1} of {len(self.lines)}.')[
-                    0]:
+                if not self.loading_dlg.Update(int(0.99 * (index + 1)), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()

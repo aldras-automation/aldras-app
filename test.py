@@ -33,10 +33,14 @@ class LicenseFrame(wx.Frame):
         self.Show()
 
     def on_activate(self, _):
-        LicenseFrame(None)
+        import subprocess
+        uu_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()  # internal uuid
+        wx.MessageDialog(self, f'Old UUID\n{uu_id}', 'Old UUID', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
     def on_verify(self, _):
-        wx.MessageDialog(self, 'Idk', 'Activation', wx.OK | wx.ICON_INFORMATION).ShowModal()
+        import uuid
+        uuid_str2 = uuid.UUID(int=uuid.getnode())
+        wx.MessageDialog(self, f'New UUID\n{uuid.getnode()}\n{uuid_str2}', 'New UUID', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
 
 app = wx.App(False)

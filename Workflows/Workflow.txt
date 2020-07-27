@@ -1,10 +1,10 @@
-HardwareID: 17650
+HardwareID: 17807
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
+Left-mouse click at (12, 10)
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)
 Left-mouse click at (10, 10)

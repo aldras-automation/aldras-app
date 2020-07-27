@@ -1,6 +1,6 @@
-Workflows/Asdf.txt
-Workflows/Testy.txt
-Workflows/New customer order.txt
 Workflows/Workflow.txt
+Workflows/Testy.txt
+Workflows/Asdf.txt
+Workflows/New customer order.txt
 Workflows/Testz.txt
 Workflows/Short.txt

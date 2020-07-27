@@ -5,7 +5,7 @@ import os
 from screeninfo import get_monitors
 import math
 from operator import add
-import subprocess
+import uuid
 import hashlib
 import traceback
 
@@ -23,7 +23,7 @@ def get_system_parameters():
     y_sum = list(map(add, y_indiv, heights))
 
     # get unique hardware id
-    uu_id = subprocess.check_output('wmic csproduct get uuid').decode().split('\n')[1].strip()  # internal uuid
+    uu_id = str(uuid.getnode())
     display_id = ''.join([str(item) for item in
                           x_indiv + y_indiv + widths + heights])  # display configuration id by joining display attributes
 
