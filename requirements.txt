@@ -10,6 +10,7 @@ Pillow == 7.2.0
 # C:\Users\Noah Baculi\Documents\aldras\obfuscated.py: 55
 PyAutoGUI == 0.9.50
 
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3506
 # C:\Users\Noah Baculi\Documents\aldras\Test_cryptlex.py: 2
 cryptlex.lexactivator == 3.11.0
 

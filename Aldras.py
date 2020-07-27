@@ -3326,9 +3326,9 @@ class LicenseDialog(wx.Dialog):
         self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
 
         # add rescaled logo image
-        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(70, 70, quality=wx.IMAGE_QUALITY_HIGH)
+        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(60, 60, quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
-        self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
         self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
 
         # add program name text
@@ -3450,7 +3450,7 @@ def verify_license():
             "NEIzQkVCN0FEMkM0RDA1RTNGNTU3QjA2ODE2REQxMEI=.iZTNUzPGGQAXXbqnKy/Oahvijek6P3TQu+nIw7Cw4tqwVWKSnNEmmOyvck+ZNqTKoZXPA4roJaQnbm1Pf4Xl0ADwmA3AKbIw49DJVN4Y8jbPHD+NyVIf8Ehap6P72PjpwgTi68AxUlDutjaTkI1rGJvLawbpfvuezc1SgwB4V46jr+GzeHirvLcRY2CLrPUDPp+fs1Z5MIk+aLLdf4K4RibzERK3VhwKahhusxo7hwfJKXJhZkZjHGSkjcdvXRbb1Wtx5jXv/uxKgczEkU4RmtPnsYYuZ/GHEYTju0JfpUcKUlHH9tOgqZjvmVbwj5nv1K/+YxRlgZOf+JQe1R78C1K9UVixvezpgtUdN1R2BkD9sDfIlDl9VcPDf2spbjNfGczkriRzrWoUapTBzmzWwDzm8pZRdzxK95JBC+l3sbmDa+8DrAG7/0FCusTHmZITI0+OuOlom7FmoEQVvtfyE+XV3uXPRVltGM5D9DGWMHTsETV/4i4udnTZ0VipyElqapf5TgTDxtAGek/nYxXkQPLlgl0vr1Q3CdlBrm8Tr+o3SlO/pZZ7ubQ5kG+Edupg5tRDg0P33oCN8yPKMd3WAvRvDkcboDy7E7MpsVc0tQx63iKbgzeYITne/58aQKdZe+2dD/HhOBJFgRX3Mfkg7nCPUo38Stritrch1sZamej+gVdaViXfw2b0YCxNpZsfMRX0yTuduc8H11+vDK8feRrt+tfBkwFYK1lHLrZk7T4=")
         LexActivator.SetProductId("c1f701ce-2ad7-4505-a186-cd9e3eb89416", PermissionFlags.LA_USER)
 
-        # LexActivator.Reset()
+        # LexActivator.Reset()  # for testing purposes only
 
         license_status = LexActivator.IsLicenseGenuine()
         if license_status == LexStatusCodes.LA_OK:
@@ -3497,25 +3497,22 @@ def verify_license():
                          f'Unforunately, an error occurred.\n\nPlease report it to us at aldras.com/contact or support@aldras.com.\n\nError code JYUX6\n\n{exception.code}\n\n{exception.message}',
                          'Aldras: Error JYUX6', wx.OK | wx.ICON_ERROR).ShowModal()
 
-    SelectionFrame(None)
-
 
 if __name__ == '__main__':
     mouse_monitor_frame = None
     sys.excepthook = exception_handler
 
-    # try:
-    #     from cryptlex.lexactivator import *
-    #     print('Cryptlex successfully imported')
-    # except Exception as e:
-    #     print('Cryptlex unsuccessfully imported', e)
-    #     input('Press enter to continue: ')
+    try:
+        from cryptlex.lexactivator import *
+        print('Cryptlex successfully imported')
+    except Exception as e:
+        print('Cryptlex unsuccessfully imported', e)
+        input('Press enter to continue: ')
 
     app = wx.App(False)
 
     if system_platform() == 'Windows':
-        # verify_license()
-        SelectionFrame(None)
+        verify_license()
     else:
         wx.MessageDialog(None,
                          'Unfortunately at this time, Aldras has only\nbeen tested and released for use on Windows.',
