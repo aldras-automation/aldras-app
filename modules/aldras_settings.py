@@ -324,8 +324,7 @@ class SettingsDialog(wx.Dialog):
         self.FindWindowByName('Record method').Bind(wx.EVT_RADIOBOX, lambda event: self.setting_change(
             event.GetEventObject().GetString(event.GetEventObject().GetSelection()), 'Record method'))
 
-        record_sizer.Add(record_options_sizer, 0, wx.ALL, static_boxsizer_inner_padding) \
- \
+        record_sizer.Add(record_options_sizer, 0, wx.ALL, static_boxsizer_inner_padding)
         record_panel.SetSizer(record_sizer)
         record_sizer.SetSizeHints(record_panel)  # ---------------------------------------------------------------------
 
@@ -369,7 +368,7 @@ class SettingsDialog(wx.Dialog):
         #
 
         panel.SetSizer(vbox_container)
-        vbox_main.Add(panel, 0, wx.EXPAND | wx.SOUTH, 20)
+        vbox_main.Add(panel, 0, wx.EXPAND)
 
         # add buttons
         btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
