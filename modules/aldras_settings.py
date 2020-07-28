@@ -1,7 +1,8 @@
 """Aldras module containing settings objects"""
 import wx
 import json
-from modules.aldras_core import CharValidator
+import os
+from modules.aldras_core import CharValidator, directory_chooser
 
 settings_possibilities = {
     'Number of recent workflows displayed': [str(ii) for ii in list(range(0, 6))],  # zero to five
@@ -17,6 +18,7 @@ def validate_settings(settings_unvalidated):
     # factory settings for reference comparison (double quotes used rather than single quote convention due to desire to allow copy-paste between this dictionary and the .json file)
     factory_settings = {
         "Number of recent workflows displayed": 3,
+        "Workflow folder": "",
         "Freeze method": "Click or Ctrl",
         "Number of hotkeys": 3,
         "Large lines number": 100,
@@ -36,6 +38,7 @@ def validate_settings(settings_unvalidated):
     settings_validation = {
         'Number of recent workflows displayed': lambda x: str(x) in settings_possibilities[
             'Number of recent workflows displayed'],
+        "Workflow folder": lambda dir_path: os.path.exists(dir_path),
         'Freeze method': lambda x: x.lower() in [y.lower() for y in settings_possibilities['Freeze method']],
         'Number of hotkeys': lambda x: 2 <= x <= 4,
         'Large lines number': lambda x: 15 <= x <= 200,
@@ -71,6 +74,21 @@ def validate_settings(settings_unvalidated):
                 raise ValueError
         except (KeyError, ValueError):
             settings[key] = cast_type(factory_settings[key])
+
+    if settings['Workflow folder'] == '':
+        default_save_folder_dlg = wx.MessageDialog(None,
+                                                'Please select the default directory where Workflow files should be saved.',
+                                                'Choose default save location', wx.YES_NO | wx.ICON_INFORMATION)
+        default_save_folder_dlg.SetYesNoLabels('Select', 'Exit')  # rename 'Yes' and 'No' labels to 'Select' and 'Exit'
+
+        if default_save_folder_dlg.ShowModal() == wx.ID_YES:
+            settings['Workflow folder'] = directory_chooser(None)
+            print(settings)
+            save_settings(settings)
+        else:
+            raise SystemExit
+
+        default_save_folder_dlg.Destroy()
 
     return settings
 

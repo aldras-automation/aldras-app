@@ -14,11 +14,11 @@ import wx.grid
 import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
-# from cryptlex.lexactivator import *
+import ntpath
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
+    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, directory_chooser
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
@@ -361,6 +361,22 @@ def setup_frame(self, status_bar=False):
     def on_exit(_):
         self.Close(True)
 
+    def on_open(event):
+        """ Open a file"""
+        directory_chooser(self)
+
+    #########################################################################
+    # OR
+    #########################################################################
+    # directory selector
+    # dlg = wx.DirDialog(None, "Choose input directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+    # if dlg.ShowModal() == wx.ID_OK:
+    #     fdir = dlg.GetPath() + "/"
+    #     dlg.SetPath(fdir)
+    #     print('You selected: %s\n' % dlg.GetPath())
+    # dlg.Destroy()
+
+
     if status_bar:
         self.CreateStatusBar()
 
@@ -380,7 +396,7 @@ def setup_frame(self, status_bar=False):
         menu_new.Enable(False)
 
     menu_open = file_menu.Append(wx.ID_ANY, 'Open...\tCtrl+O', f'   Open existing {self.software_info.name} workflow')
-    # self.Bind(wx.EVT_MENU, ???, menu_open)
+    self.Bind(wx.EVT_MENU, lambda event: on_open(event), menu_open)
 
     menu_save = file_menu.Append(wx.ID_ANY, 'Save\tCtrl+S', f'   Save {self.software_info.name} workflow')
     self.Bind(wx.EVT_MENU, lambda event: self.save_to_file(), menu_save)  # call EditFrame self.save_workflow()
@@ -3098,10 +3114,7 @@ class SelectionFrame(wx.Frame):
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
 
-        # notif = wx.adv.NotificationMessage('Yeet title', 'Message', self, flags=wx.ICON_INFORMATION)
-        # notif.Show()
-        # Creates directories if do not exist --------------------------------------------------------------------------
-        self.workflow_directory = 'Workflows/'
+        self.workflow_directory = self.settings['Workflow folder']
         if not os.path.exists(self.workflow_directory):
             os.makedirs(self.workflow_directory)
 
@@ -3200,7 +3213,7 @@ class SelectionFrame(wx.Frame):
 
         # create buttons for most recently accessed workflows
         for workflow_path_name in self.recent_workflows[0:self.settings['Number of recent workflows displayed']]:
-            workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+            workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '')
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
                                           lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
@@ -3227,7 +3240,7 @@ class SelectionFrame(wx.Frame):
 
             if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
                 self.launch_workflow(
-                    workflow_path_name=f'{self.workflow_directory}{self.workflow_name_input.GetValue().capitalize()}.txt')
+                    workflow_path_name=f'{self.workflow_directory}\\{self.workflow_name_input.GetValue().capitalize()}.txt')
 
     def launch_workflow(self, workflow_path_name, recent_launch=False):
         if recent_launch:
@@ -3245,15 +3258,15 @@ class SelectionFrame(wx.Frame):
                 self.update_recent_workflows()
                 return
 
-        self.workflow_name = workflow_path_name.replace('.txt', '').replace(self.workflow_directory, '')
+        self.workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '')
         self.workflow_path_name = workflow_path_name
 
         # read or create workflow file
         try:
-            with open(f'{self.workflow_directory}{self.workflow_name}.txt', 'r') as record_file:
+            with open(self.workflow_path_name, 'r') as record_file:
                 lines = record_file.readlines()
         except FileNotFoundError:  # create file if not found
-            with open(f'{self.workflow_directory}{self.workflow_name}.txt', 'w'):
+            with open(self.workflow_path_name, 'w'):
                 lines = []
         lines = [line.replace('\n', '') for line in lines]
 
@@ -3286,27 +3299,6 @@ class SelectionFrame(wx.Frame):
     def on_exit(self, _):
         # trigger close event
         self.Close(True)
-
-    # def on_open(self, e):
-    #     """ Open a file"""
-    #     dlg = wx.FileDialog(self, 'Choose a file', self.dirname, '', '*.*', wx.FD_OPEN)
-    #     if dlg.ShowModal() == wx.ID_OK:
-    #         self.filename = dlg.GetFilename()
-    #         self.dirname = dlg.GetDirectory()
-    #         f = open(os.path.join(self.dirname, self.filename), 'r')
-    #         self.workflow_name_input.SetValue(f.read())
-    #         f.close()
-    #     dlg.Destroy()
-    #########################################################################
-    # OR
-    #########################################################################
-    # directory selector
-    # dlg = wx.DirDialog(None, "Choose input directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-    # if dlg.ShowModal() == wx.ID_OK:
-    #     fdir = dlg.GetPath() + "/"
-    #     dlg.SetPath(fdir)
-    #     print('You selected: %s\n' % dlg.GetPath())
-    # dlg.Destroy()
 
 
 class LicenseDialog(wx.Dialog):

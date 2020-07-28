@@ -1,5 +1,6 @@
 """Aldras module containing core objects used across classes"""
 import re
+import string
 import wx
 import os
 from screeninfo import get_monitors
@@ -250,3 +251,28 @@ def show_notification(parent, title, message):
     notification = wx.adv.NotificationMessage(title, message, parent)
     notification.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
     notification.Show()
+
+
+def directory_chooser(parent_window):
+    default_directory_dlg = wx.DirDialog(parent_window, 'Choose default save folder', '', wx.DD_DEFAULT_STYLE)
+    if default_directory_dlg.ShowModal() == wx.ID_OK:
+        dir_path = default_directory_dlg.GetPath()
+        default_directory_dlg.SetPath(dir_path)
+    else:
+        raise SystemExit
+    default_directory_dlg.Destroy()
+
+    return dir_path
+
+    # default_directory = os.path.expanduser('~')
+    # if os.path.exists(os.path.expanduser('~/Documents')):
+    #     default_directory = os.path.expanduser('~/Documents')
+    #
+    # dlg = wx.FileDialog(parent_window, 'Choose a file', defaultDir=default_directory, wildcard='*.txt')
+    # if dlg.ShowModal() == wx.ID_OK:
+    #     filename = dlg.GetFilename()
+    #     dirname = dlg.GetDirectory()
+    #     f = open(os.path.join(dirname, filename), 'r')
+    #     parent_window.workflow_name_input.SetValue(f.read())
+    #     f.close()
+    # dlg.Destroy()
