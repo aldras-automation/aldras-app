@@ -68,7 +68,7 @@ def validate_settings(settings_unvalidated):
                     cast_type(settings_unvalidated[key])):  # if the cast imported setting is validated
                 settings[key] = cast_type(settings_unvalidated[key])  # set equal to the cast imported setting
 
-                if isinstance(settings[key], str):
+                if key != 'Workflow folder' and isinstance(settings[key], str):  # do not modify captilization of workflow folder path (just for aesthetic reasons)
                     settings[key] = settings[key].capitalize()  # capitalize setting if string
             else:
                 raise ValueError
@@ -83,7 +83,6 @@ def validate_settings(settings_unvalidated):
 
         if default_save_folder_dlg.ShowModal() == wx.ID_YES:
             settings['Workflow folder'] = directory_chooser(None)
-            print(settings)
             save_settings(settings)
         else:
             raise SystemExit
@@ -130,7 +129,7 @@ def open_settings(parent_window):
 
         # prompt user to restart Aldras if parameters were changed affecting SelectionFrame or EditFrame
         difference = False
-        for parameter in ['Number of recent workflows displayed', 'Number of hotkeys', 'Large lines number',
+        for parameter in ['Number of recent workflows displayed', 'Workflow folder', 'Number of hotkeys', 'Large lines number',
                           'Notifications']:
             if settings_old[parameter] != settings_dlg.settings[parameter]:
                 difference = True
@@ -183,6 +182,14 @@ class SettingsDialog(wx.Dialog):
         vbox_container = wx.BoxSizer(wx.VERTICAL)
 
         panel = wx.Panel(self)
+
+        workflow_folder_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Workflow Folder'), wx.VERTICAL)  # ---
+        workflow_folder_chooser = wx.DirPickerCtrl(panel, path=self.settings['Workflow folder'])
+        workflow_folder_chooser.Bind(wx.EVT_DIRPICKER_CHANGED, lambda event: self.setting_change(event.GetPath(), 'Workflow folder'))
+        workflow_folder_sizer.Add(workflow_folder_chooser, 0, wx.EXPAND | wx.ALL, static_boxsizer_inner_padding)
+        vbox_container.Add(workflow_folder_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # -----------
+
+        #
 
         selection_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Workflow Selection'), wx.VERTICAL)  # ------
 
@@ -323,6 +330,7 @@ class SettingsDialog(wx.Dialog):
         self.Center()
 
     def setting_change(self, value, setting):
+        print(value, setting)
         self.settings[setting] = value
         self.settings = validate_settings(self.settings)
 
