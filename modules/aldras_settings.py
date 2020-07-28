@@ -68,7 +68,8 @@ def validate_settings(settings_unvalidated):
                     cast_type(settings_unvalidated[key])):  # if the cast imported setting is validated
                 settings[key] = cast_type(settings_unvalidated[key])  # set equal to the cast imported setting
 
-                if key != 'Workflow folder' and isinstance(settings[key], str):  # do not modify captilization of workflow folder path (just for aesthetic reasons)
+                if key != 'Workflow folder' and isinstance(settings[key],
+                                                           str):  # do not modify captilization of workflow folder path (just for aesthetic reasons)
                     settings[key] = settings[key].capitalize()  # capitalize setting if string
             else:
                 raise ValueError
@@ -77,8 +78,8 @@ def validate_settings(settings_unvalidated):
 
     if settings['Workflow folder'] == '':
         default_save_folder_dlg = wx.MessageDialog(None,
-                                                'Please select the default directory where Workflow files should be saved.',
-                                                'Choose default save location', wx.YES_NO | wx.ICON_INFORMATION)
+                                                   'Please select the default directory where Workflow files should be saved.',
+                                                   'Choose default save location', wx.YES_NO | wx.ICON_INFORMATION)
         default_save_folder_dlg.SetYesNoLabels('Select', 'Exit')  # rename 'Yes' and 'No' labels to 'Select' and 'Exit'
 
         if default_save_folder_dlg.ShowModal() == wx.ID_YES:
@@ -129,7 +130,8 @@ def open_settings(parent_window):
 
         # prompt user to restart Aldras if parameters were changed affecting SelectionFrame or EditFrame
         difference = False
-        for parameter in ['Number of recent workflows displayed', 'Workflow folder', 'Number of hotkeys', 'Large lines number',
+        for parameter in ['Number of recent workflows displayed', 'Workflow folder', 'Number of hotkeys',
+                          'Large lines number',
                           'Notifications']:
             if settings_old[parameter] != settings_dlg.settings[parameter]:
                 difference = True
@@ -184,9 +186,21 @@ class SettingsDialog(wx.Dialog):
         panel = wx.Panel(self)
 
         workflow_folder_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Workflow Folder'), wx.VERTICAL)  # ---
-        workflow_folder_chooser = wx.DirPickerCtrl(panel, path=self.settings['Workflow folder'])
-        workflow_folder_chooser.Bind(wx.EVT_DIRPICKER_CHANGED, lambda event: self.setting_change(event.GetPath(), 'Workflow folder'))
-        workflow_folder_sizer.Add(workflow_folder_chooser, 0, wx.EXPAND | wx.ALL, static_boxsizer_inner_padding)
+        workflow_folder_hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.workflow_folder_st = wx.StaticText(panel, label='')
+        workflow_folder_hbox.Add(self.workflow_folder_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+        self.set_workflow_folder_text()
+
+        workflow_folder_hbox.AddStretchSpacer()
+
+        workflow_folder_chooser = wx.DirPickerCtrl(panel, path=self.settings['Workflow folder'],
+                                                   style=wx.DIRP_DIR_MUST_EXIST)
+        workflow_folder_chooser.Bind(wx.EVT_DIRPICKER_CHANGED,
+                                     lambda event: self.setting_change(event.GetPath(), 'Workflow folder'))
+        workflow_folder_hbox.Add(workflow_folder_chooser, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        workflow_folder_sizer.Add(workflow_folder_hbox, 0, wx.EXPAND | wx.ALL, static_boxsizer_inner_padding)
         vbox_container.Add(workflow_folder_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # -----------
 
         #
@@ -330,11 +344,26 @@ class SettingsDialog(wx.Dialog):
         self.Center()
 
     def setting_change(self, value, setting):
-        print(value, setting)
         self.settings[setting] = value
         self.settings = validate_settings(self.settings)
+
+        if setting == 'Workflow folder':
+            self.set_workflow_folder_text()
 
         if self.settings != self.settings_as_imported:
             self.FindWindowById(wx.ID_OK).Enable()  # enable OK button if changes
         else:
             self.FindWindowById(wx.ID_OK).Enable(False)  # disable OK button if no changes
+
+    def set_workflow_folder_text(self):
+        """Set label of workflow folder static text"""
+        workflow_folder_text = self.settings['Workflow folder']
+
+        # cut out middle characters if path is too long
+        workflow_folder_text_char_limit = 50
+        if len(workflow_folder_text) > workflow_folder_text_char_limit:
+            workflow_folder_text_start = workflow_folder_text[:round(workflow_folder_text_char_limit / 2) - 3]
+            workflow_folder_text_end = workflow_folder_text[-round(workflow_folder_text_char_limit / 2) + 2:]
+            workflow_folder_text = f'{workflow_folder_text_start} ... {workflow_folder_text_end}'
+
+        self.workflow_folder_st.SetLabel(workflow_folder_text)
