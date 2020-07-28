@@ -1,7 +1,9 @@
 """Aldras module containing settings objects"""
-import wx
 import json
 import os
+
+import wx
+
 from modules.aldras_core import CharValidator, directory_chooser
 
 settings_possibilities = {
@@ -185,6 +187,12 @@ class SettingsDialog(wx.Dialog):
 
         panel = wx.Panel(self)
 
+        # add rescaled logo image
+        png = wx.Image('data/settings.png', wx.BITMAP_TYPE_PNG).Scale(120, 120,
+                                                                      quality=wx.IMAGE_QUALITY_HIGH)
+        self.logo_img = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(png))
+        vbox_container.Add(self.logo_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, round(margin / 2))
+
         workflow_folder_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Workflow Folder'), wx.VERTICAL)  # ---
         workflow_folder_hbox = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -250,7 +258,7 @@ class SettingsDialog(wx.Dialog):
         editor_sizer.Add(editor_number_of_hotkeys_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
 
         editor_number_many_lines_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        editor_number_many_lines_st = wx.StaticText(panel, label='Number of large number of lines to trigger warning:')
+        editor_number_many_lines_st = wx.StaticText(panel, label='Number of large number of lines to prompt warning:')
         editor_number_many_lines_hbox.Add(editor_number_many_lines_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
         editor_number_many_lines_cb = wx.TextCtrl(panel, style=wx.TE_CENTRE,
                                                   value=str(self.settings['Large lines number']), size=wx.Size(40, -1),
@@ -335,7 +343,7 @@ class SettingsDialog(wx.Dialog):
         self.FindWindowById(wx.ID_OK).Enable(False)
 
         vbox_outer.AddStretchSpacer()
-        vbox_outer.Add(vbox_main, 0, wx.EXPAND | wx.NORTH | wx.WEST | wx.EAST, margin)
+        vbox_outer.Add(vbox_main, 0, wx.EXPAND | wx.WEST | wx.EAST, margin)
         vbox_outer.AddSpacer(margin / 2)
         vbox_outer.AddStretchSpacer()
 
@@ -360,7 +368,7 @@ class SettingsDialog(wx.Dialog):
         workflow_folder_text = self.settings['Workflow folder']
 
         # cut out middle characters if path is too long
-        workflow_folder_text_char_limit = 50
+        workflow_folder_text_char_limit = 45
         if len(workflow_folder_text) > workflow_folder_text_char_limit:
             workflow_folder_text_start = workflow_folder_text[:round(workflow_folder_text_char_limit / 2) - 3]
             workflow_folder_text_end = workflow_folder_text[-round(workflow_folder_text_char_limit / 2) + 2:]
