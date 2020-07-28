@@ -170,8 +170,12 @@ class SettingsDialog(wx.Dialog):
 
         margin = 30
 
-        def setting_cb(parameter):
-            return wx.ComboBox(panel, value=str(self.settings[parameter]), choices=settings_possibilities[parameter],
+        def setting_cb(parameter, parent_window=None):
+            if not parent_window:
+                parent_window = panel
+
+            return wx.ComboBox(parent_window, value=str(self.settings[parameter]),
+                               choices=settings_possibilities[parameter],
                                style=wx.CB_READONLY)
 
         self.settings = import_settings()
@@ -245,22 +249,31 @@ class SettingsDialog(wx.Dialog):
 
         #
 
-        editor_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Editor'), wx.VERTICAL)  # -------
+        editor_collpane = wx.CollapsiblePane(panel,
+                                             label=' Editor')  # -------------------------------------------------
+        editor_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
+        editor_collpane.GetChildren()[0].Bind(wx.EVT_KILL_FOCUS,
+                                              lambda event: None)  # prevents flickering when focus is killed
+        vbox_container.Add(editor_collpane, 0, wx.GROW | wx.SOUTH, static_boxsizer_outer_spacing)
+        editor_panel = editor_collpane.GetPane()
+
+        editor_sizer = wx.StaticBoxSizer(wx.StaticBox(editor_panel), wx.VERTICAL)
 
         editor_number_of_hotkeys_hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        editor_number_of_hotkeys_st = wx.StaticText(panel, label='Number of hotkeys:')
+        editor_number_of_hotkeys_st = wx.StaticText(editor_panel, label='Number of hotkeys:')
         editor_number_of_hotkeys_hbox.Add(editor_number_of_hotkeys_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-        editor_number_of_hotkeys_cb = setting_cb('Number of hotkeys')
+        editor_number_of_hotkeys_cb = setting_cb('Number of hotkeys', editor_panel)
         editor_number_of_hotkeys_cb.Bind(wx.EVT_COMBOBOX,
                                          lambda event: self.setting_change(event.GetString(), 'Number of hotkeys'))
         editor_number_of_hotkeys_hbox.Add(editor_number_of_hotkeys_cb, 0, wx.ALIGN_CENTER_VERTICAL)
         editor_sizer.Add(editor_number_of_hotkeys_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
 
         editor_number_many_lines_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        editor_number_many_lines_st = wx.StaticText(panel, label='Number of large number of lines to prompt warning:')
+        editor_number_many_lines_st = wx.StaticText(editor_panel,
+                                                    label='Number of large number of lines to prompt warning:')
         editor_number_many_lines_hbox.Add(editor_number_many_lines_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-        editor_number_many_lines_cb = wx.TextCtrl(panel, style=wx.TE_CENTRE,
+        editor_number_many_lines_cb = wx.TextCtrl(editor_panel, style=wx.TE_CENTRE,
                                                   value=str(self.settings['Large lines number']), size=wx.Size(40, -1),
                                                   validator=CharValidator('only_integer', self))
         editor_number_many_lines_cb.SetMaxLength(3)
@@ -270,22 +283,30 @@ class SettingsDialog(wx.Dialog):
         editor_sizer.Add(editor_number_many_lines_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
 
         editor_notifications_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        editor_notifications_st = wx.StaticText(panel, label='Notifications:')
+        editor_notifications_st = wx.StaticText(editor_panel, label='Notifications:')
         editor_notifications_hbox.Add(editor_notifications_st, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-        editor_notifications_cb = setting_cb('Notifications')
+        editor_notifications_cb = setting_cb('Notifications', editor_panel)
         editor_notifications_cb.Bind(wx.EVT_COMBOBOX,
                                      lambda event: self.setting_change(event.GetString(), 'Notifications'))
         editor_notifications_hbox.Add(editor_notifications_cb, 0, wx.ALIGN_CENTER_VERTICAL)
         editor_sizer.Add(editor_notifications_hbox, 0, wx.ALL, static_boxsizer_inner_padding)
 
-        vbox_container.Add(editor_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # -------------
+        editor_panel.SetSizer(editor_sizer)
+        editor_sizer.SetSizeHints(editor_panel)  # ---------------------------------------------------------------------
 
         #
 
-        record_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Record Options'), wx.VERTICAL)  # -------------
+        record_collpane = wx.CollapsiblePane(panel, label=' Record Options')  # ----------------------------------------
+        record_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
+        record_collpane.GetChildren()[0].Bind(wx.EVT_KILL_FOCUS,
+                                              lambda event: None)  # prevents flickering when focus is killed
+        vbox_container.Add(record_collpane, 0, wx.GROW | wx.SOUTH, static_boxsizer_outer_spacing)
+        record_panel = record_collpane.GetPane()
+
+        record_sizer = wx.StaticBoxSizer(wx.StaticBox(record_panel), wx.VERTICAL)
 
         from modules.aldras_record import create_record_options
-        record_options_sizer = create_record_options(panel, settings_frame=True)
+        record_options_sizer = create_record_options(record_panel, settings_frame=True)
 
         # bind parameter changes to setting_change()
         for record_pause_option in settings_possibilities['Record pause']:
@@ -303,15 +324,25 @@ class SettingsDialog(wx.Dialog):
         self.FindWindowByName('Record method').Bind(wx.EVT_RADIOBOX, lambda event: self.setting_change(
             event.GetEventObject().GetString(event.GetEventObject().GetSelection()), 'Record method'))
 
-        record_sizer.Add(record_options_sizer, 0, wx.ALL, static_boxsizer_inner_padding)
-        vbox_container.Add(record_sizer, 0, wx.EXPAND | wx.SOUTH, static_boxsizer_outer_spacing)  # --------------------
+        record_sizer.Add(record_options_sizer, 0, wx.ALL, static_boxsizer_inner_padding) \
+ \
+        record_panel.SetSizer(record_sizer)
+        record_sizer.SetSizeHints(record_panel)  # ---------------------------------------------------------------------
 
         #
 
-        execute_sizer = wx.StaticBoxSizer(wx.StaticBox(panel, wx.ID_ANY, 'Execute Options'), wx.VERTICAL)  # -----------
+        execute_collpane = wx.CollapsiblePane(panel,
+                                              label=' Execute Options')  # ----------------------------------------
+        execute_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
+        execute_collpane.GetChildren()[0].Bind(wx.EVT_KILL_FOCUS,
+                                               lambda event: None)  # prevents flickering when focus is killed
+        vbox_container.Add(execute_collpane, 0, wx.GROW | wx.SOUTH, static_boxsizer_outer_spacing)
+        execute_panel = execute_collpane.GetPane()
+
+        execute_sizer = wx.StaticBoxSizer(wx.StaticBox(execute_panel), wx.VERTICAL)
 
         from modules.aldras_execute import create_execute_options
-        execute_options_sizer = create_execute_options(panel, settings_frame=True)
+        execute_options_sizer = create_execute_options(execute_panel, settings_frame=True)
 
         for setting_name in ['Execute pause between commands', 'Execute pause between commands checked',
                              'Execute mouse command duration', 'Execute mouse command duration checked',
@@ -331,7 +362,11 @@ class SettingsDialog(wx.Dialog):
                                                                                     setting))
 
         execute_sizer.Add(execute_options_sizer, 0, wx.ALL, static_boxsizer_inner_padding)
-        vbox_container.Add(execute_sizer, 0, wx.EXPAND)  # -------------------------------------------------------------
+
+        execute_panel.SetSizer(execute_sizer)
+        execute_sizer.SetSizeHints(execute_panel)  # -------------------------------------------------------------------
+
+        #
 
         panel.SetSizer(vbox_container)
         vbox_main.Add(panel, 0, wx.EXPAND | wx.SOUTH, 20)
