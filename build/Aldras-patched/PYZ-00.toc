@@ -111,18 +111,6 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\py_compile.py',
    'PYMODULE'),
-  ('ntpath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ntpath.py',
-   'PYMODULE'),
-  ('string',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\string.py',
-   'PYMODULE'),
-  ('genericpath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\genericpath.py',
-   'PYMODULE'),
   ('importlib.machinery',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\importlib\\machinery.py',
@@ -218,6 +206,10 @@
   ('logging',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\logging\\__init__.py',
+   'PYMODULE'),
+  ('string',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\string.py',
    'PYMODULE'),
   ('bisect',
    'c:\\users\\noah '
@@ -335,6 +327,10 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\posixpath.py',
    'PYMODULE'),
+  ('genericpath',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\genericpath.py',
+   'PYMODULE'),
   ('importlib.util',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\importlib\\util.py',
@@ -443,6 +439,14 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\runners.py',
    'PYMODULE'),
+  ('asyncio.events',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\events.py',
+   'PYMODULE'),
+  ('contextvars',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\contextvars.py',
+   'PYMODULE'),
   ('asyncio.trsock',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\trsock.py',
@@ -458,10 +462,6 @@
   ('asyncio.tasks',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\tasks.py',
-   'PYMODULE'),
-  ('contextvars',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\contextvars.py',
    'PYMODULE'),
   ('concurrent.futures',
    'c:\\users\\noah '
@@ -523,208 +523,9 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\forkserver.py',
    'PYMODULE'),
-  ('test',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\test.py',
-   'PYMODULE'),
-  ('uuid',
+  ('test.support',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\uuid.py',
-   'PYMODULE'),
-  ('ctypes.util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\util.py',
-   'PYMODULE'),
-  ('ctypes._aix',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\_aix.py',
-   'PYMODULE'),
-  ('ctypes.macholib.dyld',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\dyld.py',
-   'PYMODULE'),
-  ('ctypes.macholib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\__init__.py',
-   'PYMODULE'),
-  ('ctypes.macholib.dylib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\dylib.py',
-   'PYMODULE'),
-  ('ctypes.macholib.framework',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\framework.py',
-   'PYMODULE'),
-  ('netbios',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\win32\\lib\\netbios.py',
-   'PYMODULE'),
-  ('ctypes',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\__init__.py',
-   'PYMODULE'),
-  ('ctypes._endian',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\_endian.py',
-   'PYMODULE'),
-  ('multiprocessing.context',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\context.py',
-   'PYMODULE'),
-  ('multiprocessing.popen_spawn_win32',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_spawn_win32.py',
-   'PYMODULE'),
-  ('multiprocessing.popen_forkserver',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_forkserver.py',
-   'PYMODULE'),
-  ('multiprocessing.popen_spawn_posix',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_spawn_posix.py',
-   'PYMODULE'),
-  ('multiprocessing.popen_fork',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_fork.py',
-   'PYMODULE'),
-  ('multiprocessing.sharedctypes',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\sharedctypes.py',
-   'PYMODULE'),
-  ('multiprocessing.pool',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\pool.py',
-   'PYMODULE'),
-  ('multiprocessing.dummy',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\dummy\\__init__.py',
-   'PYMODULE'),
-  ('multiprocessing.dummy.connection',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\dummy\\connection.py',
-   'PYMODULE'),
-  ('multiprocessing.managers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\managers.py',
-   'PYMODULE'),
-  ('multiprocessing.shared_memory',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\shared_memory.py',
-   'PYMODULE'),
-  ('secrets',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\secrets.py',
-   'PYMODULE'),
-  ('hmac',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\hmac.py',
-   'PYMODULE'),
-  ('multiprocessing.reduction',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\reduction.py',
-   'PYMODULE'),
-  ('multiprocessing.resource_sharer',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\resource_sharer.py',
-   'PYMODULE'),
-  ('multiprocessing.connection',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\connection.py',
-   'PYMODULE'),
-  ('xmlrpc.client',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xmlrpc\\client.py',
-   'PYMODULE'),
-  ('xmlrpc',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xmlrpc\\__init__.py',
-   'PYMODULE'),
-  ('gzip',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\gzip.py',
-   'PYMODULE'),
-  ('xml.parsers.expat',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\parsers\\expat.py',
-   'PYMODULE'),
-  ('xml.parsers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\parsers\\__init__.py',
-   'PYMODULE'),
-  ('xml',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\__init__.py',
-   'PYMODULE'),
-  ('xml.sax.expatreader',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\expatreader.py',
-   'PYMODULE'),
-  ('xml.sax.saxutils',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\saxutils.py',
-   'PYMODULE'),
-  ('urllib.request',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\request.py',
-   'PYMODULE'),
-  ('getpass',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\getpass.py',
-   'PYMODULE'),
-  ('nturl2path',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\nturl2path.py',
-   'PYMODULE'),
-  ('ftplib',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ftplib.py',
-   'PYMODULE'),
-  ('netrc',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\netrc.py',
-   'PYMODULE'),
-  ('shlex',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\shlex.py',
-   'PYMODULE'),
-  ('mimetypes',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\mimetypes.py',
-   'PYMODULE'),
-  ('http.cookiejar',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\cookiejar.py',
-   'PYMODULE'),
-  ('http',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\__init__.py',
-   'PYMODULE'),
-  ('urllib.response',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\response.py',
-   'PYMODULE'),
-  ('urllib.error',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\error.py',
-   'PYMODULE'),
-  ('xml.sax',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\__init__.py',
-   'PYMODULE'),
-  ('xml.sax.handler',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\handler.py',
-   'PYMODULE'),
-  ('xml.sax._exceptions',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\_exceptions.py',
-   'PYMODULE'),
-  ('xml.sax.xmlreader',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\xmlreader.py',
-   'PYMODULE'),
-  ('http.client',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\client.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\test\\support\\__init__.py',
    'PYMODULE'),
   ('decimal',
    'c:\\users\\noah '
@@ -738,153 +539,13 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\numbers.py',
    'PYMODULE'),
-  ('multiprocessing',
+  ('distutils.spawn',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\__init__.py',
-   'PYMODULE'),
-  ('concurrent.futures._base',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\concurrent\\futures\\_base.py',
-   'PYMODULE'),
-  ('concurrent',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\concurrent\\__init__.py',
-   'PYMODULE'),
-  ('asyncio.base_tasks',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_tasks.py',
-   'PYMODULE'),
-  ('asyncio.locks',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\locks.py',
-   'PYMODULE'),
-  ('asyncio.sslproto',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\sslproto.py',
-   'PYMODULE'),
-  ('asyncio.transports',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\transports.py',
-   'PYMODULE'),
-  ('asyncio.base_events',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_events.py',
-   'PYMODULE'),
-  ('asyncio.protocols',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\protocols.py',
-   'PYMODULE'),
-  ('asyncio.futures',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\futures.py',
-   'PYMODULE'),
-  ('asyncio.events',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\events.py',
-   'PYMODULE'),
-  ('asyncio.exceptions',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\exceptions.py',
-   'PYMODULE'),
-  ('asyncio.coroutines',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\coroutines.py',
-   'PYMODULE'),
-  ('asyncio.base_futures',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_futures.py',
-   'PYMODULE'),
-  ('asyncio.format_helpers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\format_helpers.py',
-   'PYMODULE'),
-  ('asyncio.constants',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\constants.py',
-   'PYMODULE'),
-  ('unittest.result',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\unittest\\result.py',
-   'PYMODULE'),
-  ('unittest.util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\unittest\\util.py',
-   'PYMODULE'),
-  ('pdb',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pdb.py',
-   'PYMODULE'),
-  ('pydoc',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc.py',
-   'PYMODULE'),
-  ('http.server',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\server.py',
-   'PYMODULE'),
-  ('socketserver',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\socketserver.py',
-   'PYMODULE'),
-  ('html',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\html\\__init__.py',
-   'PYMODULE'),
-  ('html.entities',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\html\\entities.py',
-   'PYMODULE'),
-  ('pydoc_data.topics',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc_data\\topics.py',
-   'PYMODULE'),
-  ('pydoc_data',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc_data\\__init__.py',
-   'PYMODULE'),
-  ('tty',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tty.py',
-   'PYMODULE'),
-  ('sysconfig',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\sysconfig.py',
-   'PYMODULE'),
-  ('_osx_support',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\_osx_support.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\spawn.py',
    'PYMODULE'),
   ('distutils.log',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\log.py',
-   'PYMODULE'),
-  ('distutils',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\__init__.py',
-   'PYMODULE'),
-  ('distutils.archive_util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\archive_util.py',
-   'PYMODULE'),
-  ('tarfile',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tarfile.py',
-   'PYMODULE'),
-  ('distutils.dir_util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\dir_util.py',
-   'PYMODULE'),
-  ('distutils.file_util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\file_util.py',
-   'PYMODULE'),
-  ('distutils.dep_util',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\dep_util.py',
-   'PYMODULE'),
-  ('distutils.spawn',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\spawn.py',
    'PYMODULE'),
   ('distutils.debug',
    'c:\\users\\noah '
@@ -894,13 +555,17 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\errors.py',
    'PYMODULE'),
-  ('distutils.ccompiler',
+  ('distutils.sysconfig',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\ccompiler.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\sysconfig.py',
    'PYMODULE'),
-  ('distutils.fancy_getopt',
+  ('distutils.text_file',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\fancy_getopt.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\text_file.py',
+   'PYMODULE'),
+  ('_osx_support',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\_osx_support.py',
    'PYMODULE'),
   ('distutils.util',
    'c:\\users\\noah '
@@ -909,6 +574,14 @@
   ('distutils.filelist',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\filelist.py',
+   'PYMODULE'),
+  ('distutils.file_util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\file_util.py',
+   'PYMODULE'),
+  ('distutils.dir_util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\dir_util.py',
    'PYMODULE'),
   ('lib2to3.refactor',
    'c:\\users\\noah '
@@ -974,13 +647,393 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\lib2to3\\pgen2\\__init__.py',
    'PYMODULE'),
-  ('distutils.sysconfig',
+  ('distutils.dep_util',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\sysconfig.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\dep_util.py',
    'PYMODULE'),
-  ('distutils.text_file',
+  ('distutils.ccompiler',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\text_file.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\ccompiler.py',
+   'PYMODULE'),
+  ('distutils.fancy_getopt',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\fancy_getopt.py',
+   'PYMODULE'),
+  ('distutils',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\__init__.py',
+   'PYMODULE'),
+  ('distutils.archive_util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\distutils\\archive_util.py',
+   'PYMODULE'),
+  ('tarfile',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tarfile.py',
+   'PYMODULE'),
+  ('tracemalloc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tracemalloc.py',
+   'PYMODULE'),
+  ('urllib.request',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\request.py',
+   'PYMODULE'),
+  ('getpass',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\getpass.py',
+   'PYMODULE'),
+  ('nturl2path',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\nturl2path.py',
+   'PYMODULE'),
+  ('ftplib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ftplib.py',
+   'PYMODULE'),
+  ('netrc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\netrc.py',
+   'PYMODULE'),
+  ('shlex',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\shlex.py',
+   'PYMODULE'),
+  ('mimetypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\mimetypes.py',
+   'PYMODULE'),
+  ('http.cookiejar',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\cookiejar.py',
+   'PYMODULE'),
+  ('http',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\__init__.py',
+   'PYMODULE'),
+  ('urllib.response',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\response.py',
+   'PYMODULE'),
+  ('http.client',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\client.py',
+   'PYMODULE'),
+  ('tkinter',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\__init__.py',
+   'PYMODULE'),
+  ('tkinter.ttk',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\ttk.py',
+   'PYMODULE'),
+  ('tkinter.constants',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\constants.py',
+   'PYMODULE'),
+  ('ctypes.util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\util.py',
+   'PYMODULE'),
+  ('ctypes._aix',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\_aix.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dyld',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\dyld.py',
+   'PYMODULE'),
+  ('ctypes.macholib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\__init__.py',
+   'PYMODULE'),
+  ('ctypes.macholib.dylib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\dylib.py',
+   'PYMODULE'),
+  ('ctypes.macholib.framework',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\macholib\\framework.py',
+   'PYMODULE'),
+  ('ctypes.wintypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\wintypes.py',
+   'PYMODULE'),
+  ('ctypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\__init__.py',
+   'PYMODULE'),
+  ('ctypes._endian',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\_endian.py',
+   'PYMODULE'),
+  ('gzip',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\gzip.py',
+   'PYMODULE'),
+  ('test.support.testresult',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\test\\support\\testresult.py',
+   'PYMODULE'),
+  ('xml.etree.ElementTree',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementTree.py',
+   'PYMODULE'),
+  ('xml.etree.cElementTree',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\cElementTree.py',
+   'PYMODULE'),
+  ('xml.etree.ElementInclude',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementInclude.py',
+   'PYMODULE'),
+  ('xml.parsers.expat',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\parsers\\expat.py',
+   'PYMODULE'),
+  ('xml.parsers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\parsers\\__init__.py',
+   'PYMODULE'),
+  ('xml',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.expatreader',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\expatreader.py',
+   'PYMODULE'),
+  ('xml.sax.saxutils',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\saxutils.py',
+   'PYMODULE'),
+  ('xml.sax',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.handler',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\handler.py',
+   'PYMODULE'),
+  ('xml.sax._exceptions',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\_exceptions.py',
+   'PYMODULE'),
+  ('xml.sax.xmlreader',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\sax\\xmlreader.py',
+   'PYMODULE'),
+  ('xml.etree.ElementPath',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementPath.py',
+   'PYMODULE'),
+  ('xml.etree',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\__init__.py',
+   'PYMODULE'),
+  ('urllib.error',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\urllib\\error.py',
+   'PYMODULE'),
+  ('sysconfig',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\sysconfig.py',
+   'PYMODULE'),
+  ('nntplib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\nntplib.py',
+   'PYMODULE'),
+  ('logging.handlers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\logging\\handlers.py',
+   'PYMODULE'),
+  ('win32evtlogutil',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\win32\\lib\\win32evtlogutil.py',
+   'PYMODULE'),
+  ('smtplib',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\smtplib.py',
+   'PYMODULE'),
+  ('hmac',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\hmac.py',
+   'PYMODULE'),
+  ('test',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\test\\__init__.py',
+   'PYMODULE'),
+  ('multiprocessing.context',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\context.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_win32',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_spawn_win32.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_forkserver',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_forkserver.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_spawn_posix',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_spawn_posix.py',
+   'PYMODULE'),
+  ('multiprocessing.popen_fork',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\popen_fork.py',
+   'PYMODULE'),
+  ('multiprocessing.sharedctypes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\sharedctypes.py',
+   'PYMODULE'),
+  ('multiprocessing.pool',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\pool.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\dummy\\__init__.py',
+   'PYMODULE'),
+  ('multiprocessing.dummy.connection',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\dummy\\connection.py',
+   'PYMODULE'),
+  ('multiprocessing.managers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\managers.py',
+   'PYMODULE'),
+  ('multiprocessing.shared_memory',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\shared_memory.py',
+   'PYMODULE'),
+  ('secrets',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\secrets.py',
+   'PYMODULE'),
+  ('multiprocessing.reduction',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\reduction.py',
+   'PYMODULE'),
+  ('multiprocessing.resource_sharer',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\resource_sharer.py',
+   'PYMODULE'),
+  ('multiprocessing.connection',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\connection.py',
+   'PYMODULE'),
+  ('xmlrpc.client',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xmlrpc\\client.py',
+   'PYMODULE'),
+  ('xmlrpc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xmlrpc\\__init__.py',
+   'PYMODULE'),
+  ('multiprocessing',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\multiprocessing\\__init__.py',
+   'PYMODULE'),
+  ('concurrent.futures._base',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\concurrent\\futures\\_base.py',
+   'PYMODULE'),
+  ('concurrent',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\concurrent\\__init__.py',
+   'PYMODULE'),
+  ('asyncio.base_tasks',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_tasks.py',
+   'PYMODULE'),
+  ('asyncio.locks',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\locks.py',
+   'PYMODULE'),
+  ('asyncio.sslproto',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\sslproto.py',
+   'PYMODULE'),
+  ('asyncio.transports',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\transports.py',
+   'PYMODULE'),
+  ('asyncio.base_events',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_events.py',
+   'PYMODULE'),
+  ('asyncio.protocols',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\protocols.py',
+   'PYMODULE'),
+  ('asyncio.futures',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\futures.py',
+   'PYMODULE'),
+  ('asyncio.coroutines',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\coroutines.py',
+   'PYMODULE'),
+  ('asyncio.base_futures',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\base_futures.py',
+   'PYMODULE'),
+  ('asyncio.exceptions',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\exceptions.py',
+   'PYMODULE'),
+  ('asyncio.format_helpers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\format_helpers.py',
+   'PYMODULE'),
+  ('asyncio.constants',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\asyncio\\constants.py',
+   'PYMODULE'),
+  ('unittest.result',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\unittest\\result.py',
+   'PYMODULE'),
+  ('unittest.util',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\unittest\\util.py',
+   'PYMODULE'),
+  ('pdb',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pdb.py',
+   'PYMODULE'),
+  ('pydoc',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc.py',
+   'PYMODULE'),
+  ('http.server',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\http\\server.py',
+   'PYMODULE'),
+  ('socketserver',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\socketserver.py',
+   'PYMODULE'),
+  ('html',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\html\\__init__.py',
+   'PYMODULE'),
+  ('html.entities',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\html\\entities.py',
+   'PYMODULE'),
+  ('pydoc_data.topics',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc_data\\topics.py',
+   'PYMODULE'),
+  ('pydoc_data',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\pydoc_data\\__init__.py',
+   'PYMODULE'),
+  ('tty',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tty.py',
    'PYMODULE'),
   ('code',
    'c:\\users\\noah '
@@ -1094,13 +1147,33 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\__init__.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging.markers',
+  ('pkg_resources._vendor.packaging.tags',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\markers.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\tags.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging.utils',
+  ('pkg_resources._vendor.packaging._compat',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\utils.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_compat.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.six',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\six.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.pyparsing',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\pyparsing.py',
+   'PYMODULE'),
+  ('uuid',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\uuid.py',
+   'PYMODULE'),
+  ('netbios',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\win32\\lib\\netbios.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.version',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\version.py',
    'PYMODULE'),
   ('pkg_resources._vendor.appdirs',
    'c:\\users\\noah '
@@ -1114,49 +1187,37 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\win32comext\\shell\\__init__.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.six',
+  ('pkg_resources._vendor.packaging.__about__',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\six.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__about__.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging.tags',
+  ('pkg_resources._vendor.packaging.markers',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\tags.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging._compat',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_compat.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\markers.py',
    'PYMODULE'),
   ('pkg_resources._vendor',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\__init__.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging.specifiers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\specifiers.py',
-   'PYMODULE'),
   ('pkg_resources._vendor.packaging.requirements',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\requirements.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging',
+  ('pkg_resources._vendor.packaging.utils',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__init__.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\utils.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.specifiers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\specifiers.py',
    'PYMODULE'),
   ('pkg_resources._vendor.packaging._structures',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_structures.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.pyparsing',
+  ('pkg_resources._vendor.packaging',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\pyparsing.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.version',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\version.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.__about__',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__about__.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__init__.py',
    'PYMODULE'),
   ('pkg_resources.extern',
    'c:\\users\\noah '
@@ -1177,9 +1238,29 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\_py_abc.py',
    'PYMODULE'),
-  ('tracemalloc',
+  ('cryptlex.lexactivator',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tracemalloc.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\lexactivator\\__init__.py',
+   'PYMODULE'),
+  ('cryptlex.lexactivator.lexactivator',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\lexactivator\\lexactivator.py',
+   'PYMODULE'),
+  ('cryptlex.lexactivator.lexactivator_exception',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\lexactivator\\lexactivator_exception.py',
+   'PYMODULE'),
+  ('cryptlex.lexactivator.lexstatus_codes',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\lexactivator\\lexstatus_codes.py',
+   'PYMODULE'),
+  ('cryptlex.lexactivator.lexactivator_native',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\lexactivator\\lexactivator_native.py',
+   'PYMODULE'),
+  ('cryptlex',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\cryptlex\\__init__.py',
    'PYMODULE'),
   ('modules.aldras_settings',
    'C:\\Users\\Noah '
@@ -1214,13 +1295,13 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pandas\\__init__.py',
    'PYMODULE'),
-  ('pandas._libs.window',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pandas\\_libs\\window\\__init__.py',
-   'PYMODULE'),
   ('pandas._libs.tslibs',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pandas\\_libs\\tslibs\\__init__.py',
+   'PYMODULE'),
+  ('pandas._libs.window',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pandas\\_libs\\window\\__init__.py',
    'PYMODULE'),
   ('pandas._version',
    'c:\\users\\noah '
@@ -1477,10 +1558,6 @@
   ('dateutil.tz.win',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\dateutil\\tz\\win.py',
-   'PYMODULE'),
-  ('ctypes.wintypes',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ctypes\\wintypes.py',
    'PYMODULE'),
   ('dateutil.tz._factories',
    'c:\\users\\noah '
@@ -1978,17 +2055,25 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\__init__.py',
    'PYMODULE'),
+  ('setuptools._vendor.packaging.markers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\markers.py',
+   'PYMODULE'),
   ('setuptools._vendor.ordered_set',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\ordered_set.py',
    'PYMODULE'),
-  ('setuptools._vendor.packaging.utils',
+  ('setuptools._vendor.packaging.version',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\utils.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\version.py',
    'PYMODULE'),
-  ('setuptools._vendor.packaging.specifiers',
+  ('setuptools._vendor',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\specifiers.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\__init__.py',
+   'PYMODULE'),
+  ('setuptools._vendor.six',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\six.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.tags',
    'c:\\users\\noah '
@@ -1998,41 +2083,33 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__about__.py',
    'PYMODULE'),
-  ('setuptools._vendor.packaging._structures',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_structures.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging.markers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\markers.py',
-   'PYMODULE'),
-  ('setuptools._vendor',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\__init__.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging._compat',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_compat.py',
-   'PYMODULE'),
   ('setuptools._vendor.packaging.requirements',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\requirements.py',
    'PYMODULE'),
-  ('setuptools._vendor.packaging.version',
+  ('setuptools._vendor.packaging.utils',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\version.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\utils.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__init__.py',
    'PYMODULE'),
-  ('setuptools._vendor.six',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\six.py',
-   'PYMODULE'),
   ('setuptools._vendor.pyparsing',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\pyparsing.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging._structures',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_structures.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging._compat',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_compat.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging.specifiers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\setuptools\\_vendor\\packaging\\specifiers.py',
    'PYMODULE'),
   ('setuptools.msvc',
    'c:\\users\\noah '
@@ -3102,6 +3179,10 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\dataclasses.py',
    'PYMODULE'),
+  ('ntpath',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\ntpath.py',
+   'PYMODULE'),
   ('pynput.mouse',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\pynput\\mouse\\__init__.py',
@@ -3258,18 +3339,6 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\mouseinfo\\__init__.py',
    'PYMODULE'),
-  ('tkinter.ttk',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\ttk.py',
-   'PYMODULE'),
-  ('tkinter',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\__init__.py',
-   'PYMODULE'),
-  ('tkinter.constants',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\tkinter\\constants.py',
-   'PYMODULE'),
   ('PIL.ImageGrab',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImageGrab.py',
@@ -3330,9 +3399,41 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\Image.py',
    'PYMODULE'),
-  ('PIL.Jpeg2KImagePlugin',
+  ('PIL.Hdf5StubImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PcdImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PcdImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IptcImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IptcImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SgiImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SgiImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FliImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FliImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.WebPImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\WebPImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XpmImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XpmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.CurImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\CurImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.GbrImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\GbrImagePlugin.py',
    'PYMODULE'),
   ('PIL.PdfImagePlugin',
    'c:\\users\\noah '
@@ -3342,53 +3443,21 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PdfParser.py',
    'PYMODULE'),
-  ('PIL.ImImagePlugin',
+  ('PIL.FitsStubImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FitsStubImagePlugin.py',
    'PYMODULE'),
-  ('PIL.BufrStubImagePlugin',
+  ('PIL.PsdImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PsdImagePlugin.py',
    'PYMODULE'),
-  ('PIL.SgiImagePlugin',
+  ('PIL.SunImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SgiImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SunImagePlugin.py',
    'PYMODULE'),
-  ('PIL.XVThumbImagePlugin',
+  ('PIL.FtexImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PcxImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PcxImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.IcnsImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IcnsImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.features',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\features.py',
-   'PYMODULE'),
-  ('PIL.GbrImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\GbrImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.BlpImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\BlpImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.XbmImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XbmImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.SpiderImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SpiderImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.ImageTk',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImageTk.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FtexImagePlugin.py',
    'PYMODULE'),
   ('PIL.MpoImagePlugin',
    'c:\\users\\noah '
@@ -3398,105 +3467,105 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PalmImagePlugin.py',
    'PYMODULE'),
-  ('PIL.MspImagePlugin',
+  ('PIL.PixarImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MspImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.EpsImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\EpsImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.MpegImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MpegImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PsdImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PsdImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.McIdasImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\McIdasImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.CurImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\CurImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.IptcImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IptcImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.TgaImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\TgaImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PixarImagePlugin.py',
    'PYMODULE'),
   ('PIL.DdsImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\DdsImagePlugin.py',
    'PYMODULE'),
-  ('PIL.WebPImagePlugin',
+  ('PIL.IcnsImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\WebPImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IcnsImagePlugin.py',
    'PYMODULE'),
-  ('PIL.SunImagePlugin',
+  ('PIL.features',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SunImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.MicImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MicImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.WmfImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\WmfImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.Hdf5StubImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.IcoImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IcoImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PixarImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PixarImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FpxImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FpxImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.XpmImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XpmImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PcdImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PcdImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FitsStubImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FitsStubImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.ImtImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImtImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FliImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FliImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FtexImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FtexImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\features.py',
    'PYMODULE'),
   ('PIL.GribStubImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\GribStubImagePlugin.py',
    'PYMODULE'),
+  ('PIL.FpxImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\FpxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PcxImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\PcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.WmfImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\WmfImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.BlpImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\BlpImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.Jpeg2KImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.BufrStubImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MpegImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MpegImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.TgaImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\TgaImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SpiderImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\SpiderImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImageTk',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImageTk.py',
+   'PYMODULE'),
+  ('PIL.IcoImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\IcoImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.EpsImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\EpsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImtImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImtImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XVThumbImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImImagePlugin.py',
+   'PYMODULE'),
   ('PIL.DcxImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\DcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.McIdasImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\McIdasImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XbmImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\XbmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MspImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MspImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MicImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\MicImagePlugin.py',
    'PYMODULE'),
   ('PIL.TiffImagePlugin',
    'c:\\users\\noah '
@@ -3541,26 +3610,6 @@
   ('PIL.ImageMode',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\site-packages\\PIL\\ImageMode.py',
-   'PYMODULE'),
-  ('xml.etree.ElementTree',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementTree.py',
-   'PYMODULE'),
-  ('xml.etree.cElementTree',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\cElementTree.py',
-   'PYMODULE'),
-  ('xml.etree.ElementInclude',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementInclude.py',
-   'PYMODULE'),
-  ('xml.etree.ElementPath',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\ElementPath.py',
-   'PYMODULE'),
-  ('xml.etree',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python38-32\\lib\\xml\\etree\\__init__.py',
    'PYMODULE'),
   ('PIL',
    'c:\\users\\noah '

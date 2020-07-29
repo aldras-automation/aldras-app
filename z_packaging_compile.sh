@@ -5,10 +5,10 @@ if [ -f "$cryptlex_file" ]; then
 	echo "The Cryptlex LexActivator.dll was located, proceeding with packing..."
 
 	# get input about whether to package with debugging console window (defaults to no debug on empty input)
-	read -p "Package with debugging console window? (y/n): " debug_input
+	read -p "Package with debugging console window? (y/[n]): " debug_input
 
 	# get input about whether to package with obfuscation (defaults to with obfuscation on empty input)
-	read -p "Package with obfuscation? (y/n): " obfuscate_input
+	read -p "Package with obfuscation? ([y]/n): " obfuscate_input
 
 	# remove old package and packaging tools
 	rm -rf build

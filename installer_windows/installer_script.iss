@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Aldras"
-#define MyAppVersion "2020.1"
+#define MyAppVersion "2020.5"
 #define MyAppPublisher "Aldras"
 #define MyAppURL "https://aldras.com/"
 #define MyAppExeName "Aldras.exe"
@@ -24,7 +24,7 @@ LicenseFile=C:\Users\Noah Baculi\Documents\aldras\data\license.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=aldras-setup-2020-1
+OutputBaseFilename=aldras-setup-2020-5
 SetupIconFile=C:\Users\Noah Baculi\Documents\aldras\data\aldras.ico
 Compression=lzma
 SolidCompression=yes
@@ -38,7 +38,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\Aldras.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs onlyifdoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
