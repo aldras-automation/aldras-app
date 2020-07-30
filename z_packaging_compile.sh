@@ -1,4 +1,4 @@
-cryptlex_file="C:\\Users\\Noah Baculi\\AppData\\Local\\Programs\\Python\\Python38-32\\Lib\\site-packages\\cryptlex\\lexactivator\\libs\\win32\\x86\\LexActivator.dll"
+cryptlex_file="C:\\Users\\Noah Baculi\\AppData\\Local\\Programs\\Python\\Python37\\Lib\\site-packages\\cryptlex\\lexactivator\\libs\\win32\\x86_64\\LexActivator.dll"
 
 if [ -f "$cryptlex_file" ]; then
 	# only execute if cryptlex LexActivator.dll can be located
