@@ -2988,7 +2988,9 @@ class EditFrame(wx.Frame):
     def save_to_file(self):
         """Write to workflow file"""
 
-        workflow_path_when_launched = f'{self.parent.workflow_directory}{self.workflow_name_when_launched}.txt'
+        workflow_path_when_launched = self.parent.workflow_path_name
+
+        print(workflow_path_when_launched)
 
         with open(workflow_path_when_launched, 'w') as record_file:
             record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
@@ -3155,7 +3157,8 @@ class SelectionFrame(wx.Frame):
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
 
-        print(license_type)
+        self.license_type = license_type
+        print(f'LICENSE type: {self.license_type}')
 
         self.workflow_directory = self.settings['Workflow folder']
         if not os.path.exists(self.workflow_directory):
@@ -3336,7 +3339,7 @@ class SelectionFrame(wx.Frame):
         self.Fit()
 
     def restart(self):
-        SelectionFrame(None)
+        SelectionFrame(None, self.license_type)
         self.Destroy()
 
     def on_exit(self, _):
@@ -3464,11 +3467,10 @@ class LicenseDialog(wx.Dialog):
             LexActivator.SetLicenseKey(self.license_key_input.GetValue())
             status = LexActivator.ActivateLicense()
             if LexStatusCodes.LA_OK == status or LexStatusCodes.LA_EXPIRED == status or LexStatusCodes.LA_SUSPENDED == status:
-                print("License activated successfully: ", status)
+                SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
             else:
-                print("License activation failed: ", status)
-
-            SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
+                wx.MessageDialog(self, 'Your license could not be activated due to an error.',
+                                 'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
 
             self.Destroy()
         except LexActivatorException as exception:

@@ -84,7 +84,7 @@ class LexActivator(builtins.object)
  |              LexActivatorException
  |
  |  DeactivateLicense()
- |      Deactivates the license activation and frees up the correponding activation
+ |      Deactivates the license activation and frees up the corresponding activation
  |      slot by contacting the Cryptlex servers.
  |
  |      Raises:
