@@ -3091,7 +3091,7 @@ class EditFrame(wx.Frame):
 class SelectionFrame(wx.Frame):
     """Main frame to select workflow."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, license_type):
         class SoftwareInfo:
             """Object to contain all information about Aldras."""
 
@@ -3154,6 +3154,8 @@ class SelectionFrame(wx.Frame):
         self.settings = import_settings()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
+
+        print(license_type)
 
         self.workflow_directory = self.settings['Workflow folder']
         if not os.path.exists(self.workflow_directory):
@@ -3449,7 +3451,7 @@ class LicenseDialog(wx.Dialog):
             LexActivator.ActivateTrial()
             trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
             show_notification(None, 'Trial Started', f'{trial_days_remaining} days remaining')
-            SelectionFrame(None)
+            SelectionFrame(None, 'Trial')
             self.Destroy()
 
         except LexActivatorException as exception:
@@ -3466,7 +3468,8 @@ class LicenseDialog(wx.Dialog):
             else:
                 print("License activation failed: ", status)
 
-            SelectionFrame(None)
+            SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
+
             self.Destroy()
         except LexActivatorException as exception:
             wx.MessageDialog(self,
@@ -3483,12 +3486,12 @@ def verify_license():
             "NEIzQkVCN0FEMkM0RDA1RTNGNTU3QjA2ODE2REQxMEI=.iZTNUzPGGQAXXbqnKy/Oahvijek6P3TQu+nIw7Cw4tqwVWKSnNEmmOyvck+ZNqTKoZXPA4roJaQnbm1Pf4Xl0ADwmA3AKbIw49DJVN4Y8jbPHD+NyVIf8Ehap6P72PjpwgTi68AxUlDutjaTkI1rGJvLawbpfvuezc1SgwB4V46jr+GzeHirvLcRY2CLrPUDPp+fs1Z5MIk+aLLdf4K4RibzERK3VhwKahhusxo7hwfJKXJhZkZjHGSkjcdvXRbb1Wtx5jXv/uxKgczEkU4RmtPnsYYuZ/GHEYTju0JfpUcKUlHH9tOgqZjvmVbwj5nv1K/+YxRlgZOf+JQe1R78C1K9UVixvezpgtUdN1R2BkD9sDfIlDl9VcPDf2spbjNfGczkriRzrWoUapTBzmzWwDzm8pZRdzxK95JBC+l3sbmDa+8DrAG7/0FCusTHmZITI0+OuOlom7FmoEQVvtfyE+XV3uXPRVltGM5D9DGWMHTsETV/4i4udnTZ0VipyElqapf5TgTDxtAGek/nYxXkQPLlgl0vr1Q3CdlBrm8Tr+o3SlO/pZZ7ubQ5kG+Edupg5tRDg0P33oCN8yPKMd3WAvRvDkcboDy7E7MpsVc0tQx63iKbgzeYITne/58aQKdZe+2dD/HhOBJFgRX3Mfkg7nCPUo38Stritrch1sZamej+gVdaViXfw2b0YCxNpZsfMRX0yTuduc8H11+vDK8feRrt+tfBkwFYK1lHLrZk7T4=")
         LexActivator.SetProductId("c1f701ce-2ad7-4505-a186-cd9e3eb89416", PermissionFlags.LA_USER)
 
-        # LexActivator.Reset()  # for testing purposes only
+        LexActivator.Reset()  # for testing purposes only
 
         license_status = LexActivator.IsLicenseGenuine()
         if license_status == LexStatusCodes.LA_OK:
             # license is valid
-            SelectionFrame(None)
+            SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
 
         elif license_status == LexStatusCodes.LA_EXPIRED:
             # license is genuinely activated but has expired
@@ -3514,7 +3517,7 @@ def verify_license():
                 # trial is valid
                 trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
                 show_notification(None, 'Trial Update', f'{trial_days_remaining} days of trial remaining')
-                SelectionFrame(None)
+                SelectionFrame(None, 'Trial')
                 print(f'Valid trial with {(LexActivator.GetTrialExpiryDate() - time.time()) / 86400} days left')
 
             elif trial_status == LexStatusCodes.LA_TRIAL_EXPIRED:
