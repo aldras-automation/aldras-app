@@ -115,9 +115,9 @@ def setup_frame(self, status_bar=False):
                     webbrowser.open_new_tab(self.parent.software_info.website)
 
                 # add license button
-                self.license_btn = wx.Button(self, label='License')
+                self.license_btn = wx.Button(self, label='EULA')
                 self.license_btn.SetFocus()
-                self.license_btn.Bind(wx.EVT_BUTTON, launch_license)
+                self.license_btn.Bind(wx.EVT_BUTTON, self.launch_eula)
                 self.hbox_btns.Add(self.license_btn)
 
                 self.hbox_btns.AddStretchSpacer()
@@ -125,7 +125,7 @@ def setup_frame(self, status_bar=False):
                 self.hbox_btns.AddStretchSpacer()
 
                 # add privacy statement button
-                self.privacy_btn = wx.Button(self, label='Privacy Statement')
+                self.privacy_btn = wx.Button(self, label='Privacy')
                 self.privacy_btn.Bind(wx.EVT_BUTTON, launch_privacy)
                 self.hbox_btns.Add(self.privacy_btn)
 
@@ -135,6 +135,47 @@ def setup_frame(self, status_bar=False):
                 self.vbox_outer.Add(self.vbox, 0, wx.ALL, 5)
                 self.SetSizerAndFit(self.vbox_outer)
                 self.Center()
+
+            def launch_eula(self, event):
+                class EULADialog(wx.Dialog):
+                    """Frame to display EULA"""
+
+                    def __init__(self, parent):
+                        wx.Dialog.__init__(self, parent, title='Aldras: End User License Agreement', name='eula_frame', style=wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER)
+                        self.SetBackgroundColour(wx.WHITE)
+                        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))  # assign icon
+
+                        # read the EULA license.txt file
+                        try:
+                            with open('data/license.txt', 'r') as license_file:
+                                license_text = ''.join(license_file.readlines())
+                        except FileNotFoundError:  # create file if not found
+                            license_text = 'License file could be found...\n\nPlease contact us at aldras.com/contact for EULA information.'
+
+                        vbox_container = wx.BoxSizer(wx.VERTICAL)
+                        vbox = wx.BoxSizer(wx.VERTICAL)
+
+                        vbox.AddSpacer(10)
+
+                        title_st = wx.StaticText(self, label='Aldras End User License Agreement')
+                        change_font(title_st, size=12)
+                        vbox.Add(title_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
+
+                        eula_text = wx.TextCtrl(self, value=license_text, style=wx.TE_MULTILINE | wx.TE_READONLY)
+                        vbox.Add(eula_text, 1, wx.EXPAND | wx.SOUTH, 10)
+
+                        vbox_container.Add(vbox, 1, wx.EXPAND | wx.EAST | wx.WEST, 10)
+
+                        close_btn = wx.Button(self, label='Close')
+                        close_btn.Bind(wx.EVT_BUTTON, lambda event: self.Close(True))
+                        vbox_container.Add(close_btn, 0, wx.ALIGN_RIGHT | wx.SOUTH | wx.EAST, 5)
+
+                        self.SetSizer(vbox_container)
+                        self.SetMinSize(wx.Size(400, 300))
+                        self.SetSize(wx.Size(500, 500))
+                        self.Center()
+
+                EULADialog(self).ShowModal()
 
         about_dlg = AboutDialog(self, f'About {self.software_info.name}')
         about_dlg.ShowModal()

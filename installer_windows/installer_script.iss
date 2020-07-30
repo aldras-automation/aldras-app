@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Aldras"
-#define MyAppVersion "2020.8"
+#define MyAppVersion "2020.1"
 #define MyAppPublisher "Aldras"
 #define MyAppURL "https://aldras.com/"
 #define MyAppExeName "Aldras.exe"
@@ -24,7 +24,7 @@ LicenseFile=C:\Users\Noah Baculi\Documents\aldras\data\license.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=aldras-setup-2020-8
+OutputBaseFilename=aldras-setup-2020-1
 SetupIconFile=C:\Users\Noah Baculi\Documents\aldras\data\aldras.ico
 Compression=lzma
 SolidCompression=yes
