@@ -1351,8 +1351,9 @@ class EditFrame(wx.Frame):
         text_value = str(line).replace('type:', '').replace('Type:', '').replace('``nl``', '\n')
         text_to_type = wx.lib.expando.ExpandoTextCtrl(self.edit, value=text_value)
         text_to_type.Bind(wx.EVT_TEXT, lambda event: self.command_parameter_change(sizer, event, 'type'))
-        text_to_type.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
-        text_to_type.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
+        if self.features_unlocked:
+            text_to_type.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
+            text_to_type.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
         config_status_and_tooltip(self, text_to_type, 'Text to type')
         sizer.Add(text_to_type, 1, wx.EXPAND)
         self.no_right_spacer = True
@@ -3097,14 +3098,19 @@ class EditFrame(wx.Frame):
                     record_file.write(f'{line}\n')
 
         else:
-            with open(workflow_path_when_launched.replace('.txt', '.aldras'), 'w') as record_file:
+            self.parent.recent_workflows.remove(workflow_path_when_launched)
+            workflow_path_when_launched = workflow_path_when_launched.replace('.txt', '.aldras')
+            self.parent.recent_workflows.insert(0, workflow_path_when_launched)
+            self.parent.update_recent_workflows()
+            with open(workflow_path_when_launched, 'w') as record_file:
                 hardware_id_text = f'HardwareID: {hardware_id}\n'
                 record_file.write(f'{fernet.encrypt(hardware_id_text.encode()).decode()}\n')
                 for line in self.lines:
                     record_file.write(f'{fernet.encrypt(line.encode()).decode()}\n')
 
         if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
-            workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
+            workflow_path_new = workflow_path_when_launched.replace(self.workflow_name_when_launched,
+                                                                    self.workflow_name)
             os.rename(workflow_path_when_launched, workflow_path_new)
             self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
             self.parent.recent_workflows.remove(workflow_path_when_launched)
@@ -3376,7 +3382,7 @@ class SelectionFrame(wx.Frame):
 
         # create buttons for most recently accessed workflows
         for workflow_path_name in self.recent_workflows[0:self.settings['Number of recent workflows displayed']]:
-            workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '')
+            workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '').replace('.aldras', '')
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
                                           lambda event, workflow_path_trap=workflow_path_name: launch_workflow(self,
