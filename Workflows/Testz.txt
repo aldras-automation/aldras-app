@@ -17,6 +17,7 @@ Key Esc Tap
 If {{~Var~}} Equals ~asdf~ {
 Wait 0.5
 }
-Left-mouse click at (10, 10)
+Loop multiple times 1 {
 Left-mouse click at (10, 103)
 Left-mouse click at (10, 210)
+}

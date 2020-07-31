@@ -474,7 +474,7 @@ def setup_frame(self, status_bar=False):
 
     ############
     # set up the insert menu
-    if self.GetName() == 'edit_frame':
+    if self.GetName() == 'edit_frame' and self.features_unlocked:
         self.variables_menu = wx.Menu()
         menu_bar.Append(self.variables_menu, 'Variables')  # add the insert menu to the menu bar
 
@@ -678,6 +678,8 @@ class EditFrame(wx.Frame):
         self.workflow_name_when_launched = parent.workflow_name
         self.parent = parent
         self.lines = lines
+        self.license_type = parent.license_type
+        self.features_unlocked = self.license_type in advanced_feature_license_types
         self.internet_connection = None
         self.clipboard = None
         self.variables_menu_items = dict()
@@ -793,10 +795,12 @@ class EditFrame(wx.Frame):
         # self.vbox_action.Add(self.reorder_btn, 0, wx.EXPAND | wx.SOUTH, 10)
 
         # add advanced command button
-        self.advanced_btn = wx.Button(self, label='Advanced')
-        self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_advanced_edit_frame())
-        config_status_and_tooltip(self, self.advanced_btn, 'Advanced text-based editor', 'Advanced text-based editor')
-        self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
+        if self.features_unlocked:
+            self.advanced_btn = wx.Button(self, label='Advanced')
+            self.advanced_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_advanced_edit_frame())
+            config_status_and_tooltip(self, self.advanced_btn, 'Advanced text-based editor',
+                                      'Advanced text-based editor')
+            self.vbox_action.Add(self.advanced_btn, 0, wx.EXPAND)
 
         self.vbox_action.AddStretchSpacer()
 
@@ -904,7 +908,7 @@ class EditFrame(wx.Frame):
 
         self.vbox_edit_container = wx.BoxSizer(wx.VERTICAL)
         self.vbox_edit_container.Add(self.edit, 1, wx.EXPAND)
-        self.vbox_edit_container.SetMinSize(wx.Size(700, 300))
+        self.vbox_edit_container.SetMinSize(wx.Size(750, 300))
         self.vbox_container.Replace(self.vbox_edit_container_temp, self.vbox_edit_container, recursive=True)
 
         if not first_creation:
@@ -924,8 +928,8 @@ class EditFrame(wx.Frame):
         extra_end_bracket_indices = []
         for index, line in enumerate(self.lines):
             line_first_word = line.strip().split(' ')[0].lower()[:6]
-            if ('if' in line_first_word and '{{~' in line and '~}}' in line) or (
-                    'loop' in line_first_word and '{' in line):
+            if self.features_unlocked and (('if' in line_first_word and '{{~' in line and '~}}' in line) or (
+                    'loop' in line_first_word and '{' in line)):
                 # add ending bracket at end of workflow if block ending bracket cannot be found
                 if block_end_index(self.lines, index) == -1:
                     self.lines.append('}')
@@ -1003,7 +1007,7 @@ class EditFrame(wx.Frame):
         try:
             if self.line.strip() == '}':  # do not add row for ending indent bracket
                 self.next_indent -= 1
-                if self.next_indent < 0:
+                if self.next_indent < 0 and self.features_unlocked:
                     print('Extra end bracket was rendered but should have been caught on ingest in render_lines().')
                     raise ValueError
                 end_indent = True
@@ -1084,17 +1088,27 @@ class EditFrame(wx.Frame):
                     self.add_command_combobox('Triple-click')
                     self.create_multi_click_row(self.line)
 
-                elif ('assign' in self.line_first_word) and ('{{~' in self.line) and ('~}}' in self.line):
-                    self.add_command_combobox('Assign')
-                    self.create_assign_var_row(line_orig)
+                elif self.features_unlocked and ('assign' in self.line_first_word) and ('{{~' in self.line) and (
+                        '~}}' in self.line):
+                    if self.features_unlocked:
+                        self.add_command_combobox('Assign')
+                        self.create_assign_var_row(line_orig)
+                    else:
+                        self.add_command_combobox('Pro Command')
 
                 elif 'if' in self.line_first_word and '{{~' in self.line and '~}}' in self.line:
-                    self.add_command_combobox('Conditional')
-                    self.create_conditional_row(line_orig)
+                    if self.features_unlocked:
+                        self.add_command_combobox('Conditional')
+                        self.create_conditional_row(line_orig)
+                    else:
+                        self.add_command_combobox('Pro Command')
 
                 elif ('loop' in self.line_first_word) and ('{' in self.line):
-                    self.add_command_combobox('Loop')
-                    self.create_loop_sizer(line_orig)
+                    if self.features_unlocked:
+                        self.add_command_combobox('Loop')
+                        self.create_loop_sizer(line_orig)
+                    else:
+                        self.add_command_combobox('Pro Command')
 
                 elif '-mouse' in self.line.strip().split(' ')[0]:
                     self.add_command_combobox('Mouse button')
@@ -2990,8 +3004,6 @@ class EditFrame(wx.Frame):
 
         workflow_path_when_launched = self.parent.workflow_path_name
 
-        print(workflow_path_when_launched)
-
         with open(workflow_path_when_launched, 'w') as record_file:
             record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
             for line in self.lines:
@@ -3100,6 +3112,9 @@ class SelectionFrame(wx.Frame):
             def __init__(self):
                 self.name = 'Aldras'
                 self.version = '2020.1.5 Alpha'
+
+                self.features_unlocked = license_type in advanced_feature_license_types
+
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -3128,12 +3143,22 @@ class SelectionFrame(wx.Frame):
                     'If {{~"variable"~}} "operation" ~"comparison"~ {\n\t"commands"\n  }': [
                         'If {{~diameter~}} < ~10~ {\n     Type:The circle is small.\n   }',
                         'Executes containing commands if conditional is satisfied']
+                    # need to add scrolled panel to advanced edit guide
+                    # 'Loop "behavior" {\n         "commands"\n}': [
+                    #     'Loop multiple times 5 {\n     Type:This will be executed 5 times.\n   }',
+                    #     #"Loop for each element in list [1`'`2`'`3`'`4`'`5] {\n     Type:This will be executed 5 times, with loop.var having a value of 1 through 5 depending on the loop iteration.\n   }"],
+                    #     'Executes containing commands in a repetitive loop']
                 }
                 self.advanced_edit_guide_commands.update(self.advanced_edit_guide_commands_pro)
                 self.advanced_edit_guide_website = f'{self.website}/edit-guide'
+
                 self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
-                                 'Mouse-move', 'Double-click', 'Triple-click', 'Comment', 'Assign', 'Conditional',
-                                 'Loop']
+                                 'Mouse-move', 'Double-click', 'Triple-click', 'Comment']
+                if self.features_unlocked:
+                    self.commands.extend(['Assign', 'Conditional', 'Loop'])
+                else:
+                    self.commands.extend(['Pro Command'])
+
                 self.mouse_buttons = ['Left', 'Right']
                 self.mouse_actions = ['Click', 'Press', 'Release']
                 self.key_actions = ['Tap', 'Press', 'Release']
@@ -3488,7 +3513,7 @@ def verify_license():
             "NEIzQkVCN0FEMkM0RDA1RTNGNTU3QjA2ODE2REQxMEI=.iZTNUzPGGQAXXbqnKy/Oahvijek6P3TQu+nIw7Cw4tqwVWKSnNEmmOyvck+ZNqTKoZXPA4roJaQnbm1Pf4Xl0ADwmA3AKbIw49DJVN4Y8jbPHD+NyVIf8Ehap6P72PjpwgTi68AxUlDutjaTkI1rGJvLawbpfvuezc1SgwB4V46jr+GzeHirvLcRY2CLrPUDPp+fs1Z5MIk+aLLdf4K4RibzERK3VhwKahhusxo7hwfJKXJhZkZjHGSkjcdvXRbb1Wtx5jXv/uxKgczEkU4RmtPnsYYuZ/GHEYTju0JfpUcKUlHH9tOgqZjvmVbwj5nv1K/+YxRlgZOf+JQe1R78C1K9UVixvezpgtUdN1R2BkD9sDfIlDl9VcPDf2spbjNfGczkriRzrWoUapTBzmzWwDzm8pZRdzxK95JBC+l3sbmDa+8DrAG7/0FCusTHmZITI0+OuOlom7FmoEQVvtfyE+XV3uXPRVltGM5D9DGWMHTsETV/4i4udnTZ0VipyElqapf5TgTDxtAGek/nYxXkQPLlgl0vr1Q3CdlBrm8Tr+o3SlO/pZZ7ubQ5kG+Edupg5tRDg0P33oCN8yPKMd3WAvRvDkcboDy7E7MpsVc0tQx63iKbgzeYITne/58aQKdZe+2dD/HhOBJFgRX3Mfkg7nCPUo38Stritrch1sZamej+gVdaViXfw2b0YCxNpZsfMRX0yTuduc8H11+vDK8feRrt+tfBkwFYK1lHLrZk7T4=")
         LexActivator.SetProductId("c1f701ce-2ad7-4505-a186-cd9e3eb89416", PermissionFlags.LA_USER)
 
-        LexActivator.Reset()  # for testing purposes only
+        # LexActivator.Reset()  # for testing purposes only
 
         license_status = LexActivator.IsLicenseGenuine()
         if license_status == LexStatusCodes.LA_OK:
@@ -3542,10 +3567,13 @@ if __name__ == '__main__':
 
     try:
         from cryptlex.lexactivator import *
+
         print('Cryptlex successfully imported')
     except Exception as e:
         print('Cryptlex unsuccessfully imported', e)
         input('Press enter to continue: ')
+
+    advanced_feature_license_types = ['Professional', 'Trial']  # these license types get access to unlockable features
 
     app = wx.App(False)
 
