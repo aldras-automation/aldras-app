@@ -15,6 +15,7 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 import ntpath
+from cryptography.fernet import Fernet
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
@@ -3013,10 +3014,18 @@ class EditFrame(wx.Frame):
 
         workflow_path_when_launched = self.parent.workflow_path_name
 
-        with open(workflow_path_when_launched, 'w') as record_file:
-            record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
-            for line in self.lines:
-                record_file.write(f'{line}\n')
+        if self.features_unlocked and self.workflow_path_name[-4:] == '.txt':
+            with open(workflow_path_when_launched, 'w') as record_file:
+                record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
+                for line in self.lines:
+                    record_file.write(f'{line}\n')
+
+        else:
+            with open(workflow_path_when_launched.replace('.txt', '.aldras'), 'w') as record_file:
+                hardware_id_text = f'HardwareID: {hardware_id}\n'
+                record_file.write(f'{fernet.encrypt(hardware_id_text.encode()).decode()}\n')
+                for line in self.lines:
+                    record_file.write(f'{fernet.encrypt(line.encode()).decode()}\n')
 
         if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
             workflow_path_new = f'{self.parent.workflow_directory}{self.workflow_name}.txt'
@@ -3115,15 +3124,13 @@ class SelectionFrame(wx.Frame):
     """Main frame to select workflow."""
 
     def __init__(self, parent, license_type):
+
         class SoftwareInfo:
             """Object to contain all information about Aldras."""
 
-            def __init__(self):
+            def __init__(self, features_unlocked):
                 self.name = 'Aldras'
                 self.version = '2020.1.5 Alpha'
-
-                self.features_unlocked = license_type in advanced_feature_license_types
-
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -3163,7 +3170,7 @@ class SelectionFrame(wx.Frame):
 
                 self.commands = ['Mouse button', 'Type', 'Wait', 'Special key', 'Function key', 'Media key', 'Hotkey',
                                  'Mouse-move', 'Double-click', 'Triple-click', 'Comment']
-                if self.features_unlocked:
+                if features_unlocked:
                     self.commands.extend(['Assign', 'Conditional', 'Loop'])
                 else:
                     self.commands.extend(['Pro Command'])
@@ -3186,12 +3193,12 @@ class SelectionFrame(wx.Frame):
                                       '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~']
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
-        self.software_info = SoftwareInfo()
+        self.license_type = license_type
+        self.features_unlocked = license_type in advanced_feature_license_types
+        self.software_info = SoftwareInfo(self.features_unlocked)
         self.settings = import_settings()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
         setup_frame(self)
-
-        self.license_type = license_type
         print(f'LICENSE type: {self.license_type}')
 
         self.workflow_directory = self.settings['Workflow folder']
@@ -3344,7 +3351,18 @@ class SelectionFrame(wx.Frame):
         # read or create workflow file
         try:
             with open(self.workflow_path_name, 'r') as record_file:
-                lines = record_file.readlines()
+                if self.workflow_path_name[-4:] == '.txt':
+                    lines = record_file.readlines()
+
+                elif self.workflow_path_name[-7:] == '.aldras':
+                    encrypted_lines = record_file.readlines()
+                    lines = []
+                    for line in encrypted_lines:
+                        lines.append(fernet.decrypt(line.encode()).decode())
+
+                else:
+                    print('INVALID WORKFLOW EXTENSION on ingest')
+
         except FileNotFoundError:  # create file if not found
             with open(self.workflow_path_name, 'w'):
                 lines = []
@@ -3582,6 +3600,7 @@ if __name__ == '__main__':
         print('Cryptlex unsuccessfully imported', e)
         input('Press enter to continue: ')
 
+    fernet = Fernet(b'hIYvMZaPz2ISuLmLXspJDwQNJVB_0D-d-Ftjm0eGSFo=')
     advanced_feature_license_types = ['Professional', 'Trial']  # these license types get access to unlockable features
 
     app = wx.App(False)
