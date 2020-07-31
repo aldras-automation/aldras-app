@@ -403,21 +403,16 @@ def setup_frame(self, status_bar=False):
     def on_exit(_):
         self.Close(True)
 
-    def on_open(event):
+    def on_open(_):
         """ Open a file"""
-        directory_chooser(self)
-
-    #########################################################################
-    # OR
-    #########################################################################
-    # directory selector
-    # dlg = wx.DirDialog(None, "Choose input directory", "", wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-    # if dlg.ShowModal() == wx.ID_OK:
-    #     fdir = dlg.GetPath() + "/"
-    #     dlg.SetPath(fdir)
-    #     print('You selected: %s\n' % dlg.GetPath())
-    # dlg.Destroy()
-
+        dlg = wx.FileDialog(self, 'Choose a file', wildcard='Aldras and text files (*.aldras;*.txt)|*.aldras;*.txt')
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            launch_workflow(self, os.path.join(dirname, filename))
+            if self.Name == 'edit_frame':
+                self.Destroy()
+        dlg.Destroy()
 
     if status_bar:
         self.CreateStatusBar()
@@ -560,6 +555,77 @@ def config_status_and_tooltip(parent, obj_to_config, status='', tooltip=''):
     if status:
         obj_to_config.Bind(wx.EVT_ENTER_WINDOW, lambda event: update_status_bar(parent, f'   {status}', event))
         obj_to_config.Bind(wx.EVT_LEAVE_WINDOW, lambda event: clear_status_bar(parent, event))
+
+
+def launch_workflow(parent, workflow_path_name, recent_launch=False):
+    if recent_launch:
+        # when launching recent workflow, make sure it still exists and read lines
+        try:
+            with open(workflow_path_name, 'r') as record_file:
+                pass
+        except FileNotFoundError:
+            wx.MessageDialog(parent,
+                             f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.',
+                             'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
+
+            parent.recent_workflows = eliminate_duplicates(parent.recent_workflows)
+            parent.recent_workflows.remove(workflow_path_name)
+            parent.update_recent_workflows()
+            return
+
+    if parent.Name == 'selection_frame':
+        selection_frame = parent
+    elif parent.Name == 'edit_frame':
+        selection_frame = parent.parent
+
+    if workflow_path_name[-4:] == '.txt':
+        selection_frame.workflow_name = ntpath.basename(workflow_path_name)[:-4]
+    elif workflow_path_name[-7:] == '.aldras':
+        selection_frame.workflow_name = ntpath.basename(workflow_path_name)[:-7]
+
+    selection_frame.workflow_path_name = workflow_path_name
+
+    # read or create workflow file
+    try:
+        with open(workflow_path_name, 'r') as record_file:
+            if workflow_path_name[-4:] == '.txt':
+                lines = record_file.readlines()
+
+            elif workflow_path_name[-7:] == '.aldras':
+                encrypted_lines = record_file.readlines()
+                lines = []
+                for line in encrypted_lines:
+                    lines.append(fernet.decrypt(line.encode()).decode())
+
+            else:
+                print('INVALID WORKFLOW EXTENSION on ingest')
+
+    except FileNotFoundError:  # create file if not found
+        with open(workflow_path_name, 'w'):
+            lines = []
+    lines = [line.replace('\n', '') for line in lines]
+
+    too_many_lines_thresh = parent.settings['Large lines number']
+    if len(lines) > too_many_lines_thresh:
+        confirm_long_workflow_dlg = wx.MessageDialog(None,
+                                                     f'"{selection_frame.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
+                                                     'Long Workflow Warning',
+                                                     wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+
+        if confirm_long_workflow_dlg.ShowModal() == wx.ID_NO:
+            return
+
+    selection_frame.Hide()
+    EditFrame(selection_frame, lines)
+
+    # add recently launched workflow to history
+    selection_frame.recent_workflows.insert(0, selection_frame.workflow_path_name)
+
+    # update frame
+    selection_frame.update_recent_workflows()
+    selection_frame.workflow_panel.SetSizerAndFit(selection_frame.vbox_outer)
+    selection_frame.vbox_outer.SetSizeHints(selection_frame)
+    selection_frame.Fit()
 
 
 class CustomGrid(wx.grid.Grid):
@@ -3303,8 +3369,9 @@ class SelectionFrame(wx.Frame):
             workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '')
             self.recent_workflow_btn = wx.Button(self.workflow_panel, wx.ID_ANY, label=workflow_name)
             self.recent_workflow_btn.Bind(wx.EVT_BUTTON,
-                                          lambda event, workflow_path_trap=workflow_path_name: self.launch_workflow(
-                                              workflow_path_trap, recent_launch=True))
+                                          lambda event, workflow_path_trap=workflow_path_name: launch_workflow(self,
+                                                                                                               workflow_path_trap,
+                                                                                                               recent_launch=True))
             self.hbox_recent.Add(self.recent_workflow_btn)
 
         self.hbox_recent.ShowItems(show=True)
@@ -3326,69 +3393,8 @@ class SelectionFrame(wx.Frame):
                                                     wx.YES_NO | wx.ICON_INFORMATION)
 
             if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
-                self.launch_workflow(
+                launch_workflow(
                     workflow_path_name=f'{self.workflow_directory}\\{self.workflow_name_input.GetValue().capitalize()}.txt')
-
-    def launch_workflow(self, workflow_path_name, recent_launch=False):
-        if recent_launch:
-            # when launching recent workflow, make sure it still exists and read lines
-            try:
-                with open(workflow_path_name, 'r') as record_file:
-                    pass
-            except FileNotFoundError:
-                wx.MessageDialog(self,
-                                 f'The recent workflow at \'{workflow_path_name}\' no longer exists.\nIt may have been renamed, moved, or deleted.',
-                                 'Missing workflow', wx.OK | wx.ICON_WARNING).ShowModal()
-
-                self.recent_workflows = eliminate_duplicates(self.recent_workflows)
-                self.recent_workflows.remove(workflow_path_name)
-                self.update_recent_workflows()
-                return
-
-        self.workflow_name = ntpath.basename(workflow_path_name).replace('.txt', '')
-        self.workflow_path_name = workflow_path_name
-
-        # read or create workflow file
-        try:
-            with open(self.workflow_path_name, 'r') as record_file:
-                if self.workflow_path_name[-4:] == '.txt':
-                    lines = record_file.readlines()
-
-                elif self.workflow_path_name[-7:] == '.aldras':
-                    encrypted_lines = record_file.readlines()
-                    lines = []
-                    for line in encrypted_lines:
-                        lines.append(fernet.decrypt(line.encode()).decode())
-
-                else:
-                    print('INVALID WORKFLOW EXTENSION on ingest')
-
-        except FileNotFoundError:  # create file if not found
-            with open(self.workflow_path_name, 'w'):
-                lines = []
-        lines = [line.replace('\n', '') for line in lines]
-
-        too_many_lines_thresh = self.settings['Large lines number']
-        if len(lines) > too_many_lines_thresh:
-            confirm_long_workflow_dlg = wx.MessageDialog(None,
-                                                         f'"{self.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
-                                                         'Long Workflow Warning',
-                                                         wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
-
-            if confirm_long_workflow_dlg.ShowModal() == wx.ID_NO:
-                return
-
-        self.Hide()
-        EditFrame(self, lines)
-
-        # add recently launched workflow to history
-        self.recent_workflows.insert(0, self.workflow_path_name)
-
-        # update frame
-        self.update_recent_workflows()
-        self.workflow_panel.SetSizerAndFit(self.vbox_outer)
-        self.vbox_outer.SetSizeHints(self)
-        self.Fit()
 
     def restart(self):
         SelectionFrame(None, self.license_type)
