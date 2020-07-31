@@ -608,7 +608,7 @@ def launch_workflow(parent, workflow_path_name, recent_launch=False):
     too_many_lines_thresh = parent.settings['Large lines number']
     if len(lines) > too_many_lines_thresh:
         confirm_long_workflow_dlg = wx.MessageDialog(None,
-                                                     f'"{selection_frame.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {self.software_info.name}.\n\nContinue anyway?',
+                                                     f'"{selection_frame.workflow_name}" has {len(lines)} lines.\n\nUsing loops and other tools is recommended to optimize workflows to less than {too_many_lines_thresh} lines to maximize the speed and stability of {selection_frame.software_info.name}.\n\nContinue anyway?',
                                                      'Long Workflow Warning',
                                                      wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
 
@@ -2678,13 +2678,18 @@ class EditFrame(wx.Frame):
 
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
+                    # add rescaled logo image
+                    png = wx.Image('data/record.png', wx.BITMAP_TYPE_PNG).Scale(120, 120, quality=wx.IMAGE_QUALITY_HIGH)
+                    icon_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+                    self.vbox.Add(icon_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
+
                     # add main directions
                     self.directions_a = wx.StaticText(self,
                                                       label=f'Start{self.parent.software_info.start_stop_directions}')
                     change_font(self.directions_a, size=14)
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
-                    self.vbox.AddSpacer(30)
+                    self.vbox.AddSpacer(15)
 
                     # add countdown
                     self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
@@ -2734,10 +2739,9 @@ class EditFrame(wx.Frame):
                     self.spacer_b = wx.StaticText(self, label='')
                     change_font(self.spacer_b, size=20)
                     self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    self.spacer_b.Show(False)
 
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                    self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
+                    self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
                     self.Position = (
                         int(self.parent_dialog.Position[0] + ((self.parent_dialog.Size[0] - self.Size[0]) / 2)),
@@ -2757,6 +2761,7 @@ class EditFrame(wx.Frame):
                     self.listener_thread = ListenerThread(self, record=True, record_pause=record_pause)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
+                    self.Center()
 
                 def read_thread_event_input(self, event):
                     """Show Result status."""
@@ -2774,7 +2779,6 @@ class EditFrame(wx.Frame):
 
                         if event.data == 'Action in 3':
                             self.countdown_light.SetLabel(' 2 1')
-                            self.spacer_b.Show(True)
 
                         elif event.data == 'Action in 3 2':
                             self.countdown_light.SetLabel(' 1')
@@ -2874,6 +2878,12 @@ class EditFrame(wx.Frame):
 
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
+                    # add rescaled logo image
+                    png = wx.Image('data/execute.png', wx.BITMAP_TYPE_PNG).Scale(120, 120,
+                                                                                 quality=wx.IMAGE_QUALITY_HIGH)
+                    icon_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+                    self.vbox.Add(icon_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
+
                     # add main directions
                     self.directions_a = wx.StaticText(self,
                                                       label=f'Start{self.parent.software_info.start_stop_directions}')
@@ -2888,7 +2898,7 @@ class EditFrame(wx.Frame):
                     change_font(self.directions_b, size=14, color=(170, 20, 20))
                     self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
-                    self.vbox.AddSpacer(30)
+                    self.vbox.AddSpacer(15)
 
                     self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -2906,7 +2916,7 @@ class EditFrame(wx.Frame):
                     self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
                     # --------------------------------------------------------------------------------------------------
 
-                    self.vbox.AddSpacer(20)
+                    self.vbox.AddSpacer(10)
 
                     # add status message
                     self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
@@ -2930,10 +2940,10 @@ class EditFrame(wx.Frame):
                     self.spacer_b = wx.StaticText(self, label='')
                     change_font(self.spacer_b, size=20)
                     self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    self.spacer_b.Show(False)
+                    # self.spacer_b.Show(False)
 
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                    self.vbox_outer.Add(self.vbox, 0, wx.NORTH | wx.WEST | wx.EAST, 50)
+                    self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
                     self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
                                      int(parent_dialog.Position[1]))
@@ -2948,6 +2958,7 @@ class EditFrame(wx.Frame):
                     self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
+                    self.Center()
 
                 def start_execution_thread(self):
                     self.execution_thread = ExecutionThread(self)
@@ -2969,7 +2980,6 @@ class EditFrame(wx.Frame):
 
                         if event.data == 'Action in 3':
                             self.countdown_light.SetLabel(' 2 1')
-                            self.spacer_b.Show(True)
 
                         elif event.data == 'Action in 3 2':
                             self.countdown_light.SetLabel(' 1')

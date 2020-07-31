@@ -191,7 +191,7 @@ class SettingsDialog(wx.Dialog):
 
         panel = wx.Panel(self)
 
-        # add rescaled logo image
+        # add rescaled image
         png = wx.Image('data/settings.png', wx.BITMAP_TYPE_PNG).Scale(120, 120,
                                                                       quality=wx.IMAGE_QUALITY_HIGH)
         self.logo_img = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(png))
