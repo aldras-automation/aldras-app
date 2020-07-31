@@ -491,11 +491,12 @@ class ExecutionThread(threading.Thread):
                 coords = coords_of(line)
                 pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=self.mouse_duration)
 
-            elif parent.features_unlocked and ('assign' in line_first_word) and ('{{~' in line) and ('~}}' in line):
+            elif self.parent.features_unlocked and ('assign' in line_first_word) and ('{{~' in line) and (
+                    '~}}' in line):
                 self.variables[variable_names_in(line_orig)[0]] = assignment_variable_value_in(
                     line_orig)  # store variable
 
-            elif parent.features_unlocked and ('if' in line_first_word) and ('{' in line):
+            elif self.parent.features_unlocked and ('if' in line_first_word) and ('{' in line):
                 conditional_var = variable_names_in(line_orig)[0]
 
                 conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',
@@ -539,7 +540,7 @@ class ExecutionThread(threading.Thread):
                     self.lines_should_be_executed[line_index:end_bracket_index] = [False] * (
                             end_bracket_index - line_index)
 
-            elif parent.features_unlocked and ('loop' in line_first_word) and ('{' in line):
+            elif self.parent.features_unlocked and ('loop' in line_first_word) and ('{' in line):
                 loop_end_index = block_end_index(self.lines_to_execute, line_index)
                 loop_lines = self.lines_to_execute[line_index + 1:loop_end_index]
 

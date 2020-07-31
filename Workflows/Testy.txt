@@ -1,4 +1,7 @@
-HardwareID: 17650
-Loop for each element in list [1`'`2`'`3`'`4`'`5] {
+HardwareID: 17786
 Type:{{~loop.list.var~}}
-}
+Left-mouse click at (10, 10)
+Pro Command
+Pro Command
+Left-mouse click at (10, 10)
+Left-mouse click at (10, 10)

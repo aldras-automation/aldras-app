@@ -1114,6 +1114,9 @@ class EditFrame(wx.Frame):
                     self.add_command_combobox('Mouse button')
                     self.create_mouse_row(self.line)
 
+                elif 'pro command' in self.line:
+                    self.add_command_combobox('Pro Command')
+
                 else:
                     raise ValueError
 
@@ -2025,32 +2028,34 @@ class EditFrame(wx.Frame):
         self.Freeze()
 
         # if deleting indent block, decrease indents and delete ending bracket
-        if ('if' in line_first_word and '{{~' in line and '~}}' in line) or ('loop' in line_first_word and '{' in line):
-            # find index of last element of indented block
-            next_same_indent_offset = self.indents[index + 1:].index(
-                self.indents[index])  # distance between indent start and end
-            end_bracket_indent = index + next_same_indent_offset
+        if self.features_unlocked:
+            if ('if' in line_first_word and '{{~' in line and '~}}' in line) or (
+                    'loop' in line_first_word and '{' in line):
+                # find index of last element of indented block
+                next_same_indent_offset = self.indents[index + 1:].index(
+                    self.indents[index])  # distance between indent start and end
+                end_bracket_indent = index + next_same_indent_offset
 
-            for indent_index in range(index, end_bracket_indent + 1):  # decrease indent of entire indent block
-                self.indents[indent_index] -= 1
+                for indent_index in range(index, end_bracket_indent + 1):  # decrease indent of entire indent block
+                    self.indents[indent_index] -= 1
 
-            for indent_index in range(index, end_bracket_indent + 1):  # reset indents of indent block
-                self.set_indent(indent_index)
+                for indent_index in range(index, end_bracket_indent + 1):  # reset indents of indent block
+                    self.set_indent(indent_index)
 
-            # only delete index of less indent if it is an end bracket
-            # only not called from delete dialog where end bracket is deleted before beginning of indent block
-            if self.lines[end_bracket_indent].strip() == '}':
-                for list_to_change in self.tracker_lists:  # delete end bracket from tracker_lists
-                    del (list_to_change[end_bracket_indent])
+                # only delete index of less indent if it is an end bracket
+                # only not called from delete dialog where end bracket is deleted before beginning of indent block
+                if self.lines[end_bracket_indent].strip() == '}':
+                    for list_to_change in self.tracker_lists:  # delete end bracket from tracker_lists
+                        del (list_to_change[end_bracket_indent])
 
-                self.vbox_edit.Show(end_bracket_indent, False)
-                self.vbox_edit.Remove(end_bracket_indent)
+                    self.vbox_edit.Show(end_bracket_indent, False)
+                    self.vbox_edit.Remove(end_bracket_indent)
 
-        if 'assign' in line_first_word and '{{~' in line and '~}}' in line:
-            self.remove_variable_menu_item(line)
+            if 'assign' in line_first_word and '{{~' in line and '~}}' in line:
+                self.remove_variable_menu_item(line)
 
-        if 'loop' in line_first_word and 'for each element in list' in line[:40].lower() and '{' in line:
-            self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+            if 'loop' in line_first_word and 'for each element in list' in line[:40].lower() and '{' in line:
+                self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
 
         for list_to_change in self.tracker_lists:  # delete command from tracker_lists
             del (list_to_change[index])
@@ -2341,6 +2346,10 @@ class EditFrame(wx.Frame):
             # add end of indent block
             self.lines.insert(index + 1, '}')
             self.create_command_sizer(index + 1, self.lines[index + 1])
+            self.vbox_edit.Layout()
+
+        elif new_action == 'Pro Command':
+            self.lines[index] = 'Pro Command'
             self.vbox_edit.Layout()
 
         self.create_delete_x_btn(sizer)
