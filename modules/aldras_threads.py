@@ -449,8 +449,17 @@ class ExecutionThread(threading.Thread):
                     if var_to_type in self.variables:
                         line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])
 
-                pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig),
-                                 interval=self.type_interval)
+                # split up text to type into smaller groups to check for self.keep_running in between group execution
+                num_char_per_execution = 2
+                text_type_groups = [line[ii:ii + num_char_per_execution] for ii in
+                                    range(0, len(line), num_char_per_execution)]
+
+                pyauto.PAUSE = 0
+                for text_type_group in text_type_groups:
+                    if self.keep_running:
+                        pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', text_type_group),
+                                         interval=self.type_interval)
+                pyauto.PAUSE = self.parent.parent.execution_pause
 
             elif 'wait' in line_first_word:
                 tot_time = float_in(line)

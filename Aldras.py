@@ -3000,6 +3000,7 @@ class EditFrame(wx.Frame):
 
                         elif event.data == 'Completed!':
                             self.execution_thread.abort()
+                            self.listener_thread.abort()
                             self.directions_a.Show(False)
                             self.directions_b.Show(False)
                             self.countdown_light.SetLabel('')
@@ -3016,6 +3017,7 @@ class EditFrame(wx.Frame):
 
                         elif event.data == 'Failsafe triggered':
                             self.execution_thread.abort()
+                            self.listener_thread.abort()
                             self.directions_a.Show(False)
                             self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
                             self.countdown_light.SetLabel('')
