@@ -746,7 +746,7 @@ class EditFrame(wx.Frame):
         self.parent = parent
         self.lines = lines
         self.license_type = parent.license_type
-        self.features_unlocked = self.license_type in advanced_feature_license_types
+        self.features_unlocked = any(x in self.license_type for x in advanced_feature_license_types)
         self.internet_connection = None
         self.clipboard = None
         self.variables_menu_items = dict()
@@ -3278,7 +3278,7 @@ class SelectionFrame(wx.Frame):
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
         self.license_type = license_type
-        self.features_unlocked = license_type in advanced_feature_license_types
+        self.features_unlocked = any(x in license_type for x in advanced_feature_license_types)
         self.software_info = SoftwareInfo(self.features_unlocked)
         self.settings = import_settings()
         wx.Frame.__init__(self, parent, title=f'{self.software_info.name} Automation', name='selection_frame')
@@ -3530,7 +3530,7 @@ class LicenseDialog(wx.Dialog):
             LexActivator.ActivateTrial()
             trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
             show_notification(None, 'Trial Started', f'{trial_days_remaining} days remaining')
-            SelectionFrame(None, 'Trial')
+            SelectionFrame(None, 'trial')
             self.Destroy()
 
         except LexActivatorException as exception:
@@ -3595,7 +3595,7 @@ def verify_license():
                 # trial is valid
                 trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
                 show_notification(None, 'Trial Update', f'{trial_days_remaining} days of trial remaining')
-                SelectionFrame(None, 'Trial')
+                SelectionFrame(None, 'trial')
                 print(f'Valid trial with {(LexActivator.GetTrialExpiryDate() - time.time()) / 86400} days left')
 
             elif trial_status == LexStatusCodes.LA_TRIAL_EXPIRED:
@@ -3625,7 +3625,7 @@ if __name__ == '__main__':
         input('Press enter to continue: ')
 
     fernet = Fernet(b'hIYvMZaPz2ISuLmLXspJDwQNJVB_0D-d-Ftjm0eGSFo=')
-    advanced_feature_license_types = ['Professional', 'Trial']  # these license types get access to unlockable features
+    advanced_feature_license_types = ['professional', 'trial']  # these license types get access to unlockable features
 
     app = wx.App(False)
 
