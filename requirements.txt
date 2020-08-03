@@ -7,12 +7,14 @@ Pillow == 7.2.0
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_tkinter.py: 7
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 9
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 7
-# C:\Users\Noah Baculi\Documents\aldras\obfuscated.py: 55
 PyAutoGUI == 0.9.50
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3498
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3620
 # C:\Users\Noah Baculi\Documents\aldras\Test_cryptlex.py: 2
 cryptlex.lexactivator == 3.11.0
+
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 18
+cryptography == 3.0
 
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 8
 numpy == 1.19.1
@@ -20,14 +22,12 @@ numpy == 1.19.1
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_old.py: 6
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_tkinter.py: 6
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 3
-# C:\Users\Noah Baculi\Documents\aldras\obfuscated.py: 52
 pandas == 1.1.0
 
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_old.py: 8
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_tkinter.py: 9
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 16
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 4
-# C:\Users\Noah Baculi\Documents\aldras\obfuscated.py: 168
 pynput == 1.6.8
 
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 10
@@ -43,5 +43,5 @@ screeninfo == 0.6.5
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_record.py: 2
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_settings.py: 5
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 5
-# C:\Users\Noah Baculi\Documents\aldras\obfuscated.py: 70
+# C:\Users\Noah Baculi\Documents\aldras\test_license_frame.py: 10,11
 wxPython == 4.1.0
