@@ -180,6 +180,8 @@ class ListenerThread(threading.Thread):
             'ctrl': ['ctrl_l', 'ctrl_r'],
             'alt': ['alt_gr', 'alt_l', 'alt_r'],
             'shift': ['shift_l', 'shift_r'],
+            'pageup': ['page_up'],
+            'pagedown': ['page_down'],
             'win': ['cmd_l', 'cmd_r', 'cmd']
         }
         # # manual lines example for testing
