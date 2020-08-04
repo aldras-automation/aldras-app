@@ -3093,7 +3093,7 @@ class EditFrame(wx.Frame):
 
         workflow_path_when_launched = self.parent.workflow_path_name
 
-        if self.features_unlocked and self.workflow_path_name[-4:] == '.txt':
+        if self.features_unlocked and workflow_path_when_launched[-4:] == '.txt':
             with open(workflow_path_when_launched, 'w') as record_file:
                 record_file.write(f'HardwareID: {hardware_id}\n')  # record hardware id
                 for line in self.lines:
@@ -3411,8 +3411,8 @@ class SelectionFrame(wx.Frame):
                                                     wx.YES_NO | wx.ICON_INFORMATION)
 
             if confirm_workflow_dlg.ShowModal() == wx.ID_YES:
-                launch_workflow(
-                    workflow_path_name=f'{self.workflow_directory}\\{self.workflow_name_input.GetValue().capitalize()}.txt')
+                launch_workflow(self,
+                                workflow_path_name=f'{self.workflow_directory}\\{self.workflow_name_input.GetValue().capitalize()}.txt')
 
     def restart(self):
         SelectionFrame(None, self.license_type)
