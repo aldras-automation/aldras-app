@@ -39,6 +39,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\Aldras.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\*"; Excludes: "data\settings.json"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\data\settings.json"; DestDir: "{app}\data"; Flags: ignoreversion onlyifdoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

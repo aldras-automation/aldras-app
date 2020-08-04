@@ -78,6 +78,8 @@ def validate_settings(settings_unvalidated):
         except (KeyError, ValueError):
             settings[key] = cast_type(factory_settings[key])
 
+    print('yeet', settings['Workflow folder'])
+
     if settings['Workflow folder'] == '':
         default_save_folder_dlg = wx.MessageDialog(None,
                                                    'Please select the default directory where Workflow files should be saved.',
@@ -99,11 +101,9 @@ def import_settings():
     # open data/settings.json file to import settings, otherwise create empty dictionary to use factory settings
     try:
         with open('data/settings.json', 'r') as json_file:
-            imported_settings = json.load(json_file)
+            imported_settings = validate_settings(json.load(json_file))
 
     except (FileNotFoundError, json.decoder.JSONDecodeError) as error:
-        imported_settings = dict()
-
         if isinstance(error, FileNotFoundError):
             wx.MessageDialog(None, 'The \'settings.json\' file could not be located and has been reconstructed.',
                              'Missing settings.json file', wx.OK | wx.ICON_INFORMATION).ShowModal()
