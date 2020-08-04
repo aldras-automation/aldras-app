@@ -180,9 +180,14 @@ class ListenerThread(threading.Thread):
             'ctrl': ['ctrl_l', 'ctrl_r'],
             'alt': ['alt_gr', 'alt_l', 'alt_r'],
             'shift': ['shift_l', 'shift_r'],
+            'win': ['cmd_l', 'cmd_r', 'cmd'],
+
+            # translations from pynput commands to Aldras (PyAutoGui) commands
             'pageup': ['page_up'],
             'pagedown': ['page_down'],
-            'win': ['cmd_l', 'cmd_r', 'cmd']
+            'del': ['delete'],
+            'prntscrn ': ['print_screen'],
+            'scrolllock ': ['scroll_lock'],
         }
         # # manual lines example for testing
         # lines = ['Key ctrl_l press at (2681, 64)', 'Key ctrl_l release at (2681, 69)']
