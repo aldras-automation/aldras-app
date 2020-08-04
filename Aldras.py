@@ -109,12 +109,6 @@ def setup_frame(self, status_bar=False):
 
                 self.hbox_btns = wx.BoxSizer(wx.HORIZONTAL)
 
-                def launch_license(_):
-                    webbrowser.open_new_tab(self.parent.software_info.website)
-
-                def launch_privacy(_):
-                    webbrowser.open_new_tab(self.parent.software_info.website)
-
                 # add license button
                 self.license_btn = wx.Button(self, label='EULA')
                 self.license_btn.SetFocus()
@@ -127,7 +121,8 @@ def setup_frame(self, status_bar=False):
 
                 # add privacy statement button
                 self.privacy_btn = wx.Button(self, label='Privacy')
-                self.privacy_btn.Bind(wx.EVT_BUTTON, launch_privacy)
+                self.privacy_btn.Bind(wx.EVT_BUTTON,
+                                      lambda event: webbrowser.open_new_tab('https://aldras.com/privacy'))
                 self.hbox_btns.Add(self.privacy_btn)
 
                 self.vbox.AddMany([(self.vbox_top, 0, wx.EXPAND | wx.NORTH | wx.EAST | wx.WEST, 40),
@@ -440,10 +435,11 @@ def setup_frame(self, status_bar=False):
     if self.GetName() != 'edit_frame':
         menu_save.Enable(False)
 
-    menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f'   Save {self.software_info.name} workflow as...')
-    # self.Bind(wx.EVT_MENU, ???, menu_save_as)
-    if self.GetName() != 'edit_frame':
-        menu_save_as.Enable(False)
+    # TODO enable 'Save As'
+    # menu_save_as = file_menu.Append(wx.ID_ANY, 'Save as...', f'   Save {self.software_info.name} workflow as...')
+    # # self.Bind(wx.EVT_MENU, ???, menu_save_as)
+    # if self.GetName() != 'edit_frame':
+    #     menu_save_as.Enable(False)
 
     menu_refresh = file_menu.Append(wx.ID_ANY, 'Refresh', f'   Refresh {self.software_info.name} workflow editor')
     self.Bind(wx.EVT_MENU, lambda event: self.full_refresh(), menu_refresh)
@@ -492,14 +488,14 @@ def setup_frame(self, status_bar=False):
     help_menu = wx.Menu()
 
     menu_tutorial = help_menu.Append(wx.ID_ANY, 'Tutorial', f'   {self.software_info.name} tutorial')
-    # self.Bind(wx.EVT_MENU, ???, menu_tutorial)
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#quickstart'), menu_tutorial)
 
     menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f'   {self.software_info.name} edit guide')
     # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
 
     menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
                                      f'   Submit feedback to {self.software_info.name}')
-    # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/contact'), menu_feedback)
 
     menu_bar.Append(help_menu, 'Help')  # add the insert menu to the menu bar
 
