@@ -443,6 +443,7 @@ class ExecutionThread(threading.Thread):
 
             if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
+                line_orig = re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig)  # replace 'Type:' command
 
                 # replace variable names defined so far with values
                 for var_to_type in variable_names_in(line_orig):
@@ -451,15 +452,14 @@ class ExecutionThread(threading.Thread):
 
                 # split up text to type into smaller groups to check for self.keep_running in between group execution
                 num_char_per_execution = 2
-                text_type_groups = [line[ii:ii + num_char_per_execution] for ii in
-                                    range(0, len(line), num_char_per_execution)]
+                text_type_groups = [line_orig[ii:ii + num_char_per_execution] for ii in
+                                    range(0, len(line_orig), num_char_per_execution)]
 
-                pyauto.PAUSE = 0
+                pyauto.PAUSE = 0  # eliminate pauses between text_type_groups
                 for text_type_group in text_type_groups:
                     if self.keep_running:
-                        pyauto.typewrite(re.compile(re.escape('type:'), re.IGNORECASE).sub('', text_type_group),
-                                         interval=self.type_interval)
-                pyauto.PAUSE = self.parent.parent.execution_pause
+                        pyauto.typewrite(text_type_group, interval=self.type_interval)
+                pyauto.PAUSE = self.parent.parent.execution_pause  # restore pauses after typing
 
             elif 'wait' in line_first_word:
                 tot_time = float_in(line)
