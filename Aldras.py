@@ -1112,7 +1112,7 @@ class EditFrame(wx.Frame):
                     self.hbox_edit.Insert(0, 0, 50, 1)
                     self.hbox_edit.Insert(0, 0, 0, 1)
 
-                elif '#' in self.line_first_word:  # workflow comment
+                elif self.line_first_word[0] == '#':  # workflow comment
                     self.add_command_combobox('Comment')
                     self.create_comment_row(line_orig)
 
