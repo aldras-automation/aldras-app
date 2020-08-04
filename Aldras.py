@@ -491,7 +491,7 @@ def setup_frame(self, status_bar=False):
     self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#quickstart'), menu_tutorial)
 
     menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f'   {self.software_info.name} edit guide')
-    # self.Bind(wx.EVT_MENU, ???, menu_edit_guide)
+    self.Bind(wx.EVT_MENU, lambda event: launch_edit_guide(self), menu_edit_guide)
 
     menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
                                      f'   Submit feedback to {self.software_info.name}')
@@ -624,6 +624,14 @@ def launch_workflow(parent, workflow_path_name, recent_launch=False):
     selection_frame.Fit()
 
 
+def launch_edit_guide(parent):
+    global adv_edit_guide
+    if not adv_edit_guide or not adv_edit_guide.IsShown():  # only if window does not yet exist or is not shown
+        adv_edit_guide = AdvancedEditGuide(parent)
+    else:
+        adv_edit_guide.Raise()  # bring existing edit guide to top
+
+
 class CustomGrid(wx.grid.Grid):
     def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True):
         wx.grid.Grid.__init__(self, parent, style=style)
@@ -729,6 +737,121 @@ class CustomGrid(wx.grid.Grid):
                                   excel_array[row_index - row_selection, column_index - col_selection])
 
         self.resize_rows()
+
+
+class AdvancedEditGuide(wx.Dialog):
+    def __init__(self, parent):
+        if parent.Name == 'selection_frame':
+            self.software_info = parent.software_info
+            self.workflow_name = ''
+        else:
+            self.software_info = parent.parent.software_info
+            self.workflow_name = parent.parent.workflow_name
+        wx.Dialog.__init__(self, parent, title=f'{self.software_info.name} Edit Guide',
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.SetBackgroundColour('white')
+
+        # create sizers
+        self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
+        self.vbox_inner = wx.BoxSizer(wx.VERTICAL)
+        self.vbox_inner.AddStretchSpacer()
+
+        # add advanced edit guide title
+        self.title = wx.StaticText(self, label='Advanced Edit Guide')
+        self.title_contrast = 60
+        change_font(self.title, size=18, color=3 * (self.title_contrast,))
+        self.vbox_inner.Add(self.title)
+
+        self.vbox_inner.AddSpacer(10)
+
+        # add advanced edit guide description
+        self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_description.AddSpacer(5)
+        self.description = wx.StaticText(self, label=self.software_info.advanced_edit_guide_description)
+        self.hbox_description.Add(self.description)
+        self.vbox_inner.Add(self.hbox_description)
+
+        self.vbox_inner.AddSpacer(10)
+
+        # add commands title
+        self.command_title = wx.StaticText(self, label='Commands')
+        change_font(self.command_title, size=14, color=3 * (self.title_contrast,))
+        self.command_title_contrast = self.title_contrast
+        self.vbox_inner.Add(self.command_title)
+
+        self.sbox_guide = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ''), wx.VERTICAL)
+        self.command_description = wx.StaticText(self,
+                                                 label=self.software_info.advanced_edit_guide_command_description)
+        change_font(self.command_description, size=10, family=wx.SWISS, style=wx.ITALIC)
+        self.sbox_guide.Add(self.command_description, 0, wx.ALIGN_RIGHT)
+
+        self.sbox_guide.AddSpacer(25)
+
+        # loop through commands
+        for command, data in self.software_info.advanced_edit_guide_commands.items():
+            example = data[0]
+            description = data[1]
+
+            # add command label
+            self.command = wx.StaticText(self, label=f'  {command}     ')
+            change_font(self.command, size=10, family=wx.SWISS, weight=wx.BOLD)
+            self.command.SetToolTip(description)
+            self.sbox_guide.Add(self.command)
+            self.sbox_guide.AddSpacer(5)
+
+            # add command example(s)
+            def formatted_example(example_text):
+                formatted_example_static_text = wx.StaticText(self, label=f'   {example_text}')
+                change_font(formatted_example_static_text, size=10, family=wx.MODERN, color=3 * (80,))
+                formatted_example_static_text.SetToolTip(description)
+                return formatted_example_static_text
+
+            if isinstance(example, list):
+                for each_example in example:
+                    self.sbox_guide.Add(formatted_example(each_example))
+            else:
+                self.sbox_guide.Add(formatted_example(example))
+
+            self.sbox_guide.AddSpacer(15)
+
+        self.vbox_inner.Add(self.sbox_guide)
+
+        self.vbox_inner.AddSpacer(20)
+
+        # add documentation description
+        docs_description = wx.StaticText(self,
+                                         label='For more including information about\nconditionals and loops...',
+                                         style=wx.ALIGN_CENTRE_HORIZONTAL)
+        change_font(docs_description, size=10, family=wx.DECORATIVE, color=3 * (100,))
+        self.vbox_inner.Add(docs_description, 0, wx.CENTER | wx.SOUTH, 8)
+
+        # add documentation title
+        self.docs = wx.StaticText(self, label='Read the Docs')
+        change_font(self.docs, size=13, family=wx.DECORATIVE, color=3 * (60,))
+        config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
+        self.vbox_inner.Add(self.docs, 0, wx.CENTER)
+
+        # TODO add documentation link
+        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
+                                              label=f'{self.software_info.name.lower()}.com/docs',
+                                              url=f'{self.software_info.website}/docs',
+                                              style=wx.adv.HL_DEFAULT_STYLE)
+        config_status_and_tooltip(self, self.docs_link, tooltip=f'{self.software_info.website}/docs')
+        change_font(self.docs_link, size=11, family=wx.DECORATIVE)
+        self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
+
+        self.vbox_inner.AddSpacer(15)
+        self.vbox_inner.AddStretchSpacer()
+
+        self.hbox_outer.AddStretchSpacer()
+        self.hbox_outer.Add(self.vbox_inner, 0, wx.CENTER | wx.EXPAND | wx.ALL, 10)
+        self.hbox_outer.AddStretchSpacer()
+
+        self.SetSizerAndFit(self.hbox_outer)
+        self.hbox_outer.SetSizeHints(self)
+
+        self.Center()
+        self.Show()
 
 
 class EditFrame(wx.Frame):
@@ -1849,125 +1972,11 @@ class EditFrame(wx.Frame):
                 self.Bind(wx.EVT_CLOSE, self.close_window)
 
             def advanced_edit_guide(self, _):
-
-                class AdvancedEditGuide(wx.Dialog):
-                    def __init__(self, parent):
-                        self.software_info = parent.parent.software_info
-                        self.workflow_name = parent.parent.workflow_name
-                        wx.Dialog.__init__(self, parent.parent, title=f'{self.software_info.name} Edit Guide',
-                                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-                        self.SetBackgroundColour('white')
-
-                        # create sizers
-                        self.hbox_outer = wx.BoxSizer(wx.HORIZONTAL)
-                        self.vbox_inner = wx.BoxSizer(wx.VERTICAL)
-                        self.vbox_inner.AddStretchSpacer()
-
-                        # add advanced edit guide title
-                        self.title = wx.StaticText(self, label='Advanced Edit Guide')
-                        self.title_contrast = 60
-                        change_font(self.title, size=18, color=3 * (self.title_contrast,))
-                        self.vbox_inner.Add(self.title)
-
-                        self.vbox_inner.AddSpacer(10)
-
-                        # add advanced edit guide description
-                        self.hbox_description = wx.BoxSizer(wx.HORIZONTAL)
-                        self.hbox_description.AddSpacer(5)
-                        self.description = wx.StaticText(self, label=self.software_info.advanced_edit_guide_description)
-                        self.hbox_description.Add(self.description)
-                        self.vbox_inner.Add(self.hbox_description)
-
-                        self.vbox_inner.AddSpacer(10)
-
-                        # add commands title
-                        self.command_title = wx.StaticText(self, label='Commands')
-                        change_font(self.command_title, size=14, color=3 * (self.title_contrast,))
-                        self.command_title_contrast = self.title_contrast
-                        self.vbox_inner.Add(self.command_title)
-
-                        self.sbox_guide = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ''), wx.VERTICAL)
-                        self.command_description = wx.StaticText(self,
-                                                                 label=self.software_info.advanced_edit_guide_command_description)
-                        change_font(self.command_description, size=10, family=wx.SWISS, style=wx.ITALIC)
-                        self.sbox_guide.Add(self.command_description, 0, wx.ALIGN_RIGHT)
-
-                        self.sbox_guide.AddSpacer(25)
-
-                        # loop through commands
-                        for command, data in self.software_info.advanced_edit_guide_commands.items():
-                            example = data[0]
-                            description = data[1]
-
-                            # add command label
-                            self.command = wx.StaticText(self, label=f'  {command}     ')
-                            change_font(self.command, size=10, family=wx.SWISS, weight=wx.BOLD)
-                            self.command.SetToolTip(description)
-                            self.sbox_guide.Add(self.command)
-                            self.sbox_guide.AddSpacer(5)
-
-                            # add command example(s)
-                            def formatted_example(example_text):
-                                formatted_example_static_text = wx.StaticText(self, label=f'   {example_text}')
-                                change_font(formatted_example_static_text, size=10, family=wx.MODERN, color=3 * (80,))
-                                formatted_example_static_text.SetToolTip(description)
-                                return formatted_example_static_text
-
-                            if isinstance(example, list):
-                                for each_example in example:
-                                    self.sbox_guide.Add(formatted_example(each_example))
-                            else:
-                                self.sbox_guide.Add(formatted_example(example))
-
-                            self.sbox_guide.AddSpacer(15)
-
-                        self.vbox_inner.Add(self.sbox_guide)
-
-                        self.vbox_inner.AddSpacer(20)
-
-                        # add documentation description
-                        docs_description = wx.StaticText(self,
-                                                         label='For more including information about\nconditionals and loops...',
-                                                         style=wx.ALIGN_CENTRE_HORIZONTAL)
-                        change_font(docs_description, size=10, family=wx.DECORATIVE, color=3 * (100,))
-                        self.vbox_inner.Add(docs_description, 0, wx.CENTER | wx.SOUTH, 8)
-
-                        # add documentation title
-                        self.docs = wx.StaticText(self, label='Read the Docs')
-                        change_font(self.docs, size=13, family=wx.DECORATIVE, color=3 * (60,))
-                        config_status_and_tooltip(self, self.docs, tooltip='More Documentation')
-                        self.vbox_inner.Add(self.docs, 0, wx.CENTER)
-
-                        # TODO add documentation link
-                        self.docs_link = wx.adv.HyperlinkCtrl(self, wx.ID_ANY,
-                                                              label=f'{self.software_info.name.lower()}.com/docs',
-                                                              url=f'{self.software_info.website}/docs',
-                                                              style=wx.adv.HL_DEFAULT_STYLE)
-                        config_status_and_tooltip(self, self.docs_link, tooltip=f'{self.software_info.website}/docs')
-                        change_font(self.docs_link, size=11, family=wx.DECORATIVE)
-                        self.vbox_inner.Add(self.docs_link, 0, wx.CENTER)
-
-                        self.vbox_inner.AddSpacer(15)
-                        self.vbox_inner.AddStretchSpacer()
-
-                        self.hbox_outer.AddStretchSpacer()
-                        self.hbox_outer.Add(self.vbox_inner, 0, wx.CENTER | wx.EXPAND | wx.ALL, 10)
-                        self.hbox_outer.AddStretchSpacer()
-
-                        self.SetSizerAndFit(self.hbox_outer)
-                        self.hbox_outer.SetSizeHints(self)
-
-                        self.Center()
-                        self.Show()
-
-                if not self.adv_edit_guide or not self.adv_edit_guide.IsShown():  # only if window does not yet exist or is not shown
-                    self.adv_edit_guide = AdvancedEditGuide(self)
-                else:
-                    self.adv_edit_guide.Raise()  # bring existing edit guide to top
+                launch_edit_guide(self)
 
             def close_window(self, close_event):
-                if self.adv_edit_guide:
-                    self.adv_edit_guide.Close(True)
+                if adv_edit_guide:
+                    adv_edit_guide.Close(True)
                 close_event.Skip()
 
         adv_edit_dlg = AdvancedEdit(self)
@@ -3610,6 +3619,7 @@ def verify_license():
 
 if __name__ == '__main__':
     mouse_monitor_frame = None
+    adv_edit_guide = None
     sys.excepthook = exception_handler
 
     try:
