@@ -1,3 +1,22 @@
 HardwareID: 17803
-Left-mouse click at (3471, 875)
-Type:1234``nl````nl``123``nl````nl````nl``what
+Left-mouse click at (3388, 15)
+Type:Noah
+Key tab tap
+Type:Baculi
+Key tab tap
+Type:Street
+Key tab tap
+Key tab tap
+Type:City
+Key tab tap
+Type:State
+Key tab tap
+Type:12345
+Key tab tap
+Type:9999999999
+Key tab tap
+Type:email@email.com
+Key tab tap
+Key tab tap
+Key page_down tap
+Key page_up release

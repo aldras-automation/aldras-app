@@ -439,9 +439,10 @@ class ExecutionThread(threading.Thread):
     def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
-            line_first_word = line.strip().split(' ')[0][:10]
+            line_first_word = line.strip().split(' ')[0]
 
-            if 'type' in line_first_word:  # 'type' command execution should be checked-for first because it may contain other command keywords
+            if 'type' in line_first_word[
+                         :4]:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
                 line_orig = re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig)  # replace 'Type:' command
 
@@ -461,7 +462,7 @@ class ExecutionThread(threading.Thread):
                         pyauto.typewrite(text_type_group, interval=self.type_interval)
                 pyauto.PAUSE = self.parent.parent.execution_pause  # restore pauses after typing
 
-            elif 'wait' in line_first_word:
+            elif 'wait' in line_first_word[:4]:
                 tot_time = float_in(line)
                 time_floored = math.floor(
                     0.05 * math.floor(tot_time / 0.05))  # round down to nearest 0.05
@@ -472,12 +473,13 @@ class ExecutionThread(threading.Thread):
                 time.sleep(
                     tot_time - time_floored)  # wait additional time unaccounted for in rounding
 
-            elif 'hotkey' in line_first_word:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is contained in 'hotkey'
+            elif 'hotkey' in line_first_word[
+                             :6]:  # 'hotkey' command execution should be checked-for before 'key' because 'key' is contained in 'hotkey'
                 hotkeys = line.lower().replace('hotkey', '').replace(' ', '').split('+')
                 pyauto.hotkey(
                     *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
 
-            elif 'key' in line_first_word:
+            elif 'key' in line_first_word[:3]:
                 if 'tap' in line:
                     key = line.lower().replace('key', '').replace('tap', '').replace(' ', '')
                     pyauto.press(key)
@@ -492,11 +494,11 @@ class ExecutionThread(threading.Thread):
                 coords = coords_of(line)
                 pyauto.moveTo(x=coords[0], y=coords[1], duration=self.mouse_duration)
 
-            elif 'doubleclick' in line_first_word:
+            elif 'double-click' in line_first_word:
                 coords = coords_of(line)
                 pyauto.click(clicks=2, x=coords[0], y=coords[1], duration=self.mouse_duration)
 
-            elif 'tripleclick' in line_first_word:
+            elif 'triple-click' in line_first_word:
                 coords = coords_of(line)
                 pyauto.click(clicks=3, x=coords[0], y=coords[1], duration=self.mouse_duration)
 
