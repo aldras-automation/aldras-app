@@ -78,8 +78,6 @@ def validate_settings(settings_unvalidated):
         except (KeyError, ValueError):
             settings[key] = cast_type(factory_settings[key])
 
-    print('yeet', settings['Workflow folder'])
-
     if settings['Workflow folder'] == '':
         default_save_folder_dlg = wx.MessageDialog(None,
                                                    'Please select the default directory where Workflow files should be saved.',

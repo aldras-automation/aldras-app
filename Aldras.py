@@ -3514,7 +3514,7 @@ class LicenseDialog(wx.Dialog):
         self.button_array.Add(self.activate_btn)
         self.button_array.AddSpacer(5)
         self.close_btn = wx.Button(self.license_panel, label='Close')
-        self.close_btn.Bind(wx.EVT_BUTTON, lambda event: self.Close(True))
+        self.close_btn.Bind(wx.EVT_BUTTON, lambda event: self.Destroy())
         self.button_array.Add(self.close_btn)
 
         self.vbox.Add(self.button_array, 0, wx.EXPAND | wx.SOUTH, 10)
@@ -3558,9 +3558,6 @@ class LicenseDialog(wx.Dialog):
             wx.MessageDialog(self,
                              f'Your license could not be activated\n\n{exception.message}',
                              'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
-
-    def on_exit(self, _):
-        self.Close(True)
 
 
 def verify_license():
