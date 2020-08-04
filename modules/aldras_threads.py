@@ -71,6 +71,15 @@ class ListenerThread(threading.Thread):
 
                 if self.in_action:
 
+                    # replace numberpad virtual keycodes with strings of the number digits
+                    for number in range(10):  # loop through 0-9 and replace keycodes starting at <96>
+                        key = str(key).replace(f'<{96 + number}>', str(number))
+
+                    # replace numberpad period with string
+                    key = str(key).replace('<110>', '.')
+
+                    output = str(key).strip('\'').lower()  # strip single quotes and lower
+
                     if not output.startswith('key'):  # change case if output is alphanumeric and capslock is active
                         # get capslock status on windows
                         if WinDLL("User32.dll").GetKeyState(0x14):  # TODO test on other platforms
@@ -188,6 +197,7 @@ class ListenerThread(threading.Thread):
             'del': ['delete'],
             'prntscrn ': ['print_screen'],
             'scrolllock ': ['scroll_lock'],
+            'numlock ': ['num_lock'],
         }
         # # manual lines example for testing
         # lines = ['Key ctrl_l press at (2681, 64)', 'Key ctrl_l release at (2681, 69)']
