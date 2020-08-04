@@ -55,7 +55,7 @@ if [ -f "$cryptlex_file" ]; then
 	rm -rf dist/Aldras/data/settings.json
 
 	# copy default settings file
-	cp -i data/settings.json dist/Aldras/data/
+	cp -i default_settings/settings.json dist/Aldras/data/
 
 	# cd into distribution directory and run executable for the first time to regenerate stock files
 	cd dist/Aldras
