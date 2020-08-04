@@ -3214,7 +3214,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.1.5 Alpha'
+                self.version = '2020.1 Beta'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png

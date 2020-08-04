@@ -104,10 +104,6 @@ def import_settings():
     except (FileNotFoundError, json.decoder.JSONDecodeError) as error:
         imported_settings = dict()
 
-        # reconstruct settings.json file with factory settings
-        with open('data/settings.json', 'w') as json_file:
-            json.dump(validate_settings(dict()), json_file, indent=4)
-
         if isinstance(error, FileNotFoundError):
             wx.MessageDialog(None, 'The \'settings.json\' file could not be located and has been reconstructed.',
                              'Missing settings.json file', wx.OK | wx.ICON_INFORMATION).ShowModal()
@@ -115,7 +111,12 @@ def import_settings():
             wx.MessageDialog(None, 'The \'settings.json\' file could not be decoded and has been reconstructed.',
                              'Corrupt settings.json file', wx.OK | wx.ICON_INFORMATION).ShowModal()
 
-    return validate_settings(imported_settings)
+        # reconstruct settings.json file with factory settings
+        with open('data/settings.json', 'w') as json_file:
+            imported_settings = validate_settings(dict())
+            json.dump(imported_settings, json_file, indent=4)
+
+    return imported_settings
 
 
 def save_settings(settings):
