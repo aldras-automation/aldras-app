@@ -16,7 +16,7 @@ import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 import ntpath
 from cryptography.fernet import Fernet
-
+from datetime import datetime
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, directory_chooser
@@ -175,6 +175,126 @@ def setup_frame(self, status_bar=False):
 
         about_dlg = AboutDialog(self, f'About {self.software_info.name}')
         about_dlg.ShowModal()
+
+    def on_license_manager(_):
+        """Creates license management dialog."""
+
+        class LicenseManagerDialog(wx.Dialog):
+            def __init__(self, parent):
+                wx.Dialog.__init__(self, parent, title='Aldras License Manager', name='license_manager_dialog')
+                self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
+                self.SetBackgroundColour('white')
+                self.parent = parent
+                panel = wx.Panel(self)
+
+                self.margin_y = 10
+                self.margin_x = 10
+
+                self.vbox = wx.BoxSizer(
+                    wx.VERTICAL)  # ------------------------------------------------------------------------
+
+                self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
+
+                # add rescaled logo image
+                png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(60, 60, quality=wx.IMAGE_QUALITY_HIGH)
+                self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+                self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+                self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
+
+                # add program name text
+                self.program_name = wx.StaticText(self, label=f'Aldras Automation')
+                change_font(self.program_name, size=16, color=3 * (20,))
+                self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+                # add program version text
+                self.program_version = wx.StaticText(self, label=f'Version 2020')
+                change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
+                self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+                self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
+                self.vbox.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+                self.vbox.AddSpacer(20)
+
+                # TODO account for trial activations
+
+                # get license info
+                license_type = LexActivator.GetLicenseMetadata('Type')
+                license_plan = license_type.split()[0].capitalize()
+                billing_period = license_type.split()[1].capitalize()
+                expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime('%Y-%m-%d')
+                
+                info_size = 11
+                info_contrast = 50
+
+                # add license type text
+                license_plan_st = wx.StaticText(panel, label=f'{license_plan} {billing_period}')
+                change_font(license_plan_st, size=info_size, color=3 * (info_contrast,), weight=wx.FONTWEIGHT_BOLD)
+                self.vbox.Add(license_plan_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
+
+                # add expiration date text
+                expiration_date_st = wx.StaticText(panel, label=f'Renews on {expiration_date}')
+                change_font(expiration_date_st, size=9, color=3 * (info_contrast,), weight=wx.FONTWEIGHT_BOLD)
+                self.vbox.Add(expiration_date_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
+
+                # add license key text
+                license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(), size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
+                self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 30)
+
+                self.vbox.AddSpacer(40)
+
+                # add buttons
+                button_array = wx.StdDialogButtonSizer()
+
+                unregister_btn = wx.Button(panel, label='Unregister')
+                unregister_btn.Bind(wx.EVT_BUTTON, self.unregister_license)
+                button_array.Add(unregister_btn)
+
+                button_array.AddStretchSpacer()
+
+                pause_btn = wx.Button(panel, label='Pause')
+                pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
+                button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
+
+                change_btn = wx.Button(panel, label='Change')
+                change_btn.Bind(wx.EVT_BUTTON, self.change_license)
+                button_array.Add(change_btn)
+
+                self.vbox.Add(button_array, 0, wx.EXPAND | wx.SOUTH, 10)
+
+                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+                self.vbox_outer.AddSpacer(self.margin_y)  # north margin
+                self.vbox_outer.Add(self.vbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, self.margin_x)
+
+                # display frame
+                panel.SetSizerAndFit(self.vbox_outer)
+                self.vbox_outer.SetSizeHints(self)
+                license_key_input.SetFocus()
+                self.Center()
+                self.Show()
+
+            def unregister_license(self, _):
+                try:
+                    confirm_unregister_dlg = wx.MessageDialog(None, 'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.', 'Aldras: Confirm License Unregister', wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+
+                    if confirm_unregister_dlg.ShowModal() == wx.ID_YES:
+                        LexActivator.DeactivateLicense()
+                        self.Destroy()
+                        self.parent.Destroy()
+                        verify_license()
+
+                except LexActivatorException as exception:
+                    wx.MessageDialog(None, f'Your license could not be unregistered\n\n{exception.message}',
+                                     'Aldras: Cannot Unregistered License', wx.OK | wx.ICON_ERROR).ShowModal()
+
+            def pause_subscription(self, _):
+                pass
+
+            def change_license(self, _):
+                pass
+
+        license_manager_dlg = LicenseManagerDialog(self)
+        license_manager_dlg.ShowModal()
 
     def on_mouse_monitor(_):
         global mouse_monitor_frame
@@ -461,6 +581,10 @@ def setup_frame(self, status_bar=False):
     menu_mouse_monitor = tools_menu.Append(wx.ID_ANY, 'Mouse monitor\tCtrl+M',
                                            f'   {self.software_info.name} mouse monitoring tool')
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
+
+    menu_license_manager = tools_menu.Append(wx.ID_ANY, 'License Manager',
+                                           f'   {self.software_info.name} license manager tool')
+    self.Bind(wx.EVT_MENU, on_license_manager, menu_license_manager)
 
     menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
 

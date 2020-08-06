@@ -1,0 +1,5 @@
+HardwareID: 17803
+Left-mouse click at (3276, 222)
+Loop for each element in list [Noah`'`Emily`'`Stacy`'`Mike`'`John] {
+Type:{{~loop.list.var~}}``nl``
+}

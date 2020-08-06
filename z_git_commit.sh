@@ -2,7 +2,7 @@ pigar  # evaluate dependencies
 
 git status
 
-read -p "Git commit all? (y/n): " continue_input
+read -p "Git commit all? ([y]/n): " continue_input
 
 if [[ $continue_input == *"n"* ]]; then
 	echo "Not committing..."
