@@ -212,53 +212,61 @@ def setup_frame(self, status_bar=False):
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
-                self.vbox.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                self.vbox.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 30)
 
                 self.vbox.AddSpacer(20)
 
                 # TODO account for trial activations
 
                 # get license info
-                license_type = LexActivator.GetLicenseMetadata('Type')
-                license_plan = license_type.split()[0].capitalize()
-                billing_period = license_type.split()[1].capitalize()
-                expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime('%Y-%m-%d')
-                
-                info_size = 11
-                info_contrast = 50
+                license_type = ''
+                if LexActivator.IsTrialGenuine() == LexStatusCodes.LA_OK:
+                    license_type = 'Free Trial'
+                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetTrialExpiryDate()).strftime('%Y-%m-%d')
+                    expiration = f'Ends on {expiration_date}'
+                elif LexActivator.IsLicenseGenuine() == LexStatusCodes.LA_OK:
+                    license_type = LexActivator.GetLicenseMetadata('Type').title()
+                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime('%Y-%m-%d')
+                    expiration = f'Renews on {expiration_date}'
 
                 # add license type text
-                license_plan_st = wx.StaticText(panel, label=f'{license_plan} {billing_period}')
-                change_font(license_plan_st, size=info_size, color=3 * (info_contrast,), weight=wx.FONTWEIGHT_BOLD)
+                license_plan_st = wx.StaticText(panel, label=license_type)
+                change_font(license_plan_st, size=14, color=3 * (50,), weight=wx.FONTWEIGHT_MEDIUM)
                 self.vbox.Add(license_plan_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
 
                 # add expiration date text
-                expiration_date_st = wx.StaticText(panel, label=f'Renews on {expiration_date}')
-                change_font(expiration_date_st, size=9, color=3 * (info_contrast,), weight=wx.FONTWEIGHT_BOLD)
+                expiration_date_st = wx.StaticText(panel, label=expiration)
+                change_font(expiration_date_st, size=9, color=3 * (50,), weight=wx.FONTWEIGHT_MEDIUM)
                 self.vbox.Add(expiration_date_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
 
                 # add license key text
-                license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(), size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
-                self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 30)
+                if LexActivator.IsTrialGenuine() == LexStatusCodes.LA_OK:
+                    self.vbox.AddSpacer(20)
+                else:
+                    license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(), size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
+                    self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL)# | wx.EAST | wx.WEST, 30)
 
-                self.vbox.AddSpacer(40)
+                    self.vbox.AddSpacer(40)
 
                 # add buttons
                 button_array = wx.StdDialogButtonSizer()
 
+                # if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
                 unregister_btn = wx.Button(panel, label='Unregister')
                 unregister_btn.Bind(wx.EVT_BUTTON, self.unregister_license)
                 button_array.Add(unregister_btn)
 
                 button_array.AddStretchSpacer()
 
-                pause_btn = wx.Button(panel, label='Pause')
-                pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
-                button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
+                if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
+                    pause_btn = wx.Button(panel, label='Pause')
+                    pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
+                    button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
 
-                change_btn = wx.Button(panel, label='Change')
-                change_btn.Bind(wx.EVT_BUTTON, self.change_license)
-                button_array.Add(change_btn)
+                if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
+                    change_btn = wx.Button(panel, label='Change Plan')
+                    change_btn.Bind(wx.EVT_BUTTON, lambda event: webbrowser.open_new_tab('https://aldras.com/change-plan'))
+                    button_array.Add(change_btn)
 
                 self.vbox.Add(button_array, 0, wx.EXPAND | wx.SOUTH, 10)
 
@@ -269,28 +277,33 @@ def setup_frame(self, status_bar=False):
                 # display frame
                 panel.SetSizerAndFit(self.vbox_outer)
                 self.vbox_outer.SetSizeHints(self)
-                license_key_input.SetFocus()
+                # license_key_input.SetFocus()
                 self.Center()
                 self.Show()
 
             def unregister_license(self, _):
                 try:
-                    confirm_unregister_dlg = wx.MessageDialog(None, 'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.', 'Aldras: Confirm License Unregister', wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+                    if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
+                        confirm_unregister_dlg = wx.MessageDialog(None, 'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.', 'Aldras: Confirm License Unregister', wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+                        if confirm_unregister_dlg.ShowModal() == wx.ID_NO:
+                            return
 
-                    if confirm_unregister_dlg.ShowModal() == wx.ID_YES:
-                        LexActivator.DeactivateLicense()
-                        self.Destroy()
-                        self.parent.Destroy()
-                        verify_license()
+                    if self.parent.Name == 'edit_frame':
+                        if self.parent.save_workflow() == 'cancel':
+                            return
+
+                    LexActivator.DeactivateLicense()
+                    LexActivator.Reset()
+
+                    self.Destroy()
+                    self.parent.Destroy()
+                    os.execl(sys.executable, sys.executable, * sys.argv)  # restart program, does not work in IDE
 
                 except LexActivatorException as exception:
                     wx.MessageDialog(None, f'Your license could not be unregistered\n\n{exception.message}',
                                      'Aldras: Cannot Unregistered License', wx.OK | wx.ICON_ERROR).ShowModal()
 
             def pause_subscription(self, _):
-                pass
-
-            def change_license(self, _):
                 pass
 
         license_manager_dlg = LicenseManagerDialog(self)
