@@ -15,11 +15,13 @@ import wx.lib.expando
 import wx.lib.scrolledpanel
 from pynput import keyboard, mouse
 import ntpath
+from bs4 import BeautifulSoup
+import requests
 from cryptography.fernet import Fernet
 from datetime import datetime
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, directory_chooser
+    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
 from modules.aldras_execute import ExecuteDialog
 from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
@@ -3356,7 +3358,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.1 Beta'
+                self.version = '2020.0'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -3510,6 +3512,35 @@ class SelectionFrame(wx.Frame):
         self.ok_btn.SetFocus()
         self.Center()
         self.Show()
+        self.check_for_updates()
+
+
+    def check_for_updates(self):
+        html_page = requests.get('https://aldras.com/assets/html/download_section').text
+        soup = BeautifulSoup(html_page, features='html.parser')
+
+        for link in soup.findAll('a'):  # loop through all links
+            link_text = link.get('href')
+            if '../../downloads/aldras-setup-' in link_text:  # if link has setup executable structure
+                version_and_extension = link_text.replace('../../downloads/aldras-setup-', '')
+                latest_version = version_and_extension.replace('.exe', '')
+                latest_version = latest_version.replace('-', '.')
+
+                if float_in(self.software_info.version) < float_in(latest_version):
+                    # there is a newer version available
+
+                    update_available_dlg = wx.MessageDialog(None,
+                                                            f'Aldras version {latest_version} is now available!\n\nWould you like to download the update?',
+                                                            'Aldras Update Available',
+                                                            wx.YES_NO | wx.ICON_INFORMATION | wx.CENTRE)
+
+                    update_available_dlg.SetYesNoLabels('Download',
+                                                        'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
+
+                    if update_available_dlg.ShowModal() == wx.ID_YES:
+                        # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
+                        download_link = 'https://aldras.com/download'
+                        webbrowser.open_new_tab(download_link)
 
     def update_recent_workflows(self):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)

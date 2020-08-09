@@ -142,8 +142,7 @@ def open_settings(parent_window):
             settings_restart_dlg = wx.MessageDialog(settings_dlg,
                                                     'Aldras may need to be restarted for changes to be fully applied',
                                                     'Restart Aldras to apply changes', wx.YES_NO | wx.ICON_WARNING)
-            settings_restart_dlg.SetYesNoLabels('Restart',
-                                                'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
+            settings_restart_dlg.SetYesNoLabels('Restart', 'Later')  # rename 'Yes' and 'No' labels to 'Restart' and 'Later'
 
             if settings_restart_dlg.ShowModal() == wx.ID_YES:
                 # relaunch SelectionFrame
