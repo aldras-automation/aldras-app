@@ -5,19 +5,23 @@ Pillow == 7.2.0
 
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_old.py: 7
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_tkinter.py: 7
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 9
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 12
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 7
 PyAutoGUI == 0.9.50
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3758
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 20
+# C:\Users\Noah Baculi\Documents\aldras\test_check _for_updates.py: 4
+beautifulsoup4 == 4.9.1
+
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3801
 # C:\Users\Noah Baculi\Documents\aldras\Test_cryptlex.py: 2
 # C:\Users\Noah Baculi\Documents\aldras\z_reset_cryptlex_license_testing.py: 1
 cryptlex.lexactivator == 3.11.0
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 18
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 21
 cryptography == 3.0
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 8
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 11
 numpy == 1.19.1
 
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_old.py: 6
@@ -27,22 +31,26 @@ pandas == 1.1.0
 
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_old.py: 8
 # C:\Users\Noah Baculi\Documents\aldras\-- archive\automation_GUI_tkinter.py: 9
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 16
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 22
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 4
 pynput == 1.6.8
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 10
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 13
 pyperclip == 1.8.0
+
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 14
+# C:\Users\Noah Baculi\Documents\aldras\test_check _for_updates.py: 5
+requests == 2.24.0
 
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_core.py: 6
 screeninfo == 0.6.5
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 11,12,13,14,15
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 15,16,17,18,19
 # C:\Users\Noah Baculi\Documents\aldras\Test_cryptlex.py: 6
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_core.py: 4
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_execute.py: 2
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_record.py: 2
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_settings.py: 5
 # C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 5
-# C:\Users\Noah Baculi\Documents\aldras\test_license_frame.py: 10,11
+# C:\Users\Noah Baculi\Documents\aldras\test_check _for_updates.py: 3
 wxPython == 4.1.0

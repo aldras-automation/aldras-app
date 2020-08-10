@@ -1,31 +1,33 @@
+import ntpath
 import os
 import re
+import sys
 import threading
 import time
 import webbrowser
+from datetime import datetime
 from platform import system as system_platform
-import sys
+
 import numpy as np
 import pyautogui as pyauto
 import pyperclip
+import requests
 import wx
 import wx.adv
 import wx.grid
 import wx.lib.expando
 import wx.lib.scrolledpanel
-from pynput import keyboard, mouse
-import ntpath
 from bs4 import BeautifulSoup
-import requests
 from cryptography.fernet import Fernet
-from datetime import datetime
+from pynput import keyboard, mouse
+
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
 from modules.aldras_execute import ExecuteDialog
-from modules.aldras_threads import ListenerThread, ExecutionThread
 from modules.aldras_record import RecordDialog
 from modules.aldras_settings import import_settings, open_settings
+from modules.aldras_threads import ListenerThread, ExecutionThread
 
 
 # TODO comments
@@ -139,7 +141,8 @@ def setup_frame(self, status_bar=False):
                     """Frame to display EULA"""
 
                     def __init__(self, parent):
-                        wx.Dialog.__init__(self, parent, title='Aldras: End User License Agreement', name='eula_frame', style=wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER)
+                        wx.Dialog.__init__(self, parent, title='Aldras: End User License Agreement', name='eula_frame',
+                                           style=wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER)
                         self.SetBackgroundColour(wx.WHITE)
                         self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))  # assign icon
 
@@ -228,7 +231,8 @@ def setup_frame(self, status_bar=False):
                     expiration = f'Ends on {expiration_date}'
                 elif LexActivator.IsLicenseGenuine() == LexStatusCodes.LA_OK:
                     license_type = LexActivator.GetLicenseMetadata('Type').title()
-                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime('%Y-%m-%d')
+                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime(
+                        '%Y-%m-%d')
                     expiration = f'Renews on {expiration_date}'
 
                 # add license type text
@@ -245,8 +249,9 @@ def setup_frame(self, status_bar=False):
                 if LexActivator.IsTrialGenuine() == LexStatusCodes.LA_OK:
                     self.vbox.AddSpacer(20)
                 else:
-                    license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(), size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
-                    self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL)# | wx.EAST | wx.WEST, 30)
+                    license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(),
+                                                    size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
+                    self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL)  # | wx.EAST | wx.WEST, 30)
 
                     self.vbox.AddSpacer(40)
 
@@ -267,7 +272,8 @@ def setup_frame(self, status_bar=False):
 
                 if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
                     change_btn = wx.Button(panel, label='Change Plan')
-                    change_btn.Bind(wx.EVT_BUTTON, lambda event: webbrowser.open_new_tab('https://aldras.com/change-plan'))
+                    change_btn.Bind(wx.EVT_BUTTON,
+                                    lambda event: webbrowser.open_new_tab('https://aldras.com/change-plan'))
                     button_array.Add(change_btn)
 
                 self.vbox.Add(button_array, 0, wx.EXPAND | wx.SOUTH, 10)
@@ -286,7 +292,10 @@ def setup_frame(self, status_bar=False):
             def unregister_license(self, _):
                 try:
                     if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                        confirm_unregister_dlg = wx.MessageDialog(None, 'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.', 'Aldras: Confirm License Unregister', wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
+                        confirm_unregister_dlg = wx.MessageDialog(None,
+                                                                  'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.',
+                                                                  'Aldras: Confirm License Unregister',
+                                                                  wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
                         if confirm_unregister_dlg.ShowModal() == wx.ID_NO:
                             return
 
@@ -299,7 +308,7 @@ def setup_frame(self, status_bar=False):
 
                     self.Destroy()
                     self.parent.Destroy()
-                    os.execl(sys.executable, sys.executable, * sys.argv)  # restart program, does not work in IDE
+                    os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
 
                 except LexActivatorException as exception:
                     wx.MessageDialog(None, f'Your license could not be unregistered\n\n{exception.message}',
@@ -598,7 +607,7 @@ def setup_frame(self, status_bar=False):
     self.Bind(wx.EVT_MENU, on_mouse_monitor, menu_mouse_monitor)
 
     menu_license_manager = tools_menu.Append(wx.ID_ANY, 'License Manager',
-                                           f'   {self.software_info.name} license manager tool')
+                                             f'   {self.software_info.name} license manager tool')
     self.Bind(wx.EVT_MENU, on_license_manager, menu_license_manager)
 
     menu_bar.Append(tools_menu, 'Tools')  # add the insert menu to the menu bar
@@ -1287,7 +1296,9 @@ class EditFrame(wx.Frame):
             self.create_command_sizer(index, line_orig)
             if len(self.lines) > self.loading_dlg_line_thresh:
                 # update loading dialog and return to SelectionFrame if cancelled
-                if not self.loading_dlg.Update(int(0.99 * (index + 1)), f'Loading line {index + 1} of {len(self.lines)}.')[0]:
+                if not \
+                        self.loading_dlg.Update(int(0.99 * (index + 1)),
+                                                f'Loading line {index + 1} of {len(self.lines)}.')[0]:
                     self.loading_dlg.Show(False)
                     self.loading_dlg.Destroy()
                     self.close_window()
@@ -3417,12 +3428,10 @@ class SelectionFrame(wx.Frame):
                 self.media_keys = ['PlayPause', 'NextTrack', 'PrevTrack', 'VolumeMute', 'VolumeUp', 'VolumeDown']
                 self.function_keys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
                 self.alphanum_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                      'Q', 'R',
-                                      'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
-                                      '8', '9',
-                                      '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', ':',
-                                      ';', '<',
-                                      '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~']
+                                      'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5',
+                                      '6', '7', '8', '9', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',',
+                                      '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`',
+                                      '{', '|', '}', '~']
                 self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
 
         self.license_type = license_type

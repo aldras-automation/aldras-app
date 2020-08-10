@@ -633,8 +633,7 @@ class ExecutionThread(threading.Thread):
         pyauto.PAUSE = 0.001
         for key in self.parent.parent.software_info.special_keys:  # release any problematic keys that may still be pressed
             pyauto.keyUp(key)
-        for button in self.parent.parent.software_info.mouse_buttons:
-            pyauto.mouseUp(button=button.lower())
+        pyauto.mouseUp(button='left')
         pyauto.PAUSE = self.parent.parent.execution_pause
         pyauto.FAILSAFE = True
 
