@@ -2394,7 +2394,11 @@ class EditFrame(wx.Frame):
 
     def refresh_move_buttons(self):
         for sizer_index, sizer_indiv in enumerate(self.edit_row_container_sizers):
-            if sizer_index == 0:  # top-most command
+            if len(self.edit_row_container_sizers) == 1:  # only one command
+                self.show_move_button(sizer_indiv, 'up', False)
+                self.show_move_button(sizer_indiv, 'down', False)
+
+            elif sizer_index == 0:  # top-most command
                 self.show_move_button(sizer_indiv, 'up', False)
                 self.show_move_button(sizer_indiv, 'down', True)
 
@@ -3358,7 +3362,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.0'
+                self.version = '2020.1'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -3513,7 +3517,6 @@ class SelectionFrame(wx.Frame):
         self.Center()
         self.Show()
         self.check_for_updates()
-
 
     def check_for_updates(self):
         html_page = requests.get('https://aldras.com/assets/html/download_section').text
