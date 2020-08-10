@@ -340,9 +340,9 @@ def setup_frame(self, status_bar=False):
                     self.menubar = wx.MenuBar()
 
                     self.freeze_menu = wx.Menu()
-                    self.cb_click_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze mouse click positions',
+                    self.cb_click_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze when mouse clicked',
                                                                    kind=wx.ITEM_CHECK)
-                    self.cb_ctrl_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze positions when CTRL tapped',
+                    self.cb_ctrl_freeze = self.freeze_menu.Append(wx.ID_ANY, 'Freeze when CTRL tapped',
                                                                   kind=wx.ITEM_CHECK)
 
                     if 'click' in settings['Freeze method'].lower():
@@ -350,7 +350,7 @@ def setup_frame(self, status_bar=False):
                     if 'ctrl' in settings['Freeze method'].lower():
                         self.freeze_menu.Check(self.cb_ctrl_freeze.GetId(), True)
 
-                    self.menubar.Append(self.freeze_menu, 'Freeze')
+                    self.menubar.Append(self.freeze_menu, 'Freeze Actions')
 
                     def toggle_stay_on_top(event):
                         if event.IsChecked():
@@ -360,7 +360,7 @@ def setup_frame(self, status_bar=False):
 
                     # add view menu to allow toggle to stay on top
                     self.view_menu = wx.Menu()
-                    self.stay_on_top = self.view_menu.Append(wx.ID_ANY, 'Stay on top', kind=wx.ITEM_CHECK)
+                    self.stay_on_top = self.view_menu.Append(wx.ID_ANY, 'Always visible', kind=wx.ITEM_CHECK)
                     self.Bind(wx.EVT_MENU, lambda event: toggle_stay_on_top(event), self.stay_on_top)
 
                     self.menubar.Append(self.view_menu, 'View')
@@ -3373,12 +3373,12 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.1'
+                self.version = '2020.0'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
                 self.copyright = f'2019-2020 {self.name}'
-                self.website = f'http://www.{self.name.lower()}.com/'
+                self.website = f'https://www.{self.name.lower()}.com/'
                 self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.start_stop_directions = ': Press the right control key 3 times'
                 self.advanced_edit_guide_description = f'A look at the underlying syntax of {self.name} commands.'
@@ -3480,7 +3480,7 @@ class SelectionFrame(wx.Frame):
         self.vbox.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, self.padding_y)
 
         # add input field for the workflow name
-        self.workflow_name_input = PlaceholderTextCtrl(self.workflow_panel, wx.ID_ANY, placeholder='Workflow',
+        self.workflow_name_input = PlaceholderTextCtrl(self.workflow_panel, wx.ID_ANY, placeholder='Workflow name',
                                                        size=(200, -1),
                                                        style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_ok, self.workflow_name_input)
@@ -3589,7 +3589,7 @@ class SelectionFrame(wx.Frame):
                              wx.OK | wx.ICON_EXCLAMATION).ShowModal()
 
         else:
-            # workflow confirmation if entry is default 'Workflow'
+            # workflow confirmation if entry is default
             confirm_workflow_dlg = wx.MessageDialog(None,
                                                     f'Please confirm that "{self.workflow_name_input.GetValue().capitalize()}" is your desired workflow.',
                                                     f'{self.software_info.name} Workflow Confirmation',

@@ -21,7 +21,7 @@ def create_record_options(parent_frame, settings_frame=False):
     some_sleep_thresh = 0.2
 
     # recording pause input
-    sleep_sizer = wx.StaticBoxSizer(wx.StaticBox(parent_frame, label='Record pause'), wx.VERTICAL)  # ---------
+    sleep_sizer = wx.StaticBoxSizer(wx.StaticBox(parent_frame, label='Record pause between actions'), wx.VERTICAL)  # ---------
 
     record_no_sleep = wx.RadioButton(parent_frame, wx.ID_ANY, 'No pauses')
     record_no_sleep.Bind(wx.EVT_RADIOBUTTON, lambda event: not_some_sleep_pressed())

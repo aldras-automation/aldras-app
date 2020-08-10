@@ -21,7 +21,7 @@ def validate_settings(settings_unvalidated):
     factory_settings = {
         "Number of recent workflows displayed": 3,
         "Workflow folder": "",
-        "Freeze method": "Click or Ctrl",
+        "Freeze method": "Ctrl",
         "Number of hotkeys": 3,
         "Large lines number": 100,
         "Notifications": "Banners",
