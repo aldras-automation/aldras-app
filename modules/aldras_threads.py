@@ -271,7 +271,7 @@ class ListenerThread(threading.Thread):
                         if 'Key' in line:
                             check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
                                 1}  # all hotkeys are single chars
-                            check_alphabet_letters = {(x.isalpha() and len(x) == 1) for x in pressed_keys if
+                            check_alphabet_letters = {((x.isalpha() and len(x) == 1) or (x=='space')) for x in pressed_keys if
                                                       (x != 'shift' and x not in symbol_chars)} == {
                                                          True}  # all hotkeys are single alphabetic characters
                             check_symbol_chars = {x for x in pressed_keys if
@@ -290,8 +290,7 @@ class ListenerThread(threading.Thread):
                             elif 'release' in line:
                                 if key in pressed_keys:
                                     # execute hotkey
-                                    if check_single_chars or len(
-                                            pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
+                                    if check_single_chars or len(pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
                                         if self.debug:
                                             print('\t\tregister hotkey: ', check_alphabet_letters)
                                         if 'shift' in pressed_keys and check_single_chars and (
@@ -309,8 +308,12 @@ class ListenerThread(threading.Thread):
                                                 line = ''
                                         else:
                                             line = f"Hotkey {' + '.join(pressed_keys)}"
+                                            pressed_keys.clear()
                                     else:  # release with only one key pressed
-                                        pass
+                                        # do not process ctrl key release if previous line was not a ctrl key press
+                                        if index > 0:
+                                            if 'ctrl' in line and 'ctrl' not in lines[index-1]:
+                                                line = ''
                                     if key in pressed_keys:
                                         pressed_keys.remove(key)
 
@@ -652,6 +655,6 @@ if __name__ == '__main__':  # debugging capability by running module file as mai
     wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
 
     # test listener_thread
-    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True, record_pause=0.5)
+    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True, record_pause=5)
     listener_thread.start()
     listener_thread.join()
