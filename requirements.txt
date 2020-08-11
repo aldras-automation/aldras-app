@@ -13,7 +13,7 @@ PyAutoGUI == 0.9.50
 # C:\Users\Noah Baculi\Documents\aldras\test_check _for_updates.py: 4
 beautifulsoup4 == 4.9.1
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3801
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 3800
 # C:\Users\Noah Baculi\Documents\aldras\Test_cryptlex.py: 2
 # C:\Users\Noah Baculi\Documents\aldras\z_reset_cryptlex_license_testing.py: 1
 cryptlex.lexactivator == 3.11.0

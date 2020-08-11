@@ -1033,8 +1033,7 @@ class EditFrame(wx.Frame):
 
         global hardware_id
         self.x_range, self.y_range, hardware_id = get_system_parameters()
-        self.coord_width = 10 * max(
-            [len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
+        self.coord_width = 15 * max([len(str(r)) for r in self.x_range + self.y_range])  # ten times the max length of range in x or y direction
 
         self.conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥', '≤']
         self.loop_behaviors = ['Forever', 'Multiple times',

@@ -1,12 +1,8 @@
-Left-mouse click at (257, 475)
-Hotkey ctrl + r
-Assign {{~Name~}}=John Smith
-Left-mouse click at (774, 313)
-If {{~radius~}} > ~23~ {
-Type:The center is prime.
-If {{~center~}} contains ~3~ {
-Type:Doctor
-Type:The circle is too small.
-}
-}
-Type:Full name
+HardwareID: 17803
+Mouse-move to (433, 623)
+Wait 0.5
+Mouse-move to (1513, 455)
+Wait 0.5
+Mouse-move to (1483, 854)
+Wait 0.5
+Mouse-move to (1060, 912)

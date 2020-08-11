@@ -61,11 +61,11 @@ def eliminate_duplicates(list_with_duplicates):
 def float_in(input_string, return_all=False):
     """Returns parsed float from string."""
     floats = re.findall(r'[-+]?\d*\.\d+|\d+', input_string)
-    output = float(floats[0])
     if not floats:
         output = float(0)
-    elif len(floats) > 1:
-        if return_all:
+    else:
+        output = float(floats[0])
+        if len(floats) > 1 and return_all:
             output = [float(indiv_float) for indiv_float in floats]
 
     return output
