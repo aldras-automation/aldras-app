@@ -583,6 +583,11 @@ def setup_frame(self, status_bar=False):
     # if self.GetName() != 'edit_frame':
     #     menu_save_as.Enable(False)
 
+    menu_delete = file_menu.Append(wx.ID_ANY, 'Delete', f'   Delete {self.software_info.name} workflow')
+    self.Bind(wx.EVT_MENU, lambda event: self.delete_workflow(), menu_delete)
+    if self.GetName() != 'edit_frame':
+        menu_delete.Enable(False)
+
     menu_refresh = file_menu.Append(wx.ID_ANY, 'Refresh', f'   Refresh {self.software_info.name} workflow editor')
     self.Bind(wx.EVT_MENU, lambda event: self.full_refresh(), menu_refresh)
     if self.GetName() != 'edit_frame':
@@ -3268,6 +3273,7 @@ class EditFrame(wx.Frame):
         if self.workflow_name_when_launched != self.workflow_name:  # if workflow was renamed
             workflow_path_new = workflow_path_when_launched.replace(self.workflow_name_when_launched,
                                                                     self.workflow_name)
+            self.parent.workflow_path_name = workflow_path_new
             os.rename(workflow_path_when_launched, workflow_path_new)
             self.parent.recent_workflows = eliminate_duplicates(self.parent.recent_workflows)
             self.parent.recent_workflows.remove(workflow_path_when_launched)
@@ -3332,6 +3338,23 @@ class EditFrame(wx.Frame):
                 pass
             else:  # cancel button
                 return 'cancel'
+
+    def delete_workflow(self):
+        """Delete workflow file"""
+        confirm_deletion_dlg = wx.MessageDialog(None, f'Would you like to delete "{self.workflow_name}"?', 'Workflow Deletion Confirmation', wx.YES_NO | wx.ICON_INFORMATION)
+
+        if confirm_deletion_dlg.ShowModal() == wx.ID_YES:
+            # save file to process any name changes
+            self.save_to_file()
+
+            # delete file and remove from recent workflows
+            if os.path.exists(self.parent.workflow_path_name):
+                os.remove(self.parent.workflow_path_name)
+
+                self.parent.recent_workflows.remove(self.parent.workflow_path_name)
+                self.parent.update_recent_workflows()
+
+            self.close_window()
 
     def full_refresh(self):
         """Relaunch EditFrame with same workflow lines"""

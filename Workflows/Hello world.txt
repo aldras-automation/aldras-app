@@ -1,9 +1,0 @@
-HardwareID: 17747
-Mouse-move to (400, 610)
-Wait 0.5
-Mouse-move to (1177, 157)
-Wait 0.5
-Mouse-move to (1713, 673)
-Wait 0.5
-Mouse-move to (1053, 904)
-Wait 0.5
