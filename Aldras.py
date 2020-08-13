@@ -3018,17 +3018,17 @@ class EditFrame(wx.Frame):
             if execute_dlg.checkbox_pause.GetValue():
                 self.execution_pause = float(execute_dlg.execute_pause_input.GetValue())
             else:
-                self.execution_pause = 0.1
+                self.execution_pause = 0.01
 
             if execute_dlg.checkbox_mouse_dur.GetValue():
                 self.execution_mouse_dur = float(execute_dlg.execute_mouse_dur_input.GetValue())
             else:
-                self.execution_mouse_dur = 0.1
+                self.execution_mouse_dur = 0
 
-            if execute_dlg.checkbox_type_interval:
+            if execute_dlg.checkbox_type_interval.GetValue():
                 self.execution_type_intrv = float(execute_dlg.execute_type_interval_input.GetValue())
             else:
-                self.execution_type_intrv = 0.02
+                self.execution_type_intrv = 0
 
             class ExecuteCtrlCounterDialog(wx.Dialog):
                 def __init__(self, parent, caption, parent_dialog):

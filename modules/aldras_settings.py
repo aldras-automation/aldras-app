@@ -28,11 +28,11 @@ def validate_settings(settings_unvalidated):
         "Record pause": "Pauses over",
         "Record pause over duration": 5,
         "Record method": "Append",
-        "Execute pause between commands": 0.2,
+        "Execute pause between commands": 0.5,
         "Execute pause between commands checked": "True",
         "Execute mouse command duration": 0.5,
         "Execute mouse command duration checked": "True",
-        "Interval between text character outputs": 0.05,
+        "Interval between text character outputs": 0.02,
         "Interval between text character outputs checked": "True"
     }
 

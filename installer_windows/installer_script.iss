@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 LicenseFile=C:\Users\Noah Baculi\Documents\aldras\data\license.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
+; PrivilegesRequiredOverridesAllowed=dialog ; Disabled to only allow installation for single user due to permission issues attempting to access globally installed resources
 OutputBaseFilename=aldras-setup-2020-1
 SetupIconFile=C:\Users\Noah Baculi\Documents\aldras\data\aldras.ico
 Compression=lzma

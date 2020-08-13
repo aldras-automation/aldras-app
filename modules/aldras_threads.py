@@ -621,9 +621,9 @@ class ExecutionThread(threading.Thread):
                     btn = 'left'
 
                 if 'click' in line:
-                    pyauto.click(x=coords[0], y=coords[1], button=btn)
+                    pyauto.click(x=coords[0], y=coords[1], button=btn, duration=self.mouse_duration)
                 elif 'press' in line:
-                    pyauto.mouseDown(x=coords[0], y=coords[1], button=btn)
+                    pyauto.mouseDown(x=coords[0], y=coords[1], button=btn, duration=self.mouse_duration)
                     self.mouse_down_coords = coords
                 elif 'release' in line:
                     drag_dist = math.hypot(self.mouse_down_coords[0] - coords[0],
