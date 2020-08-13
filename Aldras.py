@@ -32,9 +32,7 @@ from modules.aldras_threads import ListenerThread, ExecutionThread
 
 # TODO comments
 # TODO implement fading shade color of recently modified command
-# TODO implement encrypted file storage for preferences and other data (resolution)
 # TODO error codes with random generation for beta testing bug fixes
-# TODO image for recording, executing, and stopping (animation)
 # TODO investigate compartmentalization for better organization
 # TODO alternate row shading (edit frame)
 # TODO control key validation
@@ -1723,8 +1721,7 @@ class EditFrame(wx.Frame):
         if not sizer:
             sizer = self.hbox_edit
 
-        combination = [x.capitalize() for x in
-                       line.replace('hotkey', '').replace(' ', '').split('+')]  # create list of keys
+        combination = [x.capitalize().replace(' ', '') for x in line.replace('hotkey', '').split(' + ')]  # create list of keys
         combination += [''] * (
                 self.num_hotkeys - len(combination))  # extend list with empty strings to reach standard number
 
@@ -3431,7 +3428,7 @@ class SelectionFrame(wx.Frame):
                                       '6', '7', '8', '9', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',',
                                       '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`',
                                       '{', '|', '}', '~']
-                self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.media_keys
+                self.all_keys = [''] + self.special_keys + self.alphanum_keys + self.function_keys + self.media_keys
 
         self.license_type = license_type
         self.features_unlocked = any(x in license_type for x in advanced_feature_license_types)

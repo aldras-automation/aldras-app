@@ -195,9 +195,14 @@ class ListenerThread(threading.Thread):
             'pageup': ['page_up'],
             'pagedown': ['page_down'],
             'del': ['delete'],
-            'prntscrn ': ['print_screen'],
-            'scrolllock ': ['scroll_lock'],
-            'numlock ': ['num_lock'],
+            'prntscrn': ['print_screen'],
+            'scrolllock': ['scroll_lock'],
+            'playpause': ['media_play_pause'],
+            'nexttrack': ['media_next'],
+            'prevtrack': ['media_previous'],
+            'volumemute ': ['media_volume_mute'],
+            'volumedown ': ['media_volume_down'],
+            'volumeup ': ['media_volume_up'],
         }
         # # manual lines example for testing
         # lines = ['Key ctrl_l press at (2681, 64)', 'Key ctrl_l release at (2681, 69)']
