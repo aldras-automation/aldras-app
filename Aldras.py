@@ -1380,8 +1380,7 @@ class EditFrame(wx.Frame):
                 self.line_first_word = self.line.strip().split(' ')[0][:10]
 
                 if not self.line:  # if line is empty, insert spacers
-                    self.hbox_edit.Insert(0, 0, 50, 1)
-                    self.hbox_edit.Insert(0, 0, 0, 1)
+                    self.hbox_edit.Insert(2, 0, 30)
 
                 elif self.line_first_word[0] == '#':  # workflow comment
                     self.add_command_combobox('Comment')
@@ -2315,7 +2314,10 @@ class EditFrame(wx.Frame):
 
         if index > 0:  # cannot move up top-most command
             row_sizer = self.edit_row_container_sizers[index].GetChildren()[0].GetSizer()
-            command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            try:
+                command_value = matching_widget_in_edit_row(row_sizer, 'command').GetStringSelection()
+            except AttributeError:  # unknown command row (no command combobox)
+                command_value = ''
             insertion_index = index  # location at which line that is 'in the way' will be inserted
 
             self.edit.Freeze()
