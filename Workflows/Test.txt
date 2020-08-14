@@ -1,4 +1,9 @@
 HardwareID: 17830
-Mouse-move to (1000, 1000)
-Mouse-move to (500, 500)
-Mouse-move to (800, 800)
+Mouse-move to (249, 690)
+Wait 0.5
+Mouse-move to (1289, 181)
+Wait 0.5
+Mouse-move to (301, 192)
+Wait 0.5
+Mouse-move to (1528, 750)
+Wait 0.5

@@ -436,12 +436,12 @@ class ExecutionThread(threading.Thread):
 
         self.drag_duration_scale = math.hypot(pyauto.size().width, pyauto.size().width)
         self.lines_to_execute = self.parent.parent.lines.copy()
-        self.type_interval = self.parent.parent.execution_type_intrv
-        self.mouse_duration = self.parent.parent.execution_mouse_dur
+        self.type_interval = self.parent.execution_type_intrv
+        self.mouse_duration = self.parent.execution_mouse_dur
+        pyauto.PAUSE = self.parent.execution_pause
 
         self.mouse_down_coords = [0, 0]
         self.variables = dict()
-        pyauto.PAUSE = self.parent.parent.execution_pause
         self.keep_running = True
 
         try:
@@ -648,7 +648,7 @@ class ExecutionThread(threading.Thread):
         for key in self.parent.parent.software_info.special_keys:  # release any problematic keys that may still be pressed
             pyauto.keyUp(key)
         pyauto.mouseUp(button='left')
-        pyauto.PAUSE = self.parent.parent.execution_pause
+        pyauto.PAUSE = self.parent.execution_pause
         pyauto.FAILSAFE = True
 
 

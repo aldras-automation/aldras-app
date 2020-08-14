@@ -2843,7 +2843,6 @@ class EditFrame(wx.Frame):
                     # add record options collapsible pane
                     self.record_collpane = wx.CollapsiblePane(self, label=' Record Options')  # ------------------------
                     self.record_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
-                    # self.record_collpane.GetChildren()[0].Bind(wx.EVT_KILL_FOCUS, lambda event: None)  # prevents flickering when focus is killed
                     record_panel = self.record_collpane.GetPane()
 
                     record_sizer = wx.StaticBoxSizer(wx.StaticBox(record_panel), wx.VERTICAL)
@@ -2855,7 +2854,7 @@ class EditFrame(wx.Frame):
                     self.FindWindowByName('some_sleep_thresh').SetValue(str(self.settings['Record pause over duration']))
                     self.FindWindowByName('Record method').SetSelection(self.FindWindowByName('Record method').FindString(self.settings['Record method']))
 
-                    record_sizer.Add(record_options_sizer, 0, wx.ALL, 15)
+                    record_sizer.Add(record_options_sizer, 0, wx.ALL, 5)
                     record_panel.SetSizer(record_sizer)
                     record_sizer.SetSizeHints(record_panel)
                     self.vbox.Add(self.record_collpane, 0, wx.GROW)  # -------------------------------------------------
@@ -3009,7 +3008,6 @@ class EditFrame(wx.Frame):
         record_count_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
 
         record_count_dlg.ShowModal()
-
         record_count_dlg.Destroy()
 
     # def on_record(self):
@@ -3208,217 +3206,241 @@ class EditFrame(wx.Frame):
     #     record_dlg.Destroy()
 
     def on_execute(self):
-        execute_dlg = ExecuteDialog(self, f'Execute - {self.workflow_name}')
+        class ExecuteCtrlCounterDialog(wx.Dialog):
+            def __init__(self, parent, caption):
+                wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
+                self.SetTitle(caption)
+                self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+                self.SetBackgroundColour('white')
+                self.parent = parent
+                self.done = False
+                self.settings = import_settings()
 
-        if execute_dlg.ShowModal() == wx.ID_OK:
+                self.vbox = wx.BoxSizer(wx.VERTICAL)
 
-            if execute_dlg.checkbox_pause.GetValue():
-                self.execution_pause = float(execute_dlg.execute_pause_input.GetValue())
-            else:
+                # add rescaled logo image
+                png = wx.Image('data/execute.png', wx.BITMAP_TYPE_PNG).Scale(120, 120,
+                                                                             quality=wx.IMAGE_QUALITY_HIGH)
+                icon_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
+                self.vbox.Add(icon_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
+
+                # add main directions
+                self.directions_a = wx.StaticText(self,
+                                                  label=f'Start{self.parent.software_info.start_stop_directions}')
+                change_font(self.directions_a, size=14)
+                self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+                self.vbox.AddSpacer(10)
+
+                # add secondary directions
+                self.directions_b = wx.StaticText(self,
+                                                  label='Stop: Move the mouse to the upper-left screen corner')
+                change_font(self.directions_b, size=14, color=(170, 20, 20))
+                self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+                self.vbox.AddSpacer(15)
+
+                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed')  # ----------------------------------------
+                self.execute_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
+                execute_panel = self.execute_collpane.GetPane()
+
+                execute_sizer = wx.StaticBoxSizer(wx.StaticBox(execute_panel), wx.VERTICAL)
+
+                from modules.aldras_execute import create_execute_options
+                execute_options_sizer = create_execute_options(execute_panel, settings_frame=True)
+
+                for setting_name in ['Execute pause between commands', 'Execute pause between commands checked',
+                                     'Execute mouse command duration', 'Execute mouse command duration checked',
+                                     'Interval between text character outputs',
+                                     'Interval between text character outputs checked']:
+                    widget = self.FindWindowByName(setting_name)
+
+                    if isinstance(widget, wx.CheckBox):  # set true or false, not string
+                        widget.SetValue(self.settings[setting_name])
+                    elif isinstance(widget, wx.TextCtrl):
+                        widget.SetValue(str(self.settings[setting_name]))
+
+                execute_sizer.Add(execute_options_sizer, 0, wx.ALL, 5)
+
+                execute_panel.SetSizer(execute_sizer)
+                execute_sizer.SetSizeHints(execute_panel)
+                self.vbox.Add(self.execute_collpane, 0, wx.GROW)  # ---------------------------------------------------------
+
+                # add countdown
+                self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)
+
+                self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)  # ---------------------------
+                change_font(self.countdown_dark, size=22)
+                self.hbox_countdown.Add(self.countdown_dark)
+                self.countdown_dark.Show(False)
+
+                self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
+                change_font(self.countdown_light, size=22, color=3 * (150,))
+                self.hbox_countdown.Add(self.countdown_light)
+                self.countdown_light.Show(False)
+
+                self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                # --------------------------------------------------------------------------------------------------
+
+                self.vbox.AddSpacer(10)
+
+                # add status message
+                self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
+                change_font(self.executing_message_a, size=13, color=(20, 120, 20))
+                self.vbox.Add(self.executing_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                self.executing_message_a.Show(False)
+
+                # add completion spacer
+                self.spacer_a = wx.StaticText(self, label='')
+                change_font(self.spacer_a, size=5)
+                self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                self.spacer_a.Show(False)
+
+                # add finish button
+                self.finish_btn = wx.Button(self, label='Finish')
+                self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
+                self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
+                self.finish_btn.Show(False)
+
+                # add in-action spacer
+                self.spacer_b = wx.StaticText(self, label='')
+                change_font(self.spacer_b, size=20)
+                self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                # self.spacer_b.Show(False)
+
+                self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
+                self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
+                self.SetSizerAndFit(self.vbox_outer)
+                self.Position = (int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)),
+                                 int(self.parent.Position[1]))
+                self.finish_btn.SetFocus()
+
+                if self.settings['Notifications'] == 'Banners':
+                    show_notification(self, 'Execution primed',
+                                      f'Press right CTRL three times to trigger {self.parent.workflow_name} execution')
+
+                # Process message events from threads
+                self.thread_event_id = wx.NewIdRef()
+                self.Connect(-1, -1, int(self.thread_event_id), self.read_thread_event_input)
+                self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
+                self.listener_thread.start()
+                self.Bind(wx.EVT_CLOSE, self.close_window)
+                self.Center()
+
+            def start_execution_thread(self):
                 self.execution_pause = 0.01
+                if self.FindWindowByName('Execute pause between commands checked').GetValue():
+                    self.execution_pause = float(self.FindWindowByName('Execute pause between commands').GetValue())
 
-            if execute_dlg.checkbox_mouse_dur.GetValue():
-                self.execution_mouse_dur = float(execute_dlg.execute_mouse_dur_input.GetValue())
-            else:
                 self.execution_mouse_dur = 0
+                if self.FindWindowByName('Execute mouse command duration checked').GetValue():
+                    self.execution_mouse_dur = float(self.FindWindowByName('Execute mouse command duration').GetValue())
 
-            if execute_dlg.checkbox_type_interval.GetValue():
-                self.execution_type_intrv = float(execute_dlg.execute_type_interval_input.GetValue())
-            else:
                 self.execution_type_intrv = 0
+                if self.FindWindowByName('Interval between text character outputs checked').GetValue():
+                    self.execution_type_intrv = float(self.FindWindowByName('Interval between text character outputs').GetValue())
 
-            class ExecuteCtrlCounterDialog(wx.Dialog):
-                def __init__(self, parent, caption, parent_dialog):
-                    wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-                    self.SetTitle(caption)
-                    self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-                    self.SetBackgroundColour('white')
-                    self.parent = parent
-                    self.done = False
+                self.execution_thread = ExecutionThread(self)
+                self.execution_thread.start()
 
-                    self.vbox = wx.BoxSizer(wx.VERTICAL)
+            def read_thread_event_input(self, event):
+                """Show Result status."""
+                if event.data is None:
+                    # Thread aborted (since None return)
+                    self.countdown_light.SetLabel('Some error occurred')
+                    self.countdown_light.Show(True)
+                else:
+                    # Process message events
+                    self.countdown_dark.Show(True)
+                    self.countdown_light.Show(True)
 
-                    # add rescaled logo image
-                    png = wx.Image('data/execute.png', wx.BITMAP_TYPE_PNG).Scale(120, 120,
-                                                                                 quality=wx.IMAGE_QUALITY_HIGH)
-                    icon_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
-                    self.vbox.Add(icon_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
+                    self.countdown_dark.SetLabel(event.data.replace('Action', 'Executing'))
+                    self.countdown_dark.SetForegroundColour(wx.BLACK)
 
-                    # add main directions
-                    self.directions_a = wx.StaticText(self,
-                                                      label=f'Start{self.parent.software_info.start_stop_directions}')
-                    change_font(self.directions_a, size=14)
-                    self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                    if event.data == 'Action in 3':
+                        self.countdown_light.SetLabel(' 2 1')
+                        self.execute_collpane.Show(False)
 
-                    self.vbox.AddSpacer(10)
+                    elif event.data == 'Action in 3 2':
+                        self.countdown_light.SetLabel(' 1')
+                        self.execute_collpane.Show(False)
 
-                    # add secondary directions
-                    self.directions_b = wx.StaticText(self,
-                                                      label='Stop: Move the mouse to the upper-left screen corner')
-                    change_font(self.directions_b, size=14, color=(170, 20, 20))
-                    self.vbox.Add(self.directions_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                    elif event.data == 'Action':
+                        self.countdown_dark.SetForegroundColour((20, 120, 20))
+                        self.countdown_light.SetLabel('')
+                        self.countdown_light.Show(False)
+                        self.executing_message_a.Show(True)
+                        self.start_execution_thread()
 
-                    self.vbox.AddSpacer(15)
+                    elif event.data == 'Stopping in 3':
+                        self.countdown_light.SetLabel(' 2 1')
 
-                    self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)
+                    elif event.data == 'Stopping in 3 2':
+                        self.countdown_light.SetLabel(' 1')
 
-                    # add countdown
-                    self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)  # ---------------------------
-                    change_font(self.countdown_dark, size=22)
-                    self.hbox_countdown.Add(self.countdown_dark)
-                    self.countdown_dark.Show(False)
-
-                    self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
-                    change_font(self.countdown_light, size=22, color=3 * (150,))
-                    self.hbox_countdown.Add(self.countdown_light)
-                    self.countdown_light.Show(False)
-
-                    self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    # --------------------------------------------------------------------------------------------------
-
-                    self.vbox.AddSpacer(10)
-
-                    # add status message
-                    self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
-                    change_font(self.executing_message_a, size=13, color=(20, 120, 20))
-                    self.vbox.Add(self.executing_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    self.executing_message_a.Show(False)
-
-                    # add completion spacer
-                    self.spacer_a = wx.StaticText(self, label='')
-                    change_font(self.spacer_a, size=5)
-                    self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    self.spacer_a.Show(False)
-
-                    # add finish button
-                    self.finish_btn = wx.Button(self, label='Finish')
-                    self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
-                    self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
-                    self.finish_btn.Show(False)
-
-                    # add in-action spacer
-                    self.spacer_b = wx.StaticText(self, label='')
-                    change_font(self.spacer_b, size=20)
-                    self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                    # self.spacer_b.Show(False)
-
-                    self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-                    self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
-                    self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (int(parent_dialog.Position[0] + ((parent_dialog.Size[0] - self.Size[0]) / 2)),
-                                     int(parent_dialog.Position[1]))
-
-                    if self.parent.settings['Notifications'] == 'Banners':
-                        show_notification(self, 'Execution primed',
-                                          f'Press right CTRL three times to trigger {self.parent.workflow_name} execution')
-
-                    # Process message events from threads
-                    self.thread_event_id = wx.NewIdRef()
-                    self.Connect(-1, -1, int(self.thread_event_id), self.read_thread_event_input)
-                    self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
-                    self.listener_thread.start()
-                    self.Bind(wx.EVT_CLOSE, self.close_window)
-                    self.Center()
-
-                def start_execution_thread(self):
-                    self.execution_thread = ExecutionThread(self)
-                    self.execution_thread.start()
-
-                def read_thread_event_input(self, event):
-                    """Show Result status."""
-                    if event.data is None:
-                        # Thread aborted (since None return)
-                        self.countdown_light.SetLabel('Some error occurred')
-                        self.countdown_light.Show(True)
-                    else:
-                        # Process message events
-                        self.countdown_dark.Show(True)
-                        self.countdown_light.Show(True)
-
-                        self.countdown_dark.SetLabel(event.data.replace('Action', 'Executing'))
-                        self.countdown_dark.SetForegroundColour(wx.BLACK)
-
-                        if event.data == 'Action in 3':
-                            self.countdown_light.SetLabel(' 2 1')
-
-                        elif event.data == 'Action in 3 2':
-                            self.countdown_light.SetLabel(' 1')
-
-                        elif event.data == 'Action':
-                            self.countdown_dark.SetForegroundColour((20, 120, 20))
-                            self.countdown_light.SetLabel('')
-                            self.countdown_light.Show(False)
-                            self.executing_message_a.Show(True)
-                            self.start_execution_thread()
-
-                        elif event.data == 'Stopping in 3':
-                            self.countdown_light.SetLabel(' 2 1')
-
-                        elif event.data == 'Stopping in 3 2':
-                            self.countdown_light.SetLabel(' 1')
-
-                        elif event.data == 'Completed!':
-                            self.execution_thread.abort()
-                            self.listener_thread.abort()
-                            self.directions_a.Show(False)
-                            self.directions_b.Show(False)
-                            self.countdown_light.SetLabel('')
-                            self.countdown_light.Show(False)
-                            change_font(self.countdown_dark, size=22)
-                            self.executing_message_a.Show(False)
-                            self.spacer_a.Show(True)
-                            self.finish_btn.Show(True)
-                            self.done = True
-
-                            if self.parent.settings['Notifications'] == 'Banners':
-                                show_notification(self, 'Execution completed',
-                                                  f'Aldras has completed {self.parent.workflow_name}')
-
-                        elif event.data == 'Failsafe triggered':
-                            self.execution_thread.abort()
-                            self.listener_thread.abort()
-                            self.directions_a.Show(False)
-                            self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
-                            self.countdown_light.SetLabel('')
-                            self.countdown_light.Show(False)
-                            self.countdown_dark.SetLabel('Execution Stopped')
-                            change_font(self.countdown_dark, size=22, style=wx.ITALIC, color=(170, 20, 20))
-                            self.executing_message_a.Show(False)
-                            self.spacer_a.Show(True)
-                            self.finish_btn.Show(True)
-                            self.done = True
-
-                            if self.parent.settings['Notifications'] == 'Banners':
-                                show_notification(self, 'Failsafe triggered',
-                                                  f'{self.parent.workflow_name} execution has been halted')
-
-                        self.vbox.Layout()
-                        self.vbox_outer.Layout()
-                        self.SetSizerAndFit(self.vbox_outer)
-                        if self.done:
-                            self.Raise()
-                            self.position_old = self.GetPosition()
-                            self.size_old = self.GetSize()
-                            self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
-                                             int(self.position_old[1]))
-                        self.Fit()
-                        self.Center()  # TODO center on previous position not on screen
-
-                def close_window(self, _):
-                    self.keep_running = False
-                    try:
-                        self.listener_thread.abort()
-                    except AttributeError:
-                        pass
-                    try:
+                    elif event.data == 'Completed!':
                         self.execution_thread.abort()
-                    except AttributeError:
-                        pass
-                    self.Destroy()
+                        self.listener_thread.abort()
+                        self.directions_a.Show(False)
+                        self.directions_b.Show(False)
+                        self.countdown_light.SetLabel('')
+                        self.countdown_light.Show(False)
+                        change_font(self.countdown_dark, size=22)
+                        self.executing_message_a.Show(False)
+                        self.spacer_a.Show(True)
+                        self.finish_btn.Show(True)
+                        self.done = True
 
-            ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}', execute_dlg).ShowModal()
+                        if self.settings['Notifications'] == 'Banners':
+                            show_notification(self, 'Execution completed',
+                                              f'Aldras has completed {self.parent.workflow_name}')
 
-        execute_dlg.Destroy()
+                    elif event.data == 'Failsafe triggered':
+                        self.execution_thread.abort()
+                        self.listener_thread.abort()
+                        self.directions_a.Show(False)
+                        self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
+                        self.countdown_light.SetLabel('')
+                        self.countdown_light.Show(False)
+                        self.countdown_dark.SetLabel('Execution Stopped')
+                        change_font(self.countdown_dark, size=22, style=wx.ITALIC, color=(170, 20, 20))
+                        self.executing_message_a.Show(False)
+                        self.spacer_a.Show(True)
+                        self.finish_btn.Show(True)
+                        self.done = True
+
+                        if self.settings['Notifications'] == 'Banners':
+                            show_notification(self, 'Failsafe triggered',
+                                              f'{self.parent.workflow_name} execution has been halted')
+
+                    self.vbox.Layout()
+                    self.vbox_outer.Layout()
+                    self.SetSizerAndFit(self.vbox_outer)
+                    if self.done:
+                        self.Raise()
+                        self.position_old = self.GetPosition()
+                        self.size_old = self.GetSize()
+                        self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
+                                         int(self.position_old[1]))
+                    self.Fit()
+                    self.Center()  # TODO center on previous position not on screen
+
+            def close_window(self, _):
+                self.keep_running = False
+                try:
+                    self.listener_thread.abort()
+                except AttributeError:
+                    pass
+                try:
+                    self.execution_thread.abort()
+                except AttributeError:
+                    pass
+                self.Destroy()
+
+        execute_count_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
+
+        execute_count_dlg.ShowModal()
+        execute_count_dlg.Destroy()
 
     @staticmethod
     def show_move_button(command_row_sizeritem, up_down, show=True):
