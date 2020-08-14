@@ -25,7 +25,6 @@ from modules.aldras_core import get_system_parameters, float_in, variable_names_
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
 from modules.aldras_execute import ExecuteDialog
-from modules.aldras_record import RecordDialog
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
 
@@ -2818,12 +2817,13 @@ class EditFrame(wx.Frame):
     def on_record(self):
         class RecordCtrlCounterDialog(wx.Dialog):
                 def __init__(self, parent, caption):
-                    wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
+                    wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE, name='record_counter_dialog')
                     self.SetTitle(caption)
                     self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                     self.SetBackgroundColour('white')
                     self.parent = parent
                     self.done = False
+                    self.settings = import_settings()
 
                     self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -2839,6 +2839,26 @@ class EditFrame(wx.Frame):
                     self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                     self.vbox.AddSpacer(15)
+
+                    # add record options collapsible pane
+                    self.record_collpane = wx.CollapsiblePane(self, label=' Record Options')  # ------------------------
+                    self.record_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
+                    # self.record_collpane.GetChildren()[0].Bind(wx.EVT_KILL_FOCUS, lambda event: None)  # prevents flickering when focus is killed
+                    record_panel = self.record_collpane.GetPane()
+
+                    record_sizer = wx.StaticBoxSizer(wx.StaticBox(record_panel), wx.VERTICAL)
+
+                    from modules.aldras_record import create_record_options
+                    record_options_sizer = create_record_options(record_panel, settings_frame=True)
+
+                    self.FindWindowByLabel(self.settings['Record pause']).SetValue(True)
+                    self.FindWindowByName('some_sleep_thresh').SetValue(str(self.settings['Record pause over duration']))
+                    self.FindWindowByName('Record method').SetSelection(self.FindWindowByName('Record method').FindString(self.settings['Record method']))
+
+                    record_sizer.Add(record_options_sizer, 0, wx.ALL, 15)
+                    record_panel.SetSizer(record_sizer)
+                    record_sizer.SetSizeHints(record_panel)
+                    self.vbox.Add(self.record_collpane, 0, wx.GROW)  # -------------------------------------------------
 
                     # add countdown
                     self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
@@ -2892,22 +2912,13 @@ class EditFrame(wx.Frame):
                     self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                     self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
                     self.SetSizerAndFit(self.vbox_outer)
-                    self.Position = (
-                        int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)),
-                        self.parent.Position[1])
-
-                    record_pause = None  # no pauses default
-                    # if record_dlg.FindWindowByName('All pauses over 0.5').GetValue():
-                    #     record_pause = 0.5
-                    # elif record_dlg.FindWindowByName('Pauses over').GetValue():
-                    #     record_pause = float_in(self.parent_dialog.FindWindowByName('some_sleep_thresh').GetValue())
-                    #     if record_pause < 0.5:
-                    #         record_pause = 0.5
+                    self.Position = (int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)), self.parent.Position[1])
+                    self.finish_btn.SetFocus()
 
                     self.thread_event_id = wx.NewIdRef()
                     self.Connect(-1, -1, int(self.thread_event_id),
                                  self.read_thread_event_input)  # Process message events from threads
-                    self.listener_thread = ListenerThread(self, record=True, record_pause=record_pause)
+                    self.listener_thread = ListenerThread(self, record=True)
                     self.listener_thread.start()
                     self.Bind(wx.EVT_CLOSE, self.close_window)
                     self.Center()
@@ -2928,9 +2939,11 @@ class EditFrame(wx.Frame):
 
                         if event.data == 'Action in 3':
                             self.countdown_light.SetLabel(' 2 1')
+                            self.record_collpane.Show(False)
 
                         elif event.data == 'Action in 3 2':
                             self.countdown_light.SetLabel(' 1')
+                            self.record_collpane.Show(False)
 
                         elif event.data == 'Action':
                             self.countdown_dark.SetForegroundColour((170, 20, 20))
@@ -2939,6 +2952,7 @@ class EditFrame(wx.Frame):
                             self.countdown_light.Show(False)
                             self.recording_message_a.Show(True)
                             self.recording_message_b.Show(True)
+                            self.record_collpane.Show(False)
 
                             if self.parent.settings['Notifications'] == 'Banners':
                                 show_notification(self, 'Recording started', 'Perform actions to record them in Aldras')
@@ -2975,7 +2989,7 @@ class EditFrame(wx.Frame):
                 def finish(self, _):
                     lines_recorded = self.listener_thread.abort()
                     if lines_recorded:
-                        record_method = self.parent_dialog.FindWindowByName('Record method').GetStringSelection()
+                        record_method = self.FindWindowByName('Record method').GetStringSelection()
                         if record_method == 'Overwrite':
                             self.parent.lines = lines_recorded  # overwrite lines
                         else:
@@ -2992,7 +3006,9 @@ class EditFrame(wx.Frame):
                     self.parent.Layout()
                     self.Destroy()
 
-        record_count_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}').ShowModal()
+        record_count_dlg = RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}')
+
+        record_count_dlg.ShowModal()
 
         record_count_dlg.Destroy()
 

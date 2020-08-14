@@ -13,7 +13,7 @@ from modules.aldras_core import coords_of, eliminate_duplicates, float_in, varia
 
 
 class ListenerThread(threading.Thread):
-    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False, record_pause=None):
+    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         self.parent = parent
@@ -21,8 +21,8 @@ class ListenerThread(threading.Thread):
         self.listen_to_mouse = listen_to_mouse
         self.record = record
         self.debug = debug
-        self.record_pause = record_pause
         self.in_action = False
+        self.record_pause = None  # no pauses default
         if self.record:
             self.recording_lines = []
         try:
@@ -46,6 +46,14 @@ class ListenerThread(threading.Thread):
             """Save recording line."""
 
             if self.record:
+                if self.parent.Name == 'record_counter_dialog':
+                    if self.parent.FindWindowByName('All pauses over 0.5').GetValue():
+                        self.record_pause = 0.5
+                    elif self.parent.FindWindowByName('Pauses over').GetValue():
+                        self.record_pause = float_in(self.parent.FindWindowByName('some_sleep_thresh').GetValue())
+                        if self.record_pause < 0.5:
+                            self.record_pause = 0.5
+
                 if self.record_pause:
                     # add pause since last input
                     if self.time_last_input:
@@ -68,9 +76,7 @@ class ListenerThread(threading.Thread):
                     False: key is released
                 """
                 output = str(key).strip('\'').lower()  # strip single quotes and lower
-
                 if self.in_action:
-
                     # replace numberpad virtual keycodes with strings of the number digits
                     for number in range(10):  # loop through 0-9 and replace keycodes starting at <96>
                         key = str(key).replace(f'<{96 + number}>', str(number))

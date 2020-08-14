@@ -1,4 +1,4 @@
 HardwareID: 17830
-#Fill out customer details
-
-Hotkey ctrl + c
+Mouse-move to (1000, 1000)
+Mouse-move to (500, 500)
+Mouse-move to (800, 800)
