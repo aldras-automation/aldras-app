@@ -24,7 +24,6 @@ from pynput import keyboard, mouse
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
-from modules.aldras_execute import ExecuteDialog
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
 
@@ -3181,6 +3180,7 @@ class EditFrame(wx.Frame):
                     if event.data == 'Action in 3':
                         self.countdown_light.SetLabel(' 2 1')
                         self.execute_collpane.Show(False)
+                        self.finish_btn.Show(False)
 
                     elif event.data == 'Action in 3 2':
                         self.countdown_light.SetLabel(' 1')
@@ -3201,7 +3201,7 @@ class EditFrame(wx.Frame):
 
                     elif event.data == 'Completed!':
                         self.execution_thread.abort()
-                        self.listener_thread.abort()
+                        self.listener_thread.in_action = False
                         self.directions_a.Show(False)
                         self.directions_b.Show(False)
                         self.countdown_light.SetLabel('')
@@ -3218,7 +3218,7 @@ class EditFrame(wx.Frame):
 
                     elif event.data == 'Failsafe triggered':
                         self.execution_thread.abort()
-                        self.listener_thread.abort()
+                        self.listener_thread.in_action = False
                         self.directions_a.Show(False)
                         self.directions_b.SetLabel('Top-Left Corner Failsafe Triggered')
                         self.countdown_light.SetLabel('')

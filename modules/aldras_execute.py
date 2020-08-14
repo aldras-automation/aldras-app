@@ -83,35 +83,3 @@ def create_execute_options(parent_frame, settings_frame=False):
     checkbox_type_interval_pressed()
 
     return vbox
-
-
-class ExecuteDialog(wx.Dialog):
-    def __init__(self, parent, caption):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)  # | wx.RESIZE_BORDER)
-        self.SetTitle(caption)
-        self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-        self.SetBackgroundColour('white')
-
-        vbox = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Options'), wx.VERTICAL)
-
-        # instantiate attributes to be redefined in create_execute_options() and used in ExecuteCtrlCounterDialog
-        self.checkbox_pause = None
-        self.execute_pause_input = None
-        self.checkbox_mouse_dur = None
-        self.execute_mouse_dur_input = None
-        self.checkbox_type_interval = None
-        self.execute_type_interval_input = None
-
-        vbox.Add(create_execute_options(self))
-
-        vbox.AddSpacer(10)
-
-        btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
-
-        vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        vbox_outer.Add(wx.StaticText(self, label='Uncheck option(s) for fastest execution'), 0,
-                            wx.ALIGN_RIGHT | wx.NORTH | wx.EAST | wx.WEST, 20)
-        vbox_outer.Add(vbox, 0, wx.EAST | wx.WEST | wx.SOUTH, 20)
-        vbox_outer.Add(btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 15)
-        self.SetSizerAndFit(vbox_outer)
-        self.Center()

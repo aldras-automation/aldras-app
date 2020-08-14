@@ -9,6 +9,7 @@ from ctypes import WinDLL
 import math
 import time
 import http.client as httplib
+import pyperclip
 from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
     assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, block_end_index
 
@@ -455,7 +456,8 @@ class ExecutionThread(threading.Thread):
 
         self.mouse_down_coords = [0, 0]
         self.variables = {
-            'internet.conn': check_internet_connection
+            'internet.conn': check_internet_connection,  # function returning internet connection status
+            'clipboard.value': pyperclip.paste,  # function returning internet connection status
         }
         self.keep_running = True
 
@@ -565,8 +567,6 @@ class ExecutionThread(threading.Thread):
 
             elif self.parent.parent.features_unlocked and ('if' in line_first_word) and ('{' in line):
                 var_name = variable_names_in(line_orig)[0]
-                print(var_name)
-                print(self.line_with_vars_replaced(f'{{{{~{var_name}~}}}}'))
                 conditional_var_val = self.line_with_vars_replaced(f'{{{{~{var_name}~}}}}')
 
                 conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',

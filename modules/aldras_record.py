@@ -60,34 +60,3 @@ def create_record_options(parent_frame, settings_frame=False):
     hbox_options.Add(record_mthd, 0, wx.ALL, 5)
 
     return hbox_options
-
-
-class RecordDialog(wx.Dialog):
-    def __init__(self, parent, caption):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-        self.SetTitle(caption)
-        self.SetIcon(wx.Icon(parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-        self.SetBackgroundColour('white')
-        settings = import_settings()
-
-        # setup sizers
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
-        self.hbox_options = create_record_options(self)
-
-        # set defaults from settings
-        self.FindWindowByLabel(settings['Record pause']).SetValue(True)
-        self.FindWindowByName('Record method').SetSelection(
-            self.FindWindowByName('Record method').FindString(settings['Record method']))
-
-        vbox.Add(self.hbox_options, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        vbox.AddSpacer(10)
-
-        # add buttons
-        btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
-        vbox.Add(btns, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-
-        vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        vbox_outer.Add(vbox, 0, wx.ALL, 10)
-        self.SetSizerAndFit(vbox_outer)
-        self.Center()

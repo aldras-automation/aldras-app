@@ -1,5 +1,9 @@
 HardwareID: 17830
-Assign {{~Var~}}=
-Loop for each element in list [1`'`2`'`3`'`4`'`5] {
-Left-mouse click at (10, 10)
-}
+Mouse-move to (371, 854)
+Wait 0.5
+Mouse-move to (633, 128)
+Wait 0.5
+Mouse-move to (1533, 201)
+Wait 0.5
+Mouse-move to (1549, 839)
+Wait 0.5
