@@ -620,7 +620,7 @@ def setup_frame(self, status_bar=False):
         self.variables_menu = wx.Menu()
         menu_bar.Append(self.variables_menu, 'Variables')  # add the insert menu to the menu bar
 
-        self.internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.connection',
+        self.internet_connection = self.variables_menu.Append(wx.ID_ANY, 'internet.conn',
                                                               '   Insert variable that outputs if connected to the internet (True or False).')
         self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.internet_connection),
                   self.internet_connection)
@@ -1629,7 +1629,14 @@ class EditFrame(wx.Frame):
 
     def insert_variable(self, event, menu_item):
         if self.variable_insertion_window:
-            self.variable_insertion_window.WriteText(f'{{{{~{menu_item.GetItemLabelText()}~}}}}')
+            print(self.variable_insertion_window.Name)
+            insertion_text = f'{{{{~{menu_item.GetItemLabelText()}~}}}}'
+
+            if self.variable_insertion_window.Name == 'variable_name_entry':
+                insertion_text = menu_item.GetItemLabelText()
+                self.variable_insertion_window.Clear()
+
+            self.variable_insertion_window.WriteText(insertion_text)
         event.Skip()
 
     def enable_variable_insertion(self, enable_boolean, sizer, event):
@@ -1806,6 +1813,9 @@ class EditFrame(wx.Frame):
                                   lambda event: self.command_parameter_change(sizer, event, 'assign_var_value'))
         variable_value_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                                   lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        if self.features_unlocked:
+            variable_value_entry.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
+            variable_value_entry.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
         config_status_and_tooltip(self, variable_value_entry, 'Assignment variable value')
         sizer.Add(variable_value_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
@@ -1836,12 +1846,15 @@ class EditFrame(wx.Frame):
         sizer.Add(if_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 8)
 
         variable_name_entry = wx.TextCtrl(self.edit, value=variable_names_in(line)[0], style=wx.TE_RICH | wx.TE_RIGHT,
-                                          validator=CharValidator('variable_name', self))
+                                          validator=CharValidator('variable_name', self), name='variable_name_entry')
         change_font(variable_name_entry, weight=wx.BOLD)
         variable_name_entry.SetMaxLength(15)
         variable_name_entry.Bind(wx.EVT_TEXT,
                                  lambda event: self.command_parameter_change(sizer, event, 'conditional_var_name'))
         variable_name_entry.Bind(wx.EVT_KEY_DOWN, textctrl_tab_trigger_nav)
+        if self.features_unlocked:
+            variable_name_entry.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
+            variable_name_entry.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
         config_status_and_tooltip(self, variable_name_entry, 'Conditional variable name')
         sizer.Add(variable_name_entry, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 5)
 
@@ -1860,6 +1873,9 @@ class EditFrame(wx.Frame):
                               lambda event: self.command_parameter_change(sizer, event, 'conditional_comparison_value'))
         comparison_entry.Bind(wx.lib.expando.EVT_ETC_LAYOUT_NEEDED,
                               lambda _: self.Layout())  # layout EditFrame when ExpandoTextCtrl size changes
+        if self.features_unlocked:
+            comparison_entry.Bind(wx.EVT_SET_FOCUS, lambda event: self.enable_variable_insertion(True, sizer, event))
+            comparison_entry.Bind(wx.EVT_KILL_FOCUS, lambda event: self.enable_variable_insertion(False, sizer, event))
         config_status_and_tooltip(self, comparison_entry, 'Conditional value')
         sizer.Add(comparison_entry, 1, wx.ALIGN_CENTER_VERTICAL)
         self.no_right_spacer = True
@@ -3009,201 +3025,6 @@ class EditFrame(wx.Frame):
 
         record_count_dlg.ShowModal()
         record_count_dlg.Destroy()
-
-    # def on_record(self):
-    #     record_dlg = RecordDialog(self, f'Record - {self.workflow_name}')
-    #
-    #     if record_dlg.ShowModal() == wx.ID_OK:
-    #
-    #         # # get recording parameters
-    #         #
-    #         # if record_dlg.FindWindowByName('No pauses').GetValue():
-    #         #     record_pause = None
-    #         # elif record_dlg.FindWindowByName('All pauses').GetValue():
-    #         #     record_pause = 0
-    #         # elif record_dlg.FindWindowByName('Pauses over').GetValue():
-    #         #     record_pause = float_in(record_dlg.FindWindowByName('some_sleep_thresh').GetValue())
-    #
-    #         class RecordCtrlCounterDialog(wx.Dialog):
-    #             def __init__(self, parent, caption, parent_dialog):
-    #                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
-    #                 self.SetTitle(caption)
-    #                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
-    #                 self.SetBackgroundColour('white')
-    #                 self.parent = parent
-    #                 self.parent_dialog = parent_dialog
-    #                 self.done = False
-    #
-    #                 self.vbox = wx.BoxSizer(wx.VERTICAL)
-    #
-    #                 # add rescaled logo image
-    #                 png = wx.Image('data/record.png', wx.BITMAP_TYPE_PNG).Scale(120, 120, quality=wx.IMAGE_QUALITY_HIGH)
-    #                 icon_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
-    #                 self.vbox.Add(icon_img, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.NORTH | wx.SOUTH, 20)
-    #
-    #                 # add main directions
-    #                 self.directions_a = wx.StaticText(self,
-    #                                                   label=f'Start{self.parent.software_info.start_stop_directions}')
-    #                 change_font(self.directions_a, size=14)
-    #                 self.vbox.Add(self.directions_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #
-    #                 self.vbox.AddSpacer(15)
-    #
-    #                 # add countdown
-    #                 self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)  # ------------------------------------------------
-    #
-    #                 self.countdown_dark = wx.StaticText(self, label=parent.workflow_name)
-    #                 change_font(self.countdown_dark, size=22)
-    #                 self.hbox_countdown.Add(self.countdown_dark)
-    #                 self.countdown_dark.Show(False)
-    #
-    #                 self.countdown_light = wx.StaticText(self, label=parent.workflow_name)
-    #                 change_font(self.countdown_light, size=22, color=3 * (150,))
-    #                 self.hbox_countdown.Add(self.countdown_light)
-    #                 self.countdown_light.Show(False)
-    #
-    #                 self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #                 # --------------------------------------------------------------------------------------------------
-    #
-    #                 self.vbox.AddSpacer(20)
-    #
-    #                 # add main status message
-    #                 self.recording_message_a = wx.StaticText(self, label='Now recording clicks and keypresses')
-    #                 change_font(self.recording_message_a, size=13, color=(170, 20, 20))
-    #                 self.vbox.Add(self.recording_message_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #                 self.recording_message_a.Show(False)
-    #
-    #                 self.vbox.AddSpacer(5)
-    #
-    #                 # add secondary status message
-    #                 self.recording_message_b = wx.StaticText(self, label='Left control key: record mouse position')
-    #                 change_font(self.recording_message_b, size=10, color=(170, 20, 20))
-    #                 self.vbox.Add(self.recording_message_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #                 self.recording_message_b.Show(False)
-    #
-    #                 # add completion spacer
-    #                 self.spacer_a = wx.StaticText(self, label='')
-    #                 change_font(self.spacer_a, size=5)
-    #                 self.vbox.Add(self.spacer_a, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #                 self.spacer_a.Show(False)
-    #
-    #                 # add finish button
-    #                 self.finish_btn = wx.Button(self, label='Finish')
-    #                 self.finish_btn.Bind(wx.EVT_BUTTON, self.finish)
-    #                 self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
-    #                 self.finish_btn.Show(False)
-    #
-    #                 # add in-action spacer
-    #                 self.spacer_b = wx.StaticText(self, label='')
-    #                 change_font(self.spacer_b, size=20)
-    #                 self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-    #
-    #                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-    #                 self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
-    #                 self.SetSizerAndFit(self.vbox_outer)
-    #                 self.Position = (
-    #                     int(self.parent_dialog.Position[0] + ((self.parent_dialog.Size[0] - self.Size[0]) / 2)),
-    #                     self.parent_dialog.Position[1])
-    #
-    #                 record_pause = None  # no pauses default
-    #                 if record_dlg.FindWindowByName('All pauses over 0.5').GetValue():
-    #                     record_pause = 0.5
-    #                 elif record_dlg.FindWindowByName('Pauses over').GetValue():
-    #                     record_pause = float_in(self.parent_dialog.FindWindowByName('some_sleep_thresh').GetValue())
-    #                     if record_pause < 0.5:
-    #                         record_pause = 0.5
-    #
-    #                 self.thread_event_id = wx.NewIdRef()
-    #                 self.Connect(-1, -1, int(self.thread_event_id),
-    #                              self.read_thread_event_input)  # Process message events from threads
-    #                 self.listener_thread = ListenerThread(self, record=True, record_pause=record_pause)
-    #                 self.listener_thread.start()
-    #                 self.Bind(wx.EVT_CLOSE, self.close_window)
-    #                 self.Center()
-    #
-    #             def read_thread_event_input(self, event):
-    #                 """Show Result status."""
-    #                 if event.data is None:
-    #                     # Thread aborted (since None return)
-    #                     self.countdown_light.SetLabel('Some error occurred')
-    #                     self.countdown_light.Show(True)
-    #                 else:
-    #                     # Process message events
-    #                     self.countdown_dark.Show(True)
-    #                     self.countdown_light.Show(True)
-    #
-    #                     self.countdown_dark.SetLabel(event.data.replace('Action', 'Recording'))
-    #                     self.countdown_dark.SetForegroundColour(wx.BLACK)
-    #
-    #                     if event.data == 'Action in 3':
-    #                         self.countdown_light.SetLabel(' 2 1')
-    #
-    #                     elif event.data == 'Action in 3 2':
-    #                         self.countdown_light.SetLabel(' 1')
-    #
-    #                     elif event.data == 'Action':
-    #                         self.countdown_dark.SetForegroundColour((170, 20, 20))
-    #                         self.directions_a.SetLabel(f'Stop{self.parent.software_info.start_stop_directions}')
-    #                         self.countdown_light.SetLabel('')
-    #                         self.countdown_light.Show(False)
-    #                         self.recording_message_a.Show(True)
-    #                         self.recording_message_b.Show(True)
-    #
-    #                         if self.parent.settings['Notifications'] == 'Banners':
-    #                             show_notification(self, 'Recording started', 'Perform actions to record them in Aldras')
-    #
-    #                     elif event.data == 'Stopping in 3':
-    #                         self.countdown_light.SetLabel(' 2 1')
-    #
-    #                     elif event.data == 'Stopping in 3 2':
-    #                         self.countdown_light.SetLabel(' 1')
-    #
-    #                     elif event.data == 'Completed!':
-    #                         self.directions_a.Show(False)
-    #                         self.countdown_light.SetLabel('')
-    #                         self.countdown_light.Show(False)
-    #                         change_font(self.countdown_dark, size=22)
-    #                         self.recording_message_a.Show(False)
-    #                         self.recording_message_b.Show(False)
-    #                         self.spacer_a.Show(True)
-    #                         self.finish_btn.Show(True)
-    #                         self.done = True
-    #
-    #                     self.vbox.Layout()
-    #                     self.vbox_outer.Layout()
-    #                     self.SetSizerAndFit(self.vbox_outer)
-    #                     if self.done:
-    #                         self.Raise()
-    #                         self.position_old = self.GetPosition()
-    #                         self.size_old = self.GetSize()
-    #                         self.Position = (int(self.position_old[0] + ((self.size_old[0] - self.Size[0]) / 2)),
-    #                                          int(self.position_old[1]))
-    #                     self.Fit()
-    #                     self.Center()  # TODO center on previous position not on screen
-    #
-    #             def finish(self, _):
-    #                 lines_recorded = self.listener_thread.abort()
-    #                 if lines_recorded:
-    #                     record_method = self.parent_dialog.FindWindowByName('Record method').GetStringSelection()
-    #                     if record_method == 'Overwrite':
-    #                         self.parent.lines = lines_recorded  # overwrite lines
-    #                     else:
-    #                         self.parent.lines += lines_recorded  # append lines
-    #                     self.parent.create_edit_panel()
-    #                 else:
-    #                     # raise warning if no actions recorded
-    #                     wx.MessageDialog(self, 'No actions detected nor recorded.', 'Warning',
-    #                                      wx.OK | wx.ICON_WARNING).ShowModal()
-    #                 self.close_window()
-    #
-    #             def close_window(self, _=None):
-    #                 self.listener_thread.abort()
-    #                 self.parent.Layout()
-    #                 self.Destroy()
-    #
-    #         RecordCtrlCounterDialog(self, f'Record - {self.workflow_name}', record_dlg).ShowModal()
-    #
-    #     record_dlg.Destroy()
 
     def on_execute(self):
         class ExecuteCtrlCounterDialog(wx.Dialog):

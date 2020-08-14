@@ -8,8 +8,19 @@ import pyautogui as pyauto
 from ctypes import WinDLL
 import math
 import time
+import http.client as httplib
 from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
     assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, block_end_index
+
+
+def check_internet_connection():
+    conn = httplib.HTTPConnection("www.google.com", timeout=0.2)
+    try:
+        conn.request("HEAD", "/")
+        conn.close()
+        return True
+    except Exception as e:
+        return False
 
 
 class ListenerThread(threading.Thread):
@@ -29,7 +40,7 @@ class ListenerThread(threading.Thread):
             if __name__ == '__main__':
                 ctrl_keys_file = f'../data/ctrl_keys_ref.csv'
             else:
-                ctrl_keys_file = f'{self.parent.parent.parent.software_info.data_directory}ctrl_keys_ref.csv'
+                ctrl_keys_file = f'{self.parent.parent.software_info.data_directory}ctrl_keys_ref.csv'
             self.ctrl_keys_df = pd.read_csv(ctrl_keys_file, names=['Translation',
                                                                    'Code'])  # reference for all ctrl hotkeys (registered as separate key)
             self.ctrl_keys_df = self.ctrl_keys_df.set_index('Code')
@@ -282,7 +293,8 @@ class ListenerThread(threading.Thread):
                         if 'Key' in line:
                             check_single_chars = {len(x) for x in pressed_keys if x != 'shift'} == {
                                 1}  # all hotkeys are single chars
-                            check_alphabet_letters = {((x.isalpha() and len(x) == 1) or (x=='space')) for x in pressed_keys if
+                            check_alphabet_letters = {((x.isalpha() and len(x) == 1) or (x == 'space')) for x in
+                                                      pressed_keys if
                                                       (x != 'shift' and x not in symbol_chars)} == {
                                                          True}  # all hotkeys are single alphabetic characters
                             check_symbol_chars = {x for x in pressed_keys if
@@ -301,7 +313,8 @@ class ListenerThread(threading.Thread):
                             elif 'release' in line:
                                 if key in pressed_keys:
                                     # execute hotkey
-                                    if check_single_chars or len(pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
+                                    if check_single_chars or len(
+                                            pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
                                         if self.debug:
                                             print('\t\tregister hotkey: ', check_alphabet_letters)
                                         if 'shift' in pressed_keys and check_single_chars and (
@@ -323,7 +336,7 @@ class ListenerThread(threading.Thread):
                                     else:  # release with only one key pressed
                                         # do not process ctrl key release if previous line was not a ctrl key press
                                         if index > 0:
-                                            if 'ctrl' in line and 'ctrl' not in lines[index-1]:
+                                            if 'ctrl' in line and 'ctrl' not in lines[index - 1]:
                                                 line = ''
                                     if key in pressed_keys:
                                         pressed_keys.remove(key)
@@ -441,7 +454,9 @@ class ExecutionThread(threading.Thread):
         pyauto.PAUSE = self.parent.execution_pause
 
         self.mouse_down_coords = [0, 0]
-        self.variables = dict()
+        self.variables = {
+            'internet.conn': check_internet_connection
+        }
         self.keep_running = True
 
         try:
@@ -467,6 +482,20 @@ class ExecutionThread(threading.Thread):
             print('Runtime error code kTPbmaAW66')
             raise SystemError('Runtime error code kTPbmaAW66')
 
+    def line_with_vars_replaced(self, line_orig):
+        # replace variable names defined so far with values
+        for var_to_type in variable_names_in(line_orig):
+            if var_to_type in self.variables:
+                replacement = self.variables[var_to_type]
+
+                if callable(self.variables[var_to_type]):  # if variable is a function like internet.connection
+                    replacement = str(self.variables[var_to_type]())
+
+                line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', replacement)
+
+        return line_orig
+
+
     def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
@@ -476,11 +505,7 @@ class ExecutionThread(threading.Thread):
                          :4]:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
                 line_orig = re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig)  # replace 'Type:' command
-
-                # replace variable names defined so far with values
-                for var_to_type in variable_names_in(line_orig):
-                    if var_to_type in self.variables:
-                        line_orig = line_orig.replace(f'{{{{~{var_to_type}~}}}}', self.variables[var_to_type])
+                line_orig = self.line_with_vars_replaced(line_orig)
 
                 # split up text to type into smaller groups to check for self.keep_running in between group execution
                 num_char_per_execution = 2
@@ -491,7 +516,7 @@ class ExecutionThread(threading.Thread):
                 for text_type_group in text_type_groups:
                     if self.keep_running:
                         pyauto.typewrite(text_type_group, interval=self.type_interval)
-                pyauto.PAUSE = self.parent.parent.execution_pause  # restore pauses after typing
+                pyauto.PAUSE = self.parent.execution_pause  # restore pauses after typing
 
             elif 'wait' in line_first_word[:4]:
                 tot_time = float_in(line)
@@ -536,45 +561,48 @@ class ExecutionThread(threading.Thread):
             elif self.parent.parent.features_unlocked and ('assign' in line_first_word) and ('{{~' in line) and (
                     '~}}' in line):
                 self.variables[variable_names_in(line_orig)[0]] = assignment_variable_value_in(
-                    line_orig)  # store variable
+                    self.line_with_vars_replaced(line_orig))  # store variable
 
             elif self.parent.parent.features_unlocked and ('if' in line_first_word) and ('{' in line):
-                conditional_var = variable_names_in(line_orig)[0]
+                var_name = variable_names_in(line_orig)[0]
+                print(var_name)
+                print(self.line_with_vars_replaced(f'{{{{~{var_name}~}}}}'))
+                conditional_var_val = self.line_with_vars_replaced(f'{{{{~{var_name}~}}}}')
 
                 conditional_operations = ['Equals', 'Not equal to', 'Contains', 'Is in', '>', '<', '≥',
                                           '≤']  # TODO import from compartmentalized softwareinfo module
 
                 conditional_operation = conditional_operation_in(line_orig, conditional_operations)
-                conditional_comparison = conditional_comparison_in(line_orig)
+                conditional_comparison = conditional_comparison_in(self.line_with_vars_replaced(line_orig))
 
                 conditional_satisfied = False
                 try:
                     if conditional_operation == 'Equals':
-                        if self.variables[conditional_var].strip() == conditional_comparison.strip():
+                        if conditional_var_val.strip() == conditional_comparison.strip():
                             conditional_satisfied = True
                     elif conditional_operation == 'Not equal to':
-                        if self.variables[conditional_var] != conditional_comparison:
+                        if conditional_var_val != conditional_comparison:
                             conditional_satisfied = True
                     elif conditional_operation == 'Contains':  # if var contains comparison
-                        if conditional_comparison in self.variables[conditional_var]:
+                        if conditional_comparison in conditional_var_val:
                             conditional_satisfied = True
                     elif conditional_operation == 'Is in':  # if var is in comparison
-                        if self.variables[conditional_var] in conditional_comparison:
+                        if conditional_var_val in conditional_comparison:
                             conditional_satisfied = True
                     elif conditional_operation == '>':
-                        if float_in(self.variables[conditional_var]) > float_in(conditional_comparison):
+                        if float_in(conditional_var_val) > float_in(conditional_comparison):
                             conditional_satisfied = True
                     elif conditional_operation == '<':
-                        if float_in(self.variables[conditional_var]) < float_in(conditional_comparison):
+                        if float_in(conditional_var_val) < float_in(conditional_comparison):
                             conditional_satisfied = True
                     elif conditional_operation == '≥':
-                        if float_in(self.variables[conditional_var]) >= float_in(conditional_comparison):
+                        if float_in(conditional_var_val) >= float_in(conditional_comparison):
                             conditional_satisfied = True
                     elif conditional_operation == '≤':
-                        if float_in(self.variables[conditional_var]) <= float_in(conditional_comparison):
+                        if float_in(conditional_var_val) <= float_in(conditional_comparison):
                             conditional_satisfied = True
 
-                except KeyError:  # variable was not define prior to conditional evaluation
+                except KeyError:  # variable was not defined prior to conditional evaluation
                     pass
 
                 if not conditional_satisfied:

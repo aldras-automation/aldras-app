@@ -1,23 +1,5 @@
-HardwareID: 17786
-Left-mouse click at (341, 505)
-Right-mouse press at (262, 637)
-Right-mouse release at (76, 46)
-Type: This proposal initiated by John Smith.
-Hotkey ctrl+s
-Hotkey ctrl+shift+left
-Wait 0.5
-Mouse-move to (749, 450)
-Wait 0.5
-Key Win Tap
-# Comment
-Left-mouse click at (749, 450)
-Double-click at (749, 450)
-Triple-click at (749, 450)
-Key Esc Tap
-If {{~Var~}} Equals ~asdf~ {
-Wait 0.5
-}
-Loop multiple times 1 {
-Left-mouse click at (10, 103)
-Left-mouse click at (10, 210)
+HardwareID: 17830
+Assign {{~Var~}}=
+Loop for each element in list [1`'`2`'`3`'`4`'`5] {
+Left-mouse click at (10, 10)
 }

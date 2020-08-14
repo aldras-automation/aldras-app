@@ -1,4 +1,10 @@
-HardwareID: 17803
-Key prntscrn  tap
-Key scrolllock  tap
-Key pause tap
+HardwareID: 17830
+Assign {{~Var~}}={{~internet.conn~}}
+Type:start - {{~Var~}}``nl``
+Loop multiple times 200 {
+If {{~internet.conn~}} Equals ~True~ {
+Type:Yes internet!``nl``
+}
+Wait 0.5
+}
+Type:done``nl````nl``
