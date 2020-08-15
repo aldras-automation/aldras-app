@@ -233,12 +233,12 @@ def setup_frame(self, status_bar=False):
 
                 # add license type text
                 license_plan_st = wx.StaticText(panel, label=license_type)
-                change_font(license_plan_st, size=14, color=3 * (50,), weight=wx.FONTWEIGHT_MEDIUM)
+                change_font(license_plan_st, size=14, color=3 * (50,))
                 self.vbox.Add(license_plan_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
 
                 # add expiration date text
                 expiration_date_st = wx.StaticText(panel, label=expiration)
-                change_font(expiration_date_st, size=9, color=3 * (50,), weight=wx.FONTWEIGHT_MEDIUM)
+                change_font(expiration_date_st, size=9, color=3 * (50,))
                 self.vbox.Add(expiration_date_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
 
                 # add license key text
@@ -636,11 +636,18 @@ def setup_frame(self, status_bar=False):
     # set up the help menu
     help_menu = wx.Menu()
 
-    menu_tutorial = help_menu.Append(wx.ID_ANY, 'Tutorial', f'   {self.software_info.name} tutorial')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#quickstart'), menu_tutorial)
+    menu_getting_started = help_menu.Append(wx.ID_ANY, 'Getting Started', f'   {self.software_info.name} getting started guide')
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#quickstart'), menu_getting_started)
 
-    menu_edit_guide = help_menu.Append(wx.ID_ANY, 'Edit Guide', f'   {self.software_info.name} edit guide')
-    self.Bind(wx.EVT_MENU, lambda event: launch_edit_guide(self), menu_edit_guide)
+    menu_command_ref = help_menu.Append(wx.ID_ANY, 'Command Reference', f'   {self.software_info.name} command reference')
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#commands'), menu_command_ref)
+    # self.Bind(wx.EVT_MENU, lambda event: launch_edit_guide(self), menu_command_ref)
+
+    menu_recording_tips = help_menu.Append(wx.ID_ANY, 'Recording', f'   {self.software_info.name} recording tips')
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#recording'), menu_recording_tips)
+
+    menu_execution_tips = help_menu.Append(wx.ID_ANY, 'Execution', f'   {self.software_info.name} execution tips')
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#execution'), menu_execution_tips)
 
     menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
                                      f'   Submit feedback to {self.software_info.name}')
@@ -2887,10 +2894,8 @@ class EditFrame(wx.Frame):
                     self.hbox_countdown.Add(self.countdown_light)
                     self.countdown_light.Show(False)
 
-                    self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                    self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 20)
                     # --------------------------------------------------------------------------------------------------
-
-                    self.vbox.AddSpacer(20)
 
                     # add main status message
                     self.recording_message_a = wx.StaticText(self, label='Now recording clicks and keypresses')
@@ -3060,7 +3065,7 @@ class EditFrame(wx.Frame):
 
                 self.vbox.AddSpacer(15)
 
-                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed')  # ----------------------------------------
+                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed')  # --------------------------
                 self.execute_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
                 execute_panel = self.execute_collpane.GetPane()
 
@@ -3084,7 +3089,7 @@ class EditFrame(wx.Frame):
 
                 execute_panel.SetSizer(execute_sizer)
                 execute_sizer.SetSizeHints(execute_panel)
-                self.vbox.Add(self.execute_collpane, 0, wx.GROW)  # ---------------------------------------------------------
+                self.vbox.Add(self.execute_collpane, 0, wx.GROW)  # ----------------------------------------------------
 
                 # add countdown
                 self.hbox_countdown = wx.BoxSizer(wx.HORIZONTAL)
@@ -3099,10 +3104,8 @@ class EditFrame(wx.Frame):
                 self.hbox_countdown.Add(self.countdown_light)
                 self.countdown_light.Show(False)
 
-                self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL)
+                self.vbox.Add(self.hbox_countdown, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
                 # --------------------------------------------------------------------------------------------------
-
-                self.vbox.AddSpacer(10)
 
                 # add status message
                 self.executing_message_a = wx.StaticText(self, label='Now executing clicks and keypresses')
