@@ -794,7 +794,7 @@ def launch_edit_guide(parent):
 
 
 class CustomGrid(wx.grid.Grid):
-    def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True):
+    def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True, formatting_function=None):
         wx.grid.Grid.__init__(self, parent, style=style)
         self.parent = parent
         self.CreateGrid(*table_size)
@@ -804,6 +804,8 @@ class CustomGrid(wx.grid.Grid):
 
         self.can_change_num_rows = can_change_num_rows
         self.can_change_num_cols = can_change_num_cols
+
+        self.formatting_function = formatting_function
 
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda
             event: self.resize_rows())  # when selected cell changes, autoresize the rows and layout the parent window
@@ -896,6 +898,9 @@ class CustomGrid(wx.grid.Grid):
 
                 self.SetCellValue(row_index, column_index,
                                   excel_array[row_index - row_selection, column_index - col_selection])
+
+        if self.formatting_function:
+            self.formatting_function()
 
         self.resize_rows()
 
@@ -1642,7 +1647,6 @@ class EditFrame(wx.Frame):
 
     def insert_variable(self, event, menu_item):
         if self.variable_insertion_window:
-            print(self.variable_insertion_window.Name)
             insertion_text = f'{{{{~{menu_item.GetItemLabelText()}~}}}}'
 
             if self.variable_insertion_window.Name == 'variable_name_entry':
@@ -1673,6 +1677,15 @@ class EditFrame(wx.Frame):
                     loop_list_end_index = block_end_index(self.lines, line_index)
                     if index < loop_list_end_index:  # only enable loop.list.var insertion if line is before end of loop
                         self.variables_menu_items['loop.list.var'].Enable(True)
+
+                if 'loop' in line_first_word and 'for each row in table' in line[:40].lower() and '{' in line:
+                    loop_list_end_index = block_end_index(self.lines, line_index)
+                    if index < loop_list_end_index:  # only enable loop.table variable insertion if line is before end of loop
+                        loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
+                        table_vars = loop_table_text.split("`'''`")[0].split("`'`")
+
+                        for table_var in table_vars:
+                            self.variables_menu_items[f'loop.table.{table_var}'].Enable(True)
 
         else:
             self.variable_insertion_window = None
@@ -1967,7 +1980,7 @@ class EditFrame(wx.Frame):
                     self.variables_menu.InsertSeparator(2)
                     self.variables_menu_items['loop.list.var'] = self.variables_menu.Insert(3, wx.ID_ANY,
                                                                                             'loop.list.var',
-                                                                                            '   Insert variable loop list variable created by the most recent loop list.')
+                                                                                            '   Insert loop list variable created by the most recent loop list')
                     self.variables_menu_items['loop.list.var'].Enable(
                         False)  # to be re-enabled when focus is bestowed upon appropriate window
                     self.Bind(wx.EVT_MENU,
@@ -1997,23 +2010,19 @@ class EditFrame(wx.Frame):
                 change_font(loop_table_length, style=wx.ITALIC, color=3 * (100,))
                 loop_sizer.Add(loop_table_length, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                # # add variable to menu
-                # if 'loop.list.var' not in self.variables_menu_items:  # only add unique variable names on ingest
-                #     self.variables_menu.InsertSeparator(2)
-                #     self.variables_menu_items['loop.list.var'] = self.variables_menu.Insert(3, wx.ID_ANY,
-                #                                                                             'loop.list.var',
-                #                                                                             '   Insert variable loop list variable created by the most recent loop list.')
-                #     self.variables_menu_items['loop.list.var'].Enable(
-                #         False)  # to be re-enabled when focus is bestowed upon appropriate window
-                #     self.Bind(wx.EVT_MENU,
-                #               lambda event: self.insert_variable(event, self.variables_menu_items['loop.list.var']),
-                #               self.variables_menu_items['loop.list.var'])
-                # else:
-                #     self.duplicate_variables.append('loop.list.var')
+                self.update_loop_table_vars(loop_rows[0].split("`'`"), new_loop=True)
 
             if modification:
                 if old_loop_behavior == 'For each element in list':
                     self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+
+                elif old_loop_behavior == 'For each row in table':
+                    loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
+                    table_vars = loop_table_text.split("`'''`")[0].split("`'`")
+
+                    # remove variables from menu
+                    for table_var in table_vars:
+                        self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
 
                 self.create_delete_x_btn(loop_sizer)
                 self.Layout()
@@ -2294,20 +2303,22 @@ class EditFrame(wx.Frame):
         loop_list_values = loop_list_text.split("`'`")  # split based on delimiter
 
         loop_list_dlg = LoopListGrid(self, loop_list_values)
+        loop_list_dlg.ShowModal()
+        
+        # get loop_list values by iterating through rows
+        loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in
+                            range(loop_list_dlg.grid.GetNumberRows())]
+        
+        loop_list_dlg.Destroy()
 
-        if loop_list_dlg.ShowModal() == wx.ID_OK:
-            # get loop_list values by iterating through rows
-            loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in
-                                range(loop_list_dlg.grid.GetNumberRows())]
+        # remove trailing empty list elements
+        while loop_list_values and loop_list_values[-1] == '':
+            loop_list_values.pop()  # remove last element
 
-            # remove trailing empty list elements
-            while loop_list_values and loop_list_values[-1] == '':
-                loop_list_values.pop()  # remove last element
+        loop_list_string = "`'`".join(loop_list_values)
+        self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
 
-            loop_list_string = "`'`".join(loop_list_values)
-            self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
-
-            matching_widget_in_edit_row(sizer, 'loop_list_length').SetLabel(f'{len(loop_list_values)} iterations')
+        matching_widget_in_edit_row(sizer, 'loop_list_length').SetLabel(f'{len(loop_list_values)} iterations')
 
     def open_loop_table_grid(self, sizer):
 
@@ -2326,35 +2337,24 @@ class EditFrame(wx.Frame):
                 # create sizer for grid
                 self.vbox_table = wx.BoxSizer(wx.VERTICAL)
 
-                # header_row = table_array[0]
-                # table_array = np.delete(table_array, 0, axis=0)  # delete header row
-
                 num_rows = np.shape(table_array)[0]
                 num_cols = np.shape(table_array)[1]
 
-                if num_rows > 40:
-                    num_rows_to_generate = (num_rows + 9) // 10 * 10  # round number of elements up to nearest 10
-                    self.grid = CustomGrid(self, table_size=(num_rows_to_generate, num_cols), can_change_num_cols=True)
+                if num_rows > 41:
+                    num_rows_to_generate = (num_rows + 9) // 10 * 10 + 1  # round number of elements up to nearest 10 (+1 for header row)
+                    self.grid = CustomGrid(self, table_size=(num_rows_to_generate, num_cols), can_change_num_cols=True, formatting_function=self.format_grid)
                 else:
-                    self.grid = CustomGrid(self, table_size=(40, num_cols), can_change_num_cols=True)
+                    self.grid = CustomGrid(self, table_size=(41, num_cols), can_change_num_cols=True, formatting_function=self.format_grid)
 
                 self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
                 self.grid.SetColLabelSize(2)  # hide column labels
-
-                # format header row
-                for col_index in range(self.grid.GetNumberCols()):
-                    self.grid.SetCellBackgroundColour(0, col_index, wx.Colour(3 * (230,)))
-                    self.grid.SetCellFont(0, col_index, wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD))
-
-                # set row labels to account for header row
-                self.grid.SetRowLabelValue(0, '')  # set blank for header row
-                for row_index in range(1, self.grid.GetNumberRows()):
-                    self.grid.SetRowLabelValue(row_index, str(row_index))
 
                 # set grid cell values
                 for row_index, row in enumerate(table_array):
                     for col_index, element in enumerate(row):
                         self.grid.SetCellValue(row_index, col_index, element)
+
+                self.format_grid()
 
                 self.vbox_table.Add(self.grid, 1, wx.EXPAND)
 
@@ -2363,20 +2363,36 @@ class EditFrame(wx.Frame):
 
                 clear_btn = wx.Button(self, label='Clear Cell')
                 clear_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_cells())
-                self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 10)
+                self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 5)
 
                 clear_all_btn = wx.Button(self, label='Clear All')
                 clear_all_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_all_cells())
-                self.vbox_action.Add(clear_all_btn, 0, wx.EXPAND | wx.SOUTH, 50)
+                self.vbox_action.Add(clear_all_btn, 0, wx.EXPAND)
+
+                self.vbox_action.AddStretchSpacer()
 
                 add_rows_btn = wx.Button(self, label='Add Rows')
-                add_rows_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.AppendRows(10))
-                self.vbox_action.Add(add_rows_btn, 0, wx.EXPAND)
+                add_rows_btn.Bind(wx.EVT_BUTTON, self.add_rows)
+                self.vbox_action.Add(add_rows_btn, 0, wx.EXPAND | wx.SOUTH, 5)
+
+                del_row_btn = wx.Button(self, label='Delete Row')
+                del_row_btn.Bind(wx.EVT_BUTTON, self.del_row)
+                self.vbox_action.Add(del_row_btn, 0, wx.EXPAND)
+
+                self.vbox_action.AddStretchSpacer()
+
+                add_col_btn = wx.Button(self, label='Add Column')
+                add_col_btn.Bind(wx.EVT_BUTTON, self.add_col)
+                self.vbox_action.Add(add_col_btn, 0, wx.EXPAND | wx.SOUTH, 5)
+
+                del_col_btn = wx.Button(self, label='Delete Column')
+                del_col_btn.Bind(wx.EVT_BUTTON, self.del_col)
+                self.vbox_action.Add(del_col_btn, 0, wx.EXPAND)
 
                 self.vbox_action.AddStretchSpacer()
 
                 ok_btn = wx.Button(self, wx.ID_OK, label='OK')
-                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 10)
+                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 5)
 
                 cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
                 self.vbox_action.Add(cancel_btn, 0, wx.EXPAND)
@@ -2396,6 +2412,35 @@ class EditFrame(wx.Frame):
                 self.Center()
                 self.Bind(wx.EVT_SIZE, self.resize_window)
 
+            def add_rows(self, _):
+                self.grid.AppendRows(10)
+                self.format_grid()
+
+            def add_col(self, _):
+                self.grid.AppendCols(1)
+                self.format_grid()
+
+            def del_row(self, _):
+                row_index = self.grid.GetGridCursorRow()
+                print(row_index)
+                if self.grid.GetNumberRows() > 2 and row_index > 0:
+                    self.grid.DeleteRows(row_index)
+
+            def del_col(self, _):
+                if self.grid.GetNumberCols() > 1:
+                    self.grid.DeleteCols(self.grid.GetGridCursorCol())
+
+            def format_grid(self):
+                # format header row
+                for col_index in range(self.grid.GetNumberCols()):
+                    self.grid.SetCellBackgroundColour(0, col_index, wx.Colour(3 * (230,)))
+                    self.grid.SetCellFont(0, col_index, wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD))
+
+                # set row labels to account for header row
+                self.grid.SetRowLabelValue(0, '')  # set blank for header row
+                for row_index in range(1, self.grid.GetNumberRows()):
+                    self.grid.SetRowLabelValue(row_index, str(row_index))
+
             def resize_window(self, event):
                 """On window resize, resize column of list grid as well"""
                 event.Skip()
@@ -2408,21 +2453,49 @@ class EditFrame(wx.Frame):
         loop_rows = loop_table_text.split("`'''`")  # split based on delimiter
         loop_table_array = np.array([loop_row.split("`'`") for loop_row in loop_rows])  # split based on delimiter
 
-        loop_list_dlg = LoopTableGrid(self, loop_table_array)
+        # remove current table headers from variable menu to be added back later
+        table_vars = loop_rows[0].split("`'`")
+        for table_var in table_vars:
+            self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
 
-        if loop_list_dlg.ShowModal() == wx.ID_OK:
-            # get loop_list values by iterating through rows
-            loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in
-                                range(loop_list_dlg.grid.GetNumberRows())]
+        loop_table_dlg = LoopTableGrid(self, loop_table_array)
+        loop_table_dlg.ShowModal()
 
-            # remove trailing empty list elements
-            while loop_list_values and loop_list_values[-1] == '':
-                loop_list_values.pop()  # remove last element
+        # get loop table values
+        table_array = []
+        for row_index in range(loop_table_dlg.grid.GetNumberRows()):
+            row_list = []
+            for col_index in range(loop_table_dlg.grid.GetNumberCols()):
+                row_list.append(loop_table_dlg.grid.GetCellValue(row_index, col_index))
+            table_array.append(row_list)
 
-            loop_list_string = "`'`".join(loop_list_values)
-            self.lines[index] = f'Loop for each element in list [{loop_list_string}] {{'
+        loop_table_dlg.Destroy()
 
-            matching_widget_in_edit_row(sizer, 'loop_list_length').SetLabel(f'{len(loop_list_values)} iterations')
+        # remove trailing empty rows
+        while table_array and not any([item for item in table_array[-1]]):
+            table_array.pop()  # remove last element
+
+        row_strings = ["`'`".join(row) for row in table_array]
+        table_string = "`'''`".join(row_strings)
+
+        self.lines[index] = f'Loop for each row in table [{table_string}] {{'
+
+        matching_widget_in_edit_row(sizer, 'loop_table_length').SetLabel(f'{len(table_array) - 1} iterations')
+
+        self.update_loop_table_vars(table_array[0], new_loop=False)
+
+    def update_loop_table_vars(self, row_elements, new_loop):
+        table_vars = [f'loop.table.{var}' for var in row_elements]
+
+        # add variables to menu
+        for table_var in table_vars:
+            if table_var not in self.variables_menu_items:  # only add unique variable names on ingest
+                self.variables_menu_items[table_var] = self.variables_menu.Append(wx.ID_ANY, table_var, '   Insert loop table variable created by the most recent loop table')
+                self.variables_menu_items[table_var].Enable(False)  # to be re-enabled when focus is bestowed upon appropriate window
+                self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[table_var]), self.variables_menu_items[table_var])
+            else:
+                if new_loop:
+                    self.duplicate_variables.append(table_var)
 
     def delete_command(self, sizer_or_index):
         index = sizer_or_index  # this is the case when called from delete dialog
@@ -2462,6 +2535,14 @@ class EditFrame(wx.Frame):
 
             if 'loop' in line_first_word and 'for each element in list' in line[:40].lower() and '{' in line:
                 self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+
+            if 'loop' in line_first_word and 'for each row in table' in line[:40].lower() and '{' in line:
+                loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
+                table_vars = loop_table_text.split("`'''`")[0].split("`'`")
+
+                # remove variables from menu
+                for table_var in table_vars:
+                    self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
 
         for list_to_change in self.tracker_lists:  # delete command from tracker_lists
             del (list_to_change[index])
