@@ -2254,7 +2254,7 @@ class EditFrame(wx.Frame):
                                 range(loop_list_dlg.grid.GetNumberRows())]
 
             # remove trailing empty list elements
-            while loop_list_values[-1] == '':
+            while loop_list_values and loop_list_values[-1] == '':
                 loop_list_values.pop()  # remove last element
 
             loop_list_string = "`'`".join(loop_list_values)
