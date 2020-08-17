@@ -11,7 +11,7 @@ import time
 import http.client as httplib
 import pyperclip
 from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
-    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, block_end_index
+    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, loop_table_data_from, block_end_index
 
 
 def check_internet_connection():
@@ -497,7 +497,6 @@ class ExecutionThread(threading.Thread):
 
         return line_orig
 
-
     def execute_line(self, line_orig, line_index):
         if self.keep_running:  # only run when running
             line = line_orig.lower()
@@ -519,6 +518,7 @@ class ExecutionThread(threading.Thread):
                     if self.keep_running:
                         pyauto.typewrite(text_type_group, interval=self.type_interval)
                 pyauto.PAUSE = self.parent.execution_pause  # restore pauses after typing
+                time.sleep(self.parent.execution_pause)
 
             elif 'wait' in line_first_word[:4]:
                 tot_time = float_in(line)
@@ -631,12 +631,12 @@ class ExecutionThread(threading.Thread):
                                 self.lines_should_be_executed[line_index:nested_loop_end_index] = [False] * (
                                         nested_loop_end_index - line_index)
 
-                if 'multiple' in line:
+                if 'multiple' in line[:40]:
                     num_times_to_loop = int(float_in(line))
                     for loop_iteration in range(num_times_to_loop):
                         execute_loop_block_lines(num_times_to_loop)
 
-                if 'for each element in list' in line:
+                elif 'for each element in list' in line[:40]:
                     loop_list_text = line_orig[line_orig.find('[') + 1:line_orig.rfind(
                         ']')]  # find text between first '[' and last ']'
                     loop_list_values = loop_list_text.split("`'`")  # split based on delimiter
@@ -644,6 +644,16 @@ class ExecutionThread(threading.Thread):
                     for loop_iteration, loop_list_value in enumerate(loop_list_values):
                         self.variables['loop.list.var'] = loop_list_value
                         execute_loop_block_lines(len(loop_list_values))
+
+                elif 'for each row in table' in line[:40]:
+                    loop_rows, table_vars = loop_table_data_from(line_orig)
+
+                    for loop_iteration, row in enumerate(loop_rows[1:]):
+                        row_elements = row.split("`'`")
+                        for table_var, row_element in zip(table_vars, row_elements):
+                            self.variables[f'loop.table.{table_var}'] = row_element
+
+                        execute_loop_block_lines(len(loop_rows[1:]))
 
                 return line_index, loop_end_index
 

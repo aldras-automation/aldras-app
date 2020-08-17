@@ -102,6 +102,15 @@ def conditional_comparison_in(input_string):
     return re.search(r'(?<=~)(.*?)(?=~)', input_string.replace('{{~', '').replace('~}}', '')).group()
 
 
+def loop_table_data_from(line_text, return_variables=False):
+    """Return parsed loop table rows and header elements"""
+
+    loop_table_text = line_text[line_text.find('[') + 1:line_text.rfind(']')]  # find text between first '[' and last ']'
+    loop_rows = loop_table_text.split("`'''`")  # split based on delimiter
+    header_variables = loop_rows[0].split("`'`")  # split based on delimiter
+
+    return loop_rows, header_variables
+
 class PlaceholderTextCtrl(wx.TextCtrl):
     """Placeholder text ctrl."""
 

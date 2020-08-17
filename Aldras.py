@@ -22,7 +22,7 @@ from cryptography.fernet import Fernet
 from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
-    conditional_operation_in, conditional_comparison_in, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
+    conditional_operation_in, conditional_comparison_in, loop_table_data_from, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
     eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
@@ -1681,9 +1681,7 @@ class EditFrame(wx.Frame):
                 if 'loop' in line_first_word and 'for each row in table' in line[:40].lower() and '{' in line:
                     loop_list_end_index = block_end_index(self.lines, line_index)
                     if index < loop_list_end_index:  # only enable loop.table variable insertion if line is before end of loop
-                        loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-                        table_vars = loop_table_text.split("`'''`")[0].split("`'`")
-
+                        _, table_vars = loop_table_data_from(line)
                         for table_var in table_vars:
                             self.variables_menu_items[f'loop.table.{table_var}'].Enable(True)
 
@@ -1859,9 +1857,7 @@ class EditFrame(wx.Frame):
                                                                                        f'   Insert variable {variable_name_text}.')
             self.variables_menu_items[variable_name_text].Enable(
                 False)  # to be re-enabled when focus is bestowed upon appropriate window
-            self.Bind(wx.EVT_MENU,
-                      lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
-                      self.variables_menu_items[variable_name_text])
+            self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]), self.variables_menu_items[variable_name_text])
         else:
             self.duplicate_variables.append(variable_name_text)
 
@@ -2001,24 +1997,21 @@ class EditFrame(wx.Frame):
                 loop_sizer.Add(table_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
                 config_status_and_tooltip(self, table_btn, 'Loop table editor')
 
-                loop_table_text = loop_line[loop_line.find('[') + 1:loop_line.rfind(
-                    ']')]  # find text between first '[' and last ']'
-                loop_rows = loop_table_text.split("`'''`")  # split based on delimiter
+                loop_rows, table_vars = loop_table_data_from(loop_line)
 
                 loop_table_length = wx.StaticText(self.edit, label=f'{len(loop_rows) - 1} iterations',
                                                   name='loop_table_length')
                 change_font(loop_table_length, style=wx.ITALIC, color=3 * (100,))
                 loop_sizer.Add(loop_table_length, 0, wx.ALIGN_CENTER_VERTICAL)
 
-                self.update_loop_table_vars(loop_rows[0].split("`'`"), new_loop=True)
+                self.update_loop_table_vars(table_vars, new_loop=True)
 
             if modification:
                 if old_loop_behavior == 'For each element in list':
                     self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
 
                 elif old_loop_behavior == 'For each row in table':
-                    loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-                    table_vars = loop_table_text.split("`'''`")[0].split("`'`")
+                    _, table_vars = loop_table_data_from(line)
 
                     # remove variables from menu
                     for table_var in table_vars:
@@ -2449,8 +2442,7 @@ class EditFrame(wx.Frame):
 
         index = self.edit_row_widget_sizers.index(sizer)
         line = self.lines[index]
-        loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-        loop_rows = loop_table_text.split("`'''`")  # split based on delimiter
+        loop_rows, _ = loop_table_data_from(line)
         loop_table_array = np.array([loop_row.split("`'`") for loop_row in loop_rows])  # split based on delimiter
 
         # remove current table headers from variable menu to be added back later
@@ -2484,15 +2476,15 @@ class EditFrame(wx.Frame):
 
         self.update_loop_table_vars(table_array[0], new_loop=False)
 
-    def update_loop_table_vars(self, row_elements, new_loop):
-        table_vars = [f'loop.table.{var}' for var in row_elements]
+    def update_loop_table_vars(self, header_elements, new_loop):
+        table_vars = [f'loop.table.{var}' for var in header_elements]
 
         # add variables to menu
         for table_var in table_vars:
             if table_var not in self.variables_menu_items:  # only add unique variable names on ingest
                 self.variables_menu_items[table_var] = self.variables_menu.Append(wx.ID_ANY, table_var, '   Insert loop table variable created by the most recent loop table')
                 self.variables_menu_items[table_var].Enable(False)  # to be re-enabled when focus is bestowed upon appropriate window
-                self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[table_var]), self.variables_menu_items[table_var])
+                self.Bind(wx.EVT_MENU, lambda event, var_trap=table_var: self.insert_variable(event, self.variables_menu_items[var_trap]), self.variables_menu_items[table_var])
             else:
                 if new_loop:
                     self.duplicate_variables.append(table_var)
@@ -2537,9 +2529,7 @@ class EditFrame(wx.Frame):
                 self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
 
             if 'loop' in line_first_word and 'for each row in table' in line[:40].lower() and '{' in line:
-                loop_table_text = line[line.find('[') + 1:line.rfind(']')]  # find text between first '[' and last ']'
-                table_vars = loop_table_text.split("`'''`")[0].split("`'`")
-
+                _, table_vars = loop_table_data_from(line)
                 # remove variables from menu
                 for table_var in table_vars:
                     self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
@@ -2569,7 +2559,7 @@ class EditFrame(wx.Frame):
             self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[-1])
 
         # remove extra separator when removing loop.list.var.
-        if self.variables_menu.GetMenuItemCount() > 2:
+        if self.variables_menu.GetMenuItemCount() > 3:
             if self.variables_menu.GetMenuItems()[3].GetKind() == wx.ITEM_SEPARATOR:
                 self.variables_menu.DestroyItem(self.variables_menu.GetMenuItems()[3])
 
