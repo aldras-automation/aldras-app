@@ -9,6 +9,7 @@ from datetime import datetime
 from platform import system as system_platform
 
 import numpy as np
+import pandas as pd
 import pyautogui as pyauto
 import pyperclip
 import requests
@@ -1989,7 +1990,7 @@ class EditFrame(wx.Frame):
                 loop_line = line
                 if index is not None:
                     self.lines[
-                        index] = "Loop for each row in table [Name`'`ID`'`Country`'''`John Smith`'`1111`'`UK`'''`Amy Baker`'`2222`'`US`'''`Amy Baker`'`2222`'`US`'''`Amy Baker`'`2222`'`US] {"
+                        index] = "Loop for each row in table [Name`'`ID`'`Country`'''`John Smith`'`1111`'`UK`'''`Amy Baker`'`2222`'`US] {"
                     loop_line = self.lines[index]
 
                 table_btn = wx.Button(self.edit, label='Table')
@@ -2354,6 +2355,16 @@ class EditFrame(wx.Frame):
                 # add action widgets
                 self.vbox_action = wx.BoxSizer(wx.VERTICAL)
 
+                import_btn = wx.Button(self, label='Import Sheet')
+                import_btn.Bind(wx.EVT_BUTTON, self.import_sheet)
+                self.vbox_action.Add(import_btn, 0, wx.EXPAND | wx.SOUTH, 5)
+
+                # import_btn = wx.Button(self, label='Paste Sheet')
+                # import_btn.Bind(wx.EVT_BUTTON, self.paste_sheet)
+                # self.vbox_action.Add(import_btn, 0, wx.EXPAND)
+
+                self.vbox_action.AddStretchSpacer()
+
                 clear_btn = wx.Button(self, label='Clear Cell')
                 clear_btn.Bind(wx.EVT_BUTTON, lambda event: self.grid.clear_cells())
                 self.vbox_action.Add(clear_btn, 0, wx.EXPAND | wx.SOUTH, 5)
@@ -2385,10 +2396,7 @@ class EditFrame(wx.Frame):
                 self.vbox_action.AddStretchSpacer()
 
                 ok_btn = wx.Button(self, wx.ID_OK, label='OK')
-                self.vbox_action.Add(ok_btn, 0, wx.EXPAND | wx.SOUTH, 5)
-
-                cancel_btn = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-                self.vbox_action.Add(cancel_btn, 0, wx.EXPAND)
+                self.vbox_action.Add(ok_btn, 0, wx.EXPAND)
 
                 fg_sizer.AddMany([(self.vbox_table, 1, wx.EXPAND), (self.vbox_action, 1, wx.EXPAND)])
                 fg_sizer.AddGrowableCol(0, 0)
@@ -2404,6 +2412,48 @@ class EditFrame(wx.Frame):
                 self.SetSize(self.GetMinSize())
                 self.Center()
                 self.Bind(wx.EVT_SIZE, self.resize_window)
+
+            def import_sheet(self, _):
+                file_dlg = wx.FileDialog(self, 'Choose a file',
+                                    wildcard='Excel and CSV files (*.xlsx;*.xls;*.csv)|*.xlsx;*.xls;*.csv')
+                if file_dlg.ShowModal() == wx.ID_OK:
+                    filename = file_dlg.GetFilename()
+                    dirname = file_dlg.GetDirectory()
+                    _, file_extension = os.path.splitext(filename)
+                    complete_path = os.path.join(dirname, filename)
+
+                    if file_extension in ['.xlsx', '.xls']:
+                        df = pd.read_excel(complete_path, header=None, sheet_name=0)
+                    elif file_extension == '.csv':
+                        df = pd.read_csv(complete_path, header=None)
+                    else:
+                        file_dlg.Destroy()
+                        return
+
+                    self.grid.clear_all_cells()
+
+                    # add any missing rows or columns
+                    while self.grid.GetNumberRows() < df.shape[0] + 10:
+                        self.grid.AppendRows(1)
+                    while self.grid.GetNumberCols() < df.shape[1]:
+                        self.grid.AppendCols(1)
+
+                    self.format_grid()
+
+                    for row_index, row in df.iterrows():
+                        for col_index, element in row.iteritems():
+                            element = '' if pd.isnull(element) else str(element)  # set NaN or null elements equal to empty strings
+                            self.grid.SetCellValue(row_index, col_index, element)
+
+                    self.grid.resize_rows()
+
+                file_dlg.Destroy()
+
+            def paste_sheet(self, _):
+                self.grid.clear_all_cells()
+                self.grid.SetGridCursor(0, 0)
+                self.grid.paste_clipboard()
+                self.format_grid()
 
             def add_rows(self, _):
                 self.grid.AppendRows(10)
@@ -3674,7 +3724,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.0'
+                self.version = '2020.1'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
