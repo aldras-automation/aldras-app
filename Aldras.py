@@ -2468,7 +2468,6 @@ class EditFrame(wx.Frame):
 
             def del_row(self, _):
                 row_index = self.grid.GetGridCursorRow()
-                print(row_index)
                 if self.grid.GetNumberRows() > 2 and row_index > 0:
                     self.grid.DeleteRows(row_index)
 
@@ -2603,7 +2602,6 @@ class EditFrame(wx.Frame):
 
     def remove_variable_menu_item(self, line):
         variable_name = variable_names_in(line)[0]
-        print(line)
 
         if variable_name in self.duplicate_variables:
             self.duplicate_variables.remove(
