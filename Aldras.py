@@ -2000,7 +2000,10 @@ class EditFrame(wx.Frame):
 
                 loop_rows, table_vars = loop_table_data_from(loop_line)
 
-                loop_table_length = wx.StaticText(self.edit, label=f'{len(loop_rows) - 1} iterations',
+                num_iterations = len(loop_rows) - 1
+                num_iterations = 0 if num_iterations < 0 else num_iterations  # set negative values to zero (when header is deleted too)
+
+                loop_table_length = wx.StaticText(self.edit, label=f'{num_iterations} iterations',
                                                   name='loop_table_length')
                 change_font(loop_table_length, style=wx.ITALIC, color=3 * (100,))
                 loop_sizer.Add(loop_table_length, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -2522,9 +2525,13 @@ class EditFrame(wx.Frame):
 
         self.lines[index] = f'Loop for each row in table [{table_string}] {{'
 
-        matching_widget_in_edit_row(sizer, 'loop_table_length').SetLabel(f'{len(table_array) - 1} iterations')
+        num_iterations = len(table_array) - 1
+        num_iterations = 0 if num_iterations < 0 else num_iterations  # set negative values to zero (when header is deleted too)
 
-        self.update_loop_table_vars(table_array[0], new_loop=False)
+        matching_widget_in_edit_row(sizer, 'loop_table_length').SetLabel(f'{num_iterations} iterations')
+
+        if table_array:
+            self.update_loop_table_vars(table_array[0], new_loop=False)
 
     def update_loop_table_vars(self, header_elements, new_loop):
         table_vars = [f'loop.table.{var}' for var in header_elements]
