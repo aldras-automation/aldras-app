@@ -536,6 +536,7 @@ class ExecutionThread(threading.Thread):
                 hotkeys = line.lower().replace('hotkey', '').replace(' ', '').split('+')
                 pyauto.hotkey(
                     *hotkeys)  # the asterisk (*) unpacks the iterable list and passes each string as an argument
+                time.sleep(self.parent.execution_pause)
 
             elif 'key' in line_first_word[:3]:
                 if 'tap' in line:
