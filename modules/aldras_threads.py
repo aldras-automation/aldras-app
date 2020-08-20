@@ -548,6 +548,7 @@ class ExecutionThread(threading.Thread):
                 elif 'release' in line:
                     key = line.lower().replace('key', '').replace('release', '').replace(' ', '')
                     pyauto.keyUp(key)
+                time.sleep(self.parent.execution_pause)
 
             elif 'mouse-move' in line_first_word:
                 coords = coords_of(line)
