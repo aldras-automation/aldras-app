@@ -2501,7 +2501,8 @@ class EditFrame(wx.Frame):
         # remove current table headers from variable menu to be added back later
         table_vars = loop_rows[0].split("`'`")
         for table_var in table_vars:
-            self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
+            if table_var:
+                self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
 
         loop_table_dlg = LoopTableGrid(self, loop_table_array)
         loop_table_dlg.ShowModal()
@@ -2534,7 +2535,7 @@ class EditFrame(wx.Frame):
             self.update_loop_table_vars(table_array[0], new_loop=False)
 
     def update_loop_table_vars(self, header_elements, new_loop):
-        table_vars = [f'loop.table.{var}' for var in header_elements]
+        table_vars = [f'loop.table.{var}' for var in header_elements if var]  # add 'loop.table.' to nonempty headers
 
         # add variables to menu
         for table_var in table_vars:
@@ -2602,6 +2603,7 @@ class EditFrame(wx.Frame):
 
     def remove_variable_menu_item(self, line):
         variable_name = variable_names_in(line)[0]
+        print(line)
 
         if variable_name in self.duplicate_variables:
             self.duplicate_variables.remove(

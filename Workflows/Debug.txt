@@ -1,0 +1,3 @@
+HardwareID: 17830
+Loop for each row in table [] {
+}
