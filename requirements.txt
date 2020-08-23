@@ -12,7 +12,7 @@ PyAutoGUI == 0.9.50
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 21
 beautifulsoup4 == 4.9.1
 
-# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 4152
+# C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 4160
 # C:\Users\Noah Baculi\Documents\aldras\z_reset_cryptlex_license_testing.py: 1
 cryptlex.lexactivator == 3.11.0
 
@@ -35,7 +35,7 @@ pandas == 1.1.0
 pynput == 1.6.8
 
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 14
-# C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 12
+# C:\Users\Noah Baculi\Documents\aldras\modules\aldras_threads.py: 11
 pyperclip == 1.8.0
 
 # C:\Users\Noah Baculi\Documents\aldras\Aldras.py: 15

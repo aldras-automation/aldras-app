@@ -9,6 +9,7 @@ from operator import add
 import uuid
 import hashlib
 import traceback
+import http.client as httplib
 
 
 def get_system_parameters():
@@ -33,6 +34,16 @@ def get_system_parameters():
     config_id = int(math.log(int(config_id, 16), 1.01))  # consolidate by taking log of integer representation
 
     return (min(x_indiv), max(x_sum)), (min(y_indiv), max(y_sum)), config_id
+
+
+def check_internet_connection():
+    conn = httplib.HTTPConnection("www.google.com", timeout=0.2)
+    try:
+        conn.request("HEAD", "/")
+        conn.close()
+        return True
+    except Exception as e:
+        return False
 
 
 def coords_of(line):
@@ -102,7 +113,7 @@ def conditional_comparison_in(input_string):
     return re.search(r'(?<=~)(.*?)(?=~)', input_string.replace('{{~', '').replace('~}}', '')).group()
 
 
-def loop_table_data_from(line_text, return_variables=False):
+def loop_table_data_from(line_text):
     """Return parsed loop table rows and header elements"""
 
     loop_table_text = line_text[line_text.find('[') + 1:line_text.rfind(']')]  # find text between first '[' and last ']'
@@ -110,6 +121,7 @@ def loop_table_data_from(line_text, return_variables=False):
     header_variables = loop_rows[0].split("`'`")  # split based on delimiter
 
     return loop_rows, header_variables
+
 
 class PlaceholderTextCtrl(wx.TextCtrl):
     """Placeholder text ctrl."""

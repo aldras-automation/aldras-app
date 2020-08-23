@@ -24,7 +24,7 @@ from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
     conditional_operation_in, conditional_comparison_in, loop_table_data_from, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator
+    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, check_internet_connection
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
 
@@ -3886,31 +3886,32 @@ class SelectionFrame(wx.Frame):
         self.check_for_updates()
 
     def check_for_updates(self):
-        html_page = requests.get('https://aldras.com/assets/html/download_section').text
-        soup = BeautifulSoup(html_page, features='html.parser')
+        if check_internet_connection():
+            html_page = requests.get('https://aldras.com/assets/html/download_section').text
+            soup = BeautifulSoup(html_page, features='html.parser')
 
-        for link in soup.findAll('a'):  # loop through all links
-            link_text = link.get('href')
-            if '../../downloads/aldras-setup-' in link_text:  # if link has setup executable structure
-                version_and_extension = link_text.replace('../../downloads/aldras-setup-', '')
-                latest_version = version_and_extension.replace('.exe', '')
-                latest_version = latest_version.replace('-', '.')
+            for link in soup.findAll('a'):  # loop through all links
+                link_text = link.get('href')
+                if '../../downloads/aldras-setup-' in link_text:  # if link has setup executable structure
+                    version_and_extension = link_text.replace('../../downloads/aldras-setup-', '')
+                    latest_version = version_and_extension.replace('.exe', '')
+                    latest_version = latest_version.replace('-', '.')
 
-                if float_in(self.software_info.version) < float_in(latest_version):
-                    # there is a newer version available
+                    if float_in(self.software_info.version) < float_in(latest_version):
+                        # there is a newer version available
 
-                    update_available_dlg = wx.MessageDialog(None,
-                                                            f'Aldras version {latest_version} is now available!\n\nWould you like to download the update?',
-                                                            'Aldras Update Available',
-                                                            wx.YES_NO | wx.ICON_INFORMATION | wx.CENTRE)
+                        update_available_dlg = wx.MessageDialog(None,
+                                                                f'Aldras version {latest_version} is now available!\n\nWould you like to download the update?',
+                                                                'Aldras Update Available',
+                                                                wx.YES_NO | wx.ICON_INFORMATION | wx.CENTRE)
 
-                    update_available_dlg.SetYesNoLabels('Download',
-                                                        'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
+                        update_available_dlg.SetYesNoLabels('Download',
+                                                            'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
 
-                    if update_available_dlg.ShowModal() == wx.ID_YES:
-                        # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
-                        download_link = 'https://aldras.com/download'
-                        webbrowser.open_new_tab(download_link)
+                        if update_available_dlg.ShowModal() == wx.ID_YES:
+                            # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
+                            download_link = 'https://aldras.com/download'
+                            webbrowser.open_new_tab(download_link)
 
     def update_recent_workflows(self):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
@@ -4122,7 +4123,7 @@ def verify_license():
         elif license_status == LexStatusCodes.LA_GRACE_PERIOD_OVER:
             # license is genuinely activated but grace period is over and server cannot be contacted
             wx.MessageDialog(None,
-                             'The license server cannot be contacted. Please contact us if you believe you are receiving this message in error.',
+                             'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
                              'Aldras: Cannot Verify License', wx.OK | wx.ICON_ERROR).ShowModal()
 
         else:

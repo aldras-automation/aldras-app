@@ -1,7 +1,8 @@
 HardwareID: 17830
-Left-mouse click at (3222, 801)
-Key left tap
-Key left tap
-Key left tap
-Key left tap
-Key left tap
+Left-mouse click at (2310, 171)
+Type:test
+Hotkey ctrl + a
+Hotkey ctrl + c
+Type:urlurlurlurlurlurlurlurlurlurlurlurlurlurlurl
+Left-mouse click at (2236, 704)
+Left-mouse click at (3346, 873)

@@ -8,20 +8,10 @@ import pyautogui as pyauto
 from ctypes import WinDLL
 import math
 import time
-import http.client as httplib
 import pyperclip
 from modules.aldras_core import coords_of, eliminate_duplicates, float_in, variable_names_in, \
-    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, loop_table_data_from, block_end_index
-
-
-def check_internet_connection():
-    conn = httplib.HTTPConnection("www.google.com", timeout=0.2)
-    try:
-        conn.request("HEAD", "/")
-        conn.close()
-        return True
-    except Exception as e:
-        return False
+    assignment_variable_value_in, conditional_operation_in, conditional_comparison_in, loop_table_data_from, \
+    block_end_index, check_internet_connection
 
 
 class ListenerThread(threading.Thread):
