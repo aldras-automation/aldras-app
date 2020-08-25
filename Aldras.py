@@ -2026,7 +2026,7 @@ class EditFrame(wx.Frame):
             add_loop_commands_btn = wx.Button(self.edit, label='Add Commands')
             add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_add_loop_commands_dialog(sizer))
             loop_sizer.Add(add_loop_commands_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-            config_status_and_tooltip(self, add_loop_commands_btn, 'Loop table editor')
+            config_status_and_tooltip(self, add_loop_commands_btn, 'Include commands to be looped')
 
             if modification:
                 self.no_right_spacer = True
@@ -2048,13 +2048,57 @@ class EditFrame(wx.Frame):
         self.next_indent += 1
 
     def open_add_loop_commands_dialog(self, sizer):
+        class AddLoopCommandsDialog(wx.Dialog):
+            """Dialog to delete commands."""
+
+            def __init__(self, parent):
+                wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+                self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
+                self.SetTitle(f'Add Loop Commands - {parent.workflow_name}')
+                self.SetBackgroundColour('white')
+
+                sizer = wx.BoxSizer(wx.VERTICAL)
+
+                sizer.Add(wx.StaticText(self, wx.ID_ANY, 'Select the commands to add to the loop'), 0,
+                          wx.ALL | wx.EXPAND, 10)
+
+                self.check_list_box = wx.CheckListBox(self, wx.ID_ANY, choices=lines_not_in_loop, size=(300, -1),
+                                                      style=wx.LB_HSCROLL)
+                sizer.Add(self.check_list_box, 1, wx.ALL | wx.EXPAND, 10)
+
+                # select all checkbox
+                self.checkbox = wx.CheckBox(self, wx.ID_ANY, 'Select all')
+                self.checkbox.Bind(wx.EVT_CHECKBOX, self.check_all)
+                sizer.Add(self.checkbox, 0, wx.ALL | wx.EXPAND, 10)
+
+                self.btns = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
+                sizer.Add(self.btns, 0, wx.ALL | wx.EXPAND, 5)
+
+                self.SetSizerAndFit(sizer)
+                self.Center()
+
+            def get_selections(self):
+                return self.check_list_box.GetCheckedItems()
+
+            def check_all(self, _):
+                # select all commands
+                state = self.checkbox.IsChecked()
+                for item_index in range(self.check_list_box.GetCount()):
+                    self.check_list_box.Check(item_index, state)
+
         loop_start_index = self.edit_row_widget_sizers.index(sizer)
         loop_end_index = block_end_index(self.lines, loop_start_index)
-        line = self.lines[loop_start_index]
 
-        lines_not_in_loop = self.lines[:loop_start_index] + 3*[''] + self.lines[loop_end_index+1:]
+        lines_before_loop = self.lines[:loop_start_index]
+        lines_after_loop = self.lines[loop_end_index+1:]
 
-        add_loop_commands_dlg = wx.MultiChoiceDialog(self, 'Select the commands to add to the loop.', f'Add Loop Commands - {self.workflow_name}', lines_not_in_loop)
+        if lines_before_loop or lines_after_loop:
+            loop_separation_spaces = loop_end_index - loop_start_index + 1
+            lines_not_in_loop = lines_before_loop + loop_separation_spaces*[''] + lines_after_loop
+        else:
+            return
+
+        add_loop_commands_dlg = AddLoopCommandsDialog(self)
         add_loop_commands_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
 
         # center dialog
@@ -2063,12 +2107,7 @@ class EditFrame(wx.Frame):
         add_loop_commands_dlg.SetBackgroundColour('white')
 
         if add_loop_commands_dlg.ShowModal() == wx.ID_OK:
-            # order = reorder_dlg.GetOrder()
-            # if order != list(range(len(order))):  # only perform operations if order changes
-            #     self.lines = [self.lines[index] for index in order]
-            #     self.create_edit_panel()
-
-            selections = add_loop_commands_dlg.GetSelections()
+            selections = add_loop_commands_dlg.get_selections()
 
             old_lines = self.lines.copy()
 
@@ -2077,10 +2116,10 @@ class EditFrame(wx.Frame):
             for old_line_index, old_line in enumerate(old_lines):
                 if old_line_index < loop_start_index and old_line_index not in selections:
                     new_lines.append(old_line)
-                    
+
                 elif old_line_index == loop_start_index:  # start of index
                     new_lines.append(old_line)  # add loop statement
-                    
+
                     for selection_index in selections:  # add selected commands that were above loop command
                         if selection_index < loop_start_index:
                             new_lines.append(old_lines[selection_index])
@@ -2094,10 +2133,10 @@ class EditFrame(wx.Frame):
                             new_lines.append(old_lines[selection_index])
 
                     new_lines.append(old_line)  # add loop end statement
-                
+
                 elif old_line_index > loop_end_index and old_line_index not in selections:
                     new_lines.append(old_line)
-                    
+
             self.lines = new_lines
 
             self.full_refresh()
