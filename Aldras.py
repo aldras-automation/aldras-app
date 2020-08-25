@@ -2024,7 +2024,7 @@ class EditFrame(wx.Frame):
             loop_sizer.AddStretchSpacer()
 
             add_loop_commands_btn = wx.Button(self.edit, label='Add Commands')
-            # add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_table_grid(sizer))
+            # add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
             loop_sizer.Add(add_loop_commands_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
             config_status_and_tooltip(self, add_loop_commands_btn, 'Loop table editor')
 
@@ -2044,6 +2044,7 @@ class EditFrame(wx.Frame):
 
         add_loop_details(sizer, behavior_value, modification=False)
 
+        self.no_right_spacer = True
         self.next_indent += 1
 
     def open_delete_command_dialog(self):
@@ -2818,7 +2819,6 @@ class EditFrame(wx.Frame):
                 # remove variables from menu
                 for table_var in table_vars:
                     self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
-
 
         elif '-mouse' in line.split(' ')[0]:
             old_action = 'Mouse button'
