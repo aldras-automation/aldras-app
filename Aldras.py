@@ -2096,6 +2096,7 @@ class EditFrame(wx.Frame):
             loop_separation_spaces = loop_end_index - loop_start_index + 1
             lines_not_in_loop = lines_before_loop + loop_separation_spaces*[''] + lines_after_loop
         else:
+            wx.MessageDialog(self, 'There are no commands outside the loop.', 'No commands outside loop', wx.OK | wx.ICON_INFORMATION).ShowModal()
             return
 
         add_loop_commands_dlg = AddLoopCommandsDialog(self)
