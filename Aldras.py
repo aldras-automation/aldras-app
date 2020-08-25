@@ -2024,7 +2024,7 @@ class EditFrame(wx.Frame):
             loop_sizer.AddStretchSpacer()
 
             add_loop_commands_btn = wx.Button(self.edit, label='Add Commands')
-            # add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_reorder_dialog())
+            add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_add_loop_commands_dialog(sizer))
             loop_sizer.Add(add_loop_commands_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
             config_status_and_tooltip(self, add_loop_commands_btn, 'Loop table editor')
 
@@ -2046,6 +2046,61 @@ class EditFrame(wx.Frame):
 
         self.no_right_spacer = True
         self.next_indent += 1
+
+    def open_add_loop_commands_dialog(self, sizer):
+        loop_start_index = self.edit_row_widget_sizers.index(sizer)
+        loop_end_index = block_end_index(self.lines, loop_start_index)
+        line = self.lines[loop_start_index]
+
+        lines_not_in_loop = self.lines[:loop_start_index] + 3*[''] + self.lines[loop_end_index+1:]
+
+        add_loop_commands_dlg = wx.MultiChoiceDialog(self, 'Select the commands to add to the loop.', f'Add Loop Commands - {self.workflow_name}', lines_not_in_loop)
+        add_loop_commands_dlg.SetIcon(wx.Icon(self.software_info.icon, wx.BITMAP_TYPE_ICO))
+
+        # center dialog
+        add_loop_commands_dlg.Position = (int(self.Position[0] + ((self.Size[0] - add_loop_commands_dlg.Size[0]) / 2)),
+                                int(self.Position[1] + ((self.Size[1] - add_loop_commands_dlg.Size[1]) / 2)))
+        add_loop_commands_dlg.SetBackgroundColour('white')
+
+        if add_loop_commands_dlg.ShowModal() == wx.ID_OK:
+            # order = reorder_dlg.GetOrder()
+            # if order != list(range(len(order))):  # only perform operations if order changes
+            #     self.lines = [self.lines[index] for index in order]
+            #     self.create_edit_panel()
+
+            selections = add_loop_commands_dlg.GetSelections()
+
+            old_lines = self.lines.copy()
+
+            new_lines = []
+
+            for old_line_index, old_line in enumerate(old_lines):
+                if old_line_index < loop_start_index and old_line_index not in selections:
+                    new_lines.append(old_line)
+                    
+                elif old_line_index == loop_start_index:  # start of index
+                    new_lines.append(old_line)  # add loop statement
+                    
+                    for selection_index in selections:  # add selected commands that were above loop command
+                        if selection_index < loop_start_index:
+                            new_lines.append(old_lines[selection_index])
+
+                elif loop_start_index < old_line_index < loop_end_index:  # lines in old loop
+                    new_lines.append(old_line)
+
+                elif old_line_index == loop_end_index:  # end of index
+                    for selection_index in selections:  # add selected commands that were below loop command
+                        if selection_index > loop_end_index:
+                            new_lines.append(old_lines[selection_index])
+
+                    new_lines.append(old_line)  # add loop end statement
+                
+                elif old_line_index > loop_end_index and old_line_index not in selections:
+                    new_lines.append(old_line)
+                    
+            self.lines = new_lines
+
+            self.full_refresh()
 
     def open_delete_command_dialog(self):
 
