@@ -1927,6 +1927,17 @@ class EditFrame(wx.Frame):
                 old_loop_behavior = \
                     [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
 
+            if modification:
+                if old_loop_behavior == 'For each element in list':
+                    self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+
+                elif old_loop_behavior == 'For each row in table':
+                    _, table_vars = loop_table_data_from(self.lines[index])
+
+                    # remove variables from menu
+                    for table_var in table_vars:
+                        self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
+
             for child in reversed(loop_sizer.GetChildren()):
                 if child.GetWindow() == matching_widget_in_edit_row(loop_sizer, 'loop_behavior'):
                     break
@@ -2010,17 +2021,15 @@ class EditFrame(wx.Frame):
 
                 self.update_loop_table_vars(table_vars, new_loop=True)
 
+            loop_sizer.AddStretchSpacer()
+
+            add_loop_commands_btn = wx.Button(self.edit, label='Add Commands')
+            # add_loop_commands_btn.Bind(wx.EVT_BUTTON, lambda event: self.open_loop_table_grid(sizer))
+            loop_sizer.Add(add_loop_commands_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
+            config_status_and_tooltip(self, add_loop_commands_btn, 'Loop table editor')
+
             if modification:
-                if old_loop_behavior == 'For each element in list':
-                    self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
-
-                elif old_loop_behavior == 'For each row in table':
-                    _, table_vars = loop_table_data_from(line)
-
-                    # remove variables from menu
-                    for table_var in table_vars:
-                        self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
-
+                self.no_right_spacer = True
                 self.create_delete_x_btn(loop_sizer)
                 self.Layout()
 
@@ -2608,6 +2617,7 @@ class EditFrame(wx.Frame):
                 variable_name)  # remove variable from duplicate record if present in case future variable attempts to use the same name
 
         else:
+            # try:
             self.variables_menu.DestroyItem(self.variables_menu_items[variable_name])  # destroy menu item
             self.variables_menu_items.pop(variable_name)  # remove variable from menu items record
 
@@ -2797,6 +2807,19 @@ class EditFrame(wx.Frame):
         elif 'loop' in line_first_word and '{' in line:
             old_action = 'Loop'
 
+            old_loop_behavior = [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
+
+            if old_loop_behavior == 'For each element in list':
+                self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
+
+            elif old_loop_behavior == 'For each row in table':
+                _, table_vars = loop_table_data_from(self.lines[index])
+
+                # remove variables from menu
+                for table_var in table_vars:
+                    self.remove_variable_menu_item(f'{{{{~loop.table.{table_var}~}}}}')
+
+
         elif '-mouse' in line.split(' ')[0]:
             old_action = 'Mouse button'
             old_coords = coords_of(line)
@@ -2888,6 +2911,8 @@ class EditFrame(wx.Frame):
             self.lines.insert(index + 1, '}')
             self.create_command_sizer(index + 1, self.lines[index + 1])
             self.vbox_edit.Layout()
+
+            self.no_right_spacer = True
 
         elif new_action == 'Pro Command':
             self.lines[index] = 'Pro Command'
