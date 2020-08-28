@@ -2108,6 +2108,8 @@ class EditFrame(wx.Frame):
         add_loop_commands_dlg.SetBackgroundColour('white')
 
         if add_loop_commands_dlg.ShowModal() == wx.ID_OK:
+            self.save_to_file()
+
             selections = add_loop_commands_dlg.get_selections()
 
             old_lines = self.lines.copy()
@@ -3817,7 +3819,7 @@ class EditFrame(wx.Frame):
 
     def full_refresh(self):
         """Relaunch EditFrame with same workflow lines"""
-        new_edit_frame = EditFrame(self.parent, [f'HardwareID: {self.workflow_hardware_id}'] + self.lines,
+        new_edit_frame = EditFrame(self.parent, [f'HardwareID: {hardware_id}'] + self.lines,
                                    show_frame=False, previous_lines_when_launched=self.lines_when_launched)
         new_edit_frame.Size = self.Size
         new_edit_frame.Position = self.Position

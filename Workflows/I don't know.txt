@@ -1,0 +1,7 @@
+HardwareID: 17830
+Loop multiple times 1 {
+Mouse-move to (1497, 652)
+Wait 0.5
+Mouse-move to (491, 755)
+Wait 0.5
+}

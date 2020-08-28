@@ -1,6 +1,0 @@
-HardwareID: 17830
-Wait
-Loop multiple times 1 {
-Type:
-Key Backspace Tap
-}

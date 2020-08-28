@@ -1,3 +1,0 @@
-HardwareID: 17650
-Key Backspace Tap
-Left-mouse click at (10, 10)
