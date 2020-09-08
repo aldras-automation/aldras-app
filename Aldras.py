@@ -262,15 +262,15 @@ def setup_frame(self, status_bar=False):
 
                 button_array.AddStretchSpacer()
 
-                if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                    pause_btn = wx.Button(panel, label='Pause')
-                    pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
-                    button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
+                # if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
+                #     pause_btn = wx.Button(panel, label='Pause')
+                #     pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
+                #     button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
 
                 if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                    change_btn = wx.Button(panel, label='Change Plan')
+                    change_btn = wx.Button(panel, label='Manage Subscription')
                     change_btn.Bind(wx.EVT_BUTTON,
-                                    lambda event: webbrowser.open_new_tab('https://aldras.com/change-plan'))
+                                    lambda event: webbrowser.open_new_tab('https://aldras.com/manage-subscriptions'))
                     button_array.Add(change_btn)
 
                 self.vbox.Add(button_array, 0, wx.EXPAND | wx.SOUTH, 10)
@@ -4208,8 +4208,12 @@ class LicenseDialog(wx.Dialog):
         try:
             LexActivator.SetLicenseKey(self.license_key_input.GetValue())
             status = LexActivator.ActivateLicense()
-            if LexStatusCodes.LA_OK == status or LexStatusCodes.LA_EXPIRED == status or LexStatusCodes.LA_SUSPENDED == status:
+            if status == LexStatusCodes.LA_OK:
                 SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
+            elif status == LexStatusCodes.LA_EXPIRED:
+                wx.MessageDialog(self, 'This license has expired.', 'Aldras: Expired License', wx.OK | wx.ICON_ERROR).ShowModal()
+            elif status == LexStatusCodes.LA_SUSPENDED:
+                wx.MessageDialog(self, 'This license is no longer valid.', 'Aldras: Invalid License', wx.OK | wx.ICON_ERROR).ShowModal()
             else:
                 wx.MessageDialog(self, 'Your license could not be activated due to an error.',
                                  'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
