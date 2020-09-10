@@ -228,9 +228,21 @@ def setup_frame(self, status_bar=False):
                     expiration = f'Ends on {expiration_date}'
                 elif LexActivator.IsLicenseGenuine() == LexStatusCodes.LA_OK:
                     license_type = LexActivator.GetLicenseMetadata('Type').title()
+
                     expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime(
                         '%Y-%m-%d')
-                    expiration = f'Renews on {expiration_date}'
+
+                    # find whether subscription will renew or expire from license metadata
+                    end_of_cycle_action = 'Renews'
+                    try:
+                        if LexActivator.GetLicenseMetadata('Expires') == 'True':
+                            end_of_cycle_action = 'Expires'
+                    except LexActivatorException:
+                        pass
+
+                    expiration = f'{end_of_cycle_action} on {expiration_date}'
+                else:
+                    expiration = ''
 
                 # add license type text
                 license_plan_st = wx.StaticText(panel, label=license_type)
@@ -3448,6 +3460,7 @@ class EditFrame(wx.Frame):
         class ExecuteCtrlCounterDialog(wx.Dialog):
             def __init__(self, parent, caption):
                 wx.Dialog.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_DIALOG_STYLE)
+                # wx.Frame.__init__(self, parent, wx.ID_ANY, style=wx.DEFAULT_FRAME_STYLE)
                 self.SetTitle(caption)
                 self.SetIcon(wx.Icon(parent.parent.software_info.icon, wx.BITMAP_TYPE_ICO))
                 self.SetBackgroundColour('white')
@@ -3479,7 +3492,7 @@ class EditFrame(wx.Frame):
 
                 self.vbox.AddSpacer(15)
 
-                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed')  # --------------------------
+                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed', id=wx.ID_OK)  # --------------------------
                 self.execute_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
                 execute_panel = self.execute_collpane.GetPane()
 
@@ -3536,6 +3549,7 @@ class EditFrame(wx.Frame):
                 # add finish button
                 self.finish_btn = wx.Button(self, label='Finish')
                 self.finish_btn.Bind(wx.EVT_BUTTON, self.close_window)
+                self.finish_btn.SetFocus()
                 self.vbox.Add(self.finish_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, 100)
                 self.finish_btn.Show(False)
 
@@ -3543,14 +3557,12 @@ class EditFrame(wx.Frame):
                 self.spacer_b = wx.StaticText(self, label='')
                 change_font(self.spacer_b, size=20)
                 self.vbox.Add(self.spacer_b, 0, wx.ALIGN_CENTER_HORIZONTAL)
-                # self.spacer_b.Show(False)
 
                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                 self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
                 self.SetSizerAndFit(self.vbox_outer)
                 self.Position = (int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)),
                                  int(self.parent.Position[1]))
-                self.finish_btn.SetFocus()
 
                 if self.settings['Notifications'] == 'Banners':
                     show_notification(self, 'Execution primed',
@@ -3562,6 +3574,7 @@ class EditFrame(wx.Frame):
                 self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
                 self.listener_thread.start()
                 self.Bind(wx.EVT_CLOSE, self.close_window)
+                self.Bind(wx.EVT_CHAR_HOOK, lambda event: event.StopPropagation())  # stop keypresses from execution modifying ui
                 self.Center()
 
             def start_execution_thread(self):
@@ -3675,6 +3688,15 @@ class EditFrame(wx.Frame):
                 except AttributeError:
                     pass
                 self.Destroy()
+
+        command_actions = [sizer.GetChildren()[0].GetSizer().GetChildren()[2].GetWindow().GetStringSelection() for sizer in self.edit_row_container_sizers]
+
+        # look for pro command actions to warn user
+        if 'Pro Command' in command_actions:
+            pro_command_execution_warning_dlg = wx.MessageDialog(None, 'Execution may not proceed as expected.\n\nOne or more professional-level commands have been detected. Would you like to continue?', 'Workflow Professional Command Detected', wx.YES_NO | wx.ICON_WARNING)
+
+            if pro_command_execution_warning_dlg.ShowModal() == wx.ID_NO:
+                return
 
         execute_count_dlg = ExecuteCtrlCounterDialog(self, f'Execute - {self.workflow_name}')
 
@@ -4009,31 +4031,34 @@ class SelectionFrame(wx.Frame):
 
     def check_for_updates(self):
         if check_internet_connection():
-            html_page = requests.get('https://aldras.com/assets/html/download_section').text
-            soup = BeautifulSoup(html_page, features='html.parser')
+            try:
+                html_page = requests.get('https://aldras.com/assets/html/download_section').text
+                soup = BeautifulSoup(html_page, features='html.parser')
 
-            for link in soup.findAll('a'):  # loop through all links
-                link_text = link.get('href')
-                if '../../downloads/aldras-setup-' in link_text:  # if link has setup executable structure
-                    version_and_extension = link_text.replace('../../downloads/aldras-setup-', '')
-                    latest_version = version_and_extension.replace('.exe', '')
-                    latest_version = latest_version.replace('-', '.')
+                for link in soup.findAll('a'):  # loop through all links
+                    link_text = link.get('href')
+                    if '../../downloads/aldras-setup-' in link_text:  # if link has setup executable structure
+                        version_and_extension = link_text.replace('../../downloads/aldras-setup-', '')
+                        latest_version = version_and_extension.replace('.exe', '')
+                        latest_version = latest_version.replace('-', '.')
 
-                    if float_in(self.software_info.version) < float_in(latest_version):
-                        # there is a newer version available
+                        if float_in(self.software_info.version) < float_in(latest_version):
+                            # there is a newer version available
 
-                        update_available_dlg = wx.MessageDialog(None,
-                                                                f'Aldras version {latest_version} is now available!\n\nWould you like to download the update?',
-                                                                'Aldras Update Available',
-                                                                wx.YES_NO | wx.ICON_INFORMATION | wx.CENTRE)
+                            update_available_dlg = wx.MessageDialog(None,
+                                                                    f'Aldras version {latest_version} is now available!\n\nWould you like to download the update?',
+                                                                    'Aldras Update Available',
+                                                                    wx.YES_NO | wx.ICON_INFORMATION | wx.CENTRE)
 
-                        update_available_dlg.SetYesNoLabels('Download',
-                                                            'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
+                            update_available_dlg.SetYesNoLabels('Download',
+                                                                'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
 
-                        if update_available_dlg.ShowModal() == wx.ID_YES:
-                            # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
-                            download_link = 'https://aldras.com/download'
-                            webbrowser.open_new_tab(download_link)
+                            if update_available_dlg.ShowModal() == wx.ID_YES:
+                                # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
+                                download_link = 'https://aldras.com/download'
+                                webbrowser.open_new_tab(download_link)
+            except Exception:
+                pass
 
     def update_recent_workflows(self):
         self.recent_workflows = eliminate_duplicates(self.recent_workflows)
@@ -4254,8 +4279,7 @@ def verify_license():
 
         else:
             # license is not activated
-
-            trial_status = LexActivator.IsTrialGenuine()
+            trial_status = LexActivator.ActivateTrial()
             if trial_status == LexStatusCodes.LA_OK:
                 # trial is valid
                 trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)

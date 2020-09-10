@@ -1,0 +1,9 @@
+HardwareID: 17830
+Loop multiple times 2 {
+Mouse-move to (1619, 347)
+Wait 0.5
+Left-mouse click at (1592, 345)
+Left-mouse click at (1078, 568)
+Hotkey ctrl + r
+Wait 0.5
+}
