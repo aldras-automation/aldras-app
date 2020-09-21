@@ -3574,7 +3574,6 @@ class EditFrame(wx.Frame):
                 self.listener_thread = ListenerThread(self, listen_to_key=True, listen_to_mouse=False)
                 self.listener_thread.start()
                 self.Bind(wx.EVT_CLOSE, self.close_window)
-                self.Bind(wx.EVT_CHAR_HOOK, lambda event: event.StopPropagation())  # stop keypresses from execution modifying ui
                 self.Center()
 
             def start_execution_thread(self):
