@@ -1,5 +1,2 @@
 HardwareID: 17830
-Left-mouse click at (10, 10)
-Left-mouse click at (10, 10)
-Loop multiple times 1 {
-}
+Type:Northwestern’'s.

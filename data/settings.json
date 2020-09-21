@@ -6,12 +6,12 @@
     "Large lines number": 100,
     "Notifications": "Banners",
     "Record pause": "Pauses over",
-    "Record pause over duration": 5,
+    "Record pause over duration": 5.0,
     "Record method": "Append",
-    "Execute pause between commands": 1.0,
+    "Execute pause between commands": 0.2,
     "Execute pause between commands checked": true,
     "Execute mouse command duration": 0.5,
     "Execute mouse command duration checked": true,
-    "Interval between text character outputs": 0.02,
+    "Interval between text character outputs": 0.005,
     "Interval between text character outputs checked": true
 }

@@ -3689,7 +3689,7 @@ class EditFrame(wx.Frame):
                     pass
                 self.Destroy()
 
-        command_actions = [sizer.GetChildren()[0].GetSizer().GetChildren()[2].GetWindow().GetStringSelection() for sizer in self.edit_row_container_sizers]
+        command_actions = [sizer.GetChildren()[0].GetSizer().GetChildren()[2].GetWindow().GetStringSelection() for sizer in self.edit_row_container_sizers if len(sizer.GetChildren()[0].GetSizer().GetChildren()) > 2]
 
         # look for pro command actions to warn user
         if 'Pro Command' in command_actions:
@@ -3875,7 +3875,7 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.1'
+                self.version = '2020.2'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
@@ -4297,8 +4297,8 @@ def verify_license():
 
     except LexActivatorException as exception:
         wx.MessageDialog(None,
-                         f'Unforunately, an error occurred.\n\nPlease report it to us at aldras.com/contact or support@aldras.com.\n\nError code JYUX6\n\n{exception.code}\n\n{exception.message}',
-                         'Aldras: Error JYUX6', wx.OK | wx.ICON_ERROR).ShowModal()
+                         f'Our license servers could not be contacted.\n\nPlease double check your firewall or network settings.\n\n{exception.message}',
+                         'Aldras: License Server Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
 
 if __name__ == '__main__':

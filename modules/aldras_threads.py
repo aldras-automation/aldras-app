@@ -495,10 +495,11 @@ class ExecutionThread(threading.Thread):
             if 'type' in line_first_word[
                          :4]:  # 'type' command execution should be checked-for first because it may contain other command keywords
                 line_orig = line_orig.replace('``nl``', '\n')  # replace custom new line delimiter
+                line_orig = line_orig.replace('’', "'")  # replace apostrophe
                 line_orig = re.compile(re.escape('type:'), re.IGNORECASE).sub('', line_orig)  # replace 'Type:' command
                 line_orig = self.line_with_vars_replaced(line_orig)
 
-                # split up text to type into smaller groups to check for self.keep_running in between group execution
+                # split up text to type into smaller groups to check for self.keep_Northwestern's.running in between group execution
                 num_char_per_execution = 2
                 text_type_groups = [line_orig[ii:ii + num_char_per_execution] for ii in
                                     range(0, len(line_orig), num_char_per_execution)]

@@ -1,0 +1,68 @@
+HardwareID: 17830
+Loop for each row in table [Company`'`Industry`'`Position`'''`FMEA Engineers`'`engineering`'`Mechanical Engineer`'''`KCI`'`engineering and consulting`'`Project Manager`'''`KCI`'`engineering and consulting`'`Engineer-in-Training] {
+Assign {{~position~}}={{~loop.table.Position~}}
+Assign {{~company~}}={{~loop.table.Company~}}
+Assign {{~industry~}}={{~loop.table.Industry~}}
+Left-mouse click at (1075, 29)
+Hotkey ctrl + r
+Left-mouse click at (353, 223)
+Hotkey ctrl + c
+Hotkey Ctrl + V
+Key f2 tap
+Type:Noah Baculi Cover Letter - {{~company~}} - {{~position~}}
+Key enter tap
+Left-mouse click at (682, 62)
+Wait 2.0
+Hotkey ctrl + h
+Type:[DATE]
+Key tab tap
+Type:September 21st, 2020
+Key tab tap
+Key tab tap
+Key tab tap
+Key enter tap
+Key enter tap
+Type:[INDUSTRY]
+Key tab tap
+Type:{{~industry~}}
+Key tab tap
+Key tab tap
+Key tab tap
+Key enter tap
+Key enter tap
+Type:[POSITION]
+Key tab tap
+Type:{{~position~}}
+Key tab tap
+Key tab tap
+Key tab tap
+Key enter tap
+Key enter tap
+Type:[COMPANY]
+Key tab tap
+Type:{{~company~}}
+Key tab tap
+Key tab tap
+Key tab tap
+Key enter tap
+Key enter tap
+Key tab tap
+Key tab tap
+Key tab tap
+Key tab tap
+Key tab tap
+Key tab tap
+Key enter tap
+Hotkey Ctrl + S
+Wait 0.5
+Hotkey ctrl + p
+Wait 1.0
+Key Enter Tap
+Wait 1.0
+Type:Noah Baculi Cover Letter - {{~company~}} - {{~position~}}
+Wait 0.5
+Key Enter Tap
+Wait 0.5
+Hotkey Alt + F4
+Wait 1.0
+}
