@@ -1,22 +1,22 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`FMEA Engineers`'`engineering`'`Mechanical Engineer`'''`KCI`'`engineering and consulting`'`Project Manager`'''`KCI`'`engineering and consulting`'`Engineer-in-Training] {
-Assign {{~position~}}={{~loop.table.Position~}}
-Assign {{~company~}}={{~loop.table.Company~}}
-Assign {{~industry~}}={{~loop.table.Industry~}}
+Loop for each row in table [Company`'`Industry`'`Position`'''`HackerU`'`education management and cyber services`'`Junior Software Engineer`'''`Billtrust`'`AR Automation`'`Automation Engineer`'''`ZT Systems`'`cloud computing infrastructure`'`Network Engineer`'''`IBM`'`computing solutions`'`Automation and Testing Software Developer`'''`PNC`'`financial services`'`Automation Testing Software Developer] {
+Assign {{~date~}}=September 28th, 2020
 Left-mouse click at (1075, 29)
 Hotkey ctrl + r
-Left-mouse click at (353, 223)
+Left-mouse click at (350, 244)
 Hotkey ctrl + c
 Hotkey Ctrl + V
 Key f2 tap
-Type:Noah Baculi Cover Letter - {{~company~}} - {{~position~}}
-Key enter tap
+Type:Noah Baculi Cover Letter - {{~loop.table.Company~}} - {{~loop.table.Position~}}
+Key Enter Tap
+Hotkey ctrl + r
+Left-mouse click at (817, 265)
 Left-mouse click at (682, 62)
 Wait 2.0
 Hotkey ctrl + h
 Type:[DATE]
 Key tab tap
-Type:September 21st, 2020
+Type:{{~date~}}
 Key tab tap
 Key tab tap
 Key tab tap
@@ -24,7 +24,7 @@ Key enter tap
 Key enter tap
 Type:[INDUSTRY]
 Key tab tap
-Type:{{~industry~}}
+Type:{{~loop.table.Industry~}}
 Key tab tap
 Key tab tap
 Key tab tap
@@ -32,7 +32,7 @@ Key enter tap
 Key enter tap
 Type:[POSITION]
 Key tab tap
-Type:{{~position~}}
+Type:{{~loop.table.Position~}}
 Key tab tap
 Key tab tap
 Key tab tap
@@ -40,29 +40,27 @@ Key enter tap
 Key enter tap
 Type:[COMPANY]
 Key tab tap
-Type:{{~company~}}
+Type:{{~loop.table.Company~}}
 Key tab tap
 Key tab tap
 Key tab tap
 Key enter tap
 Key enter tap
-Key tab tap
-Key tab tap
-Key tab tap
-Key tab tap
-Key tab tap
-Key tab tap
-Key enter tap
+Key Esc tap
 Hotkey Ctrl + S
 Wait 0.5
 Hotkey ctrl + p
 Wait 1.0
 Key Enter Tap
 Wait 1.0
-Type:Noah Baculi Cover Letter - {{~company~}} - {{~position~}}
+Type:Noah Baculi Cover Letter - {{~loop.table.Company~}} - {{~loop.table.Position~}}
 Wait 0.5
 Key Enter Tap
 Wait 0.5
 Hotkey Alt + F4
 Wait 1.0
+Left-mouse press at (1039, 265)
+Left-mouse release at (925, 281)
+Left-mouse press at (373, 267)
+Left-mouse release at (284, 225)
 }

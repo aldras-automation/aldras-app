@@ -15,14 +15,13 @@ from modules.aldras_core import coords_of, eliminate_duplicates, float_in, varia
 
 
 class ListenerThread(threading.Thread):
-    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False, debug=False):
+    def __init__(self, parent, listen_to_key=True, listen_to_mouse=True, record=False):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self, daemon=True)
         self.parent = parent
         self.listen_to_key = listen_to_key
         self.listen_to_mouse = listen_to_mouse
         self.record = record
-        self.debug = debug
         self.in_action = False
         self.record_pause = None  # no pauses default
         if self.record:
@@ -115,10 +114,6 @@ class ListenerThread(threading.Thread):
                 if key_action == 'press':
                     if 'ctrl_r' in output:
                         self.ctrls += 1
-                        if self.debug:
-                            print(f'ctrl_r {self.ctrls}  ', end='')
-                            if self.ctrls == 3:
-                                print()
 
                         event_message = 'Error 693578!'
                         if not self.in_action:
@@ -182,9 +177,6 @@ class ListenerThread(threading.Thread):
 
     def compile_recording(self):
         lines = self.recording_lines
-        if self.debug:
-            print(f'\nCOMPILING RECORDING LINES {50 * "-"}\n')
-            print(f'lines: {lines}\n')
 
         mouse_hover_duration = 0.5
         processed_lines = []
@@ -218,12 +210,9 @@ class ListenerThread(threading.Thread):
             if not skip:
                 line = line.replace('shift_l', 'shift').replace('shift_r', 'shift')
                 key = line.split(' ')[1]
-                if self.debug:
-                    print(f'\tline: {line}')
-                    print(f'\tkey: {key}')
-
                 # determine if the line indicates a tap if the next line matches (must catch last line since there is not line after the last line)
                 only_tap = False
+                print(f'line: {line}')
                 try:
                     only_tap = lines[index].replace('press', '') == lines[index + 1].replace('release', '')
 
@@ -242,9 +231,6 @@ class ListenerThread(threading.Thread):
                     pass
 
                 if not pressed_keys and only_tap:  # if line press is same as next line release
-                    if self.debug:
-                        print('\tONLY TAP')
-
                     skip = True  # skip the next (release) line
                     if len(key) > 1:  # special functions
 
@@ -267,8 +253,6 @@ class ListenerThread(threading.Thread):
                         processed_line = f'{break_code}Type:{key}{break_code}'
 
                 else:  # line press not equal to next line release
-                    if self.debug:
-                        print('\tNOT TAP')
 
                     # determine if the next line contains a wait command (must catch last line since there is not line after the last line)
                     next_line_wait = False
@@ -306,8 +290,6 @@ class ListenerThread(threading.Thread):
                                     # execute hotkey
                                     if check_single_chars or len(
                                             pressed_keys) > 1:  # only process hotkey if there are multiple keys pressed
-                                        if self.debug:
-                                            print('\t\tregister hotkey: ', check_alphabet_letters)
                                         if 'shift' in pressed_keys and check_single_chars and (
                                                 check_alphabet_letters or check_symbol_chars):
                                             line = f'Type:{"".join([x.capitalize() for x in pressed_keys if x != "shift"])}'
@@ -342,9 +324,6 @@ class ListenerThread(threading.Thread):
 
                                             pressed_keys.clear()
 
-                            if self.debug:
-                                print(f'\tpressed_keys: {pressed_keys}')
-
                         if line:
                             processed_line = f'{break_code}{line}{break_code}'
                         else:
@@ -355,13 +334,9 @@ class ListenerThread(threading.Thread):
                         processed_line = processed_line.replace(replacement_key, master_key)
 
                 processed_lines.append(processed_line)
-                if self.debug:
-                    print(f'\tprocessed_line: {[processed_line]}\n')
             else:
                 skip = False
 
-        if self.debug:
-            print(f'processed_lines: {processed_lines}\n\n')
         processed_lines = ''.join(processed_lines).split(break_code)  # join lines and split on break_code
         processed_lines = [x for x in processed_lines if x]  # eliminate empty elements
 
@@ -398,9 +373,6 @@ class ListenerThread(threading.Thread):
         for index in processed_lines_to_remove[::-1]:
             processed_lines.pop(index)
 
-        if self.debug:
-            print(f'processed_lines: {processed_lines}\n\n')
-
         # consolidate consecutive type commands
         def consecutive_ranges_of(list_in):
             """Returns consecutive ranges of integers in list."""
@@ -421,8 +393,8 @@ class ListenerThread(threading.Thread):
                         del processed_lines[index]
                 processed_lines[typing_range[0]] = f'Type:{consolidated_type}'
 
-        if self.debug:
-            print(f'processed_lines: {processed_lines}\n\n')
+        # change single space tap from 'Type' command to a 'Special Key' command
+        processed_lines = [line if line != 'Type: ' else 'Key space tap' for line in processed_lines]
 
         return processed_lines
 
@@ -691,12 +663,3 @@ class ResultEvent(wx.PyEvent):
         wx.PyEvent.__init__(self)
         self.SetEventType(int(event_id))
         self.data = data
-
-
-if __name__ == '__main__':  # debugging capability by running module file as main
-    wx.DisableAsserts()  # disable alerts of non functioning wx.PostEvent
-
-    # test listener_thread
-    listener_thread = ListenerThread(None, wx.NewIdRef(), record=True, debug=True, record_pause=5)
-    listener_thread.start()
-    listener_thread.join()
