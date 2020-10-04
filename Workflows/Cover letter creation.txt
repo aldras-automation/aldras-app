@@ -1,6 +1,6 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`HackerU`'`education management and cyber services`'`Junior Software Engineer`'''`Billtrust`'`AR Automation`'`Automation Engineer`'''`ZT Systems`'`cloud computing infrastructure`'`Network Engineer`'''`IBM`'`computing solutions`'`Automation and Testing Software Developer`'''`PNC`'`financial services`'`Automation Testing Software Developer] {
-Assign {{~date~}}=September 28th, 2020
+Loop for each row in table [Company`'`Industry`'`Position`'''`Inpleo`'`AI and data solutions`'`Data Analyst] {
+Assign {{~date~}}=October 3rd, 2020
 Left-mouse click at (1075, 29)
 Hotkey ctrl + r
 Left-mouse click at (350, 244)
