@@ -4278,7 +4278,7 @@ def verify_license(first_call=True):
 
         else:
             # license is not activated
-            trial_status = LexActivator.ActivateTrial()
+            trial_status = LexActivator.IsTrialGenuine()
             if trial_status == LexStatusCodes.LA_OK:
                 # trial is valid
                 trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
