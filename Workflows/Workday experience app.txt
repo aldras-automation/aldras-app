@@ -1,0 +1,58 @@
+HardwareID: 17830
+#This is for the workday applicaiton work experience section. Should be started from the first 'Job Title' field with no other work experiences.
+Type:Founder and Program Manager
+Key tab tap
+Type:Aldras Automation
+Key tab tap
+Type:Remote US
+Key tab tap
+Type:102019
+Key tab tap
+Key Space Tap
+Key tab tap
+Type:- Directed development of easy to use desktop application to record and automate repetitive computer workflows.``nl``- Coded intuitive website with documentation and video tutorials as well as download and payment integration.``nl``- Managed early access beta testing program to assess demand and integrate feedback, improving the user experience.``nl``- Coordinated international freelance team to design marketing campaign research and graphical assets.
+Key tab tap
+Key Tab Tap
+Key space tap
+Type: Sales Intern
+Key tab tap
+Type:Otis Elevator
+Key tab tap
+Type:Miami, FL
+Key tab tap
+Type:062020
+Key tab tap
+Key tab tap
+Type:072020
+Key tab tap
+Type:- Created automation script to accelerate data validation of 500 sales territory and specialization change transitions.``nl``- Interacted with 260 accounts in Tulsa and Tampa territories to follow up on after-market elevator product proposals.``nl``- Designed promotional flyers and videos for 4 elevator products to market decreased risk of viral infection.``nl``- Collaborated across the region to create remote sales process to maximize account contacts and product education.
+Key tab tap
+Key tab tap
+Key space tap
+Type:Systems Project Engineering Co-Op
+Key tab tap
+Type:Ingersoll Rand, Trane
+Key tab tap
+Type:La Crosse, WI
+Key tab tap
+Type:012019
+Key tab tap
+Key tab tap
+Type:082019
+Key tab tap
+Type:- Coordinated early launch containment testing and analyzed test data for 56 units of new Agility product line to identify performance issues, optimize financial market ratings, and improve machine learning models using Tableau and Alteryx.``nl``- Directed $43,600 instrumentation upgrade plan for 4 test loops, including ordering, calibration, and installation.``nl``- Conducted root cause analysis of sensor failures and implemented comprehensive solution, increasing efficiency.``nl``- Managed analysis of $93,300 obsoleted evaporator and condenser tubes to create 4 new units and utilize inventory.``nl``- Led team to correct $11,000 drive setting miscalculation of 60 units in production and field for optimal performance.``nl``- Supervised construction, deployment, and maintenance of Python program to analyze raw unstructured text data to identify connections between unit complications.
+Key tab tap
+Key tab tap
+Key space tap
+Type:Engineering Intern
+Key tab tap
+Type:Illinois Tool Works, E.H. Wachs
+Key tab tap
+Type:Lincolnshire, IL
+Key tab tap
+Type:102018
+Key tab tap
+Key tab tap
+Type:122018
+Key tab tap
+Type:- Utilized SolidWorks drawings to evaluate design procedures in order to facilitate subassembly outsourcing transition.``nl``- Responsible for floor technician cross-training initiative, involving the creation of subassembly training strategies.``nl``- Consolidated vendor managed inventory supply chains to optimize data-driven production schedules.``nl``- Analyzed and refined new work cell and racking configuration to accommodate new diamond-wire pipe cutter product.

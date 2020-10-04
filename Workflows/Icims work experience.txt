@@ -1,0 +1,62 @@
+HardwareID: 17830
+#This is part of a larger form. Workflow should be started with cursor in the first "Name of Employer" field.
+Type:Otis Elevator
+Key tab tap
+Type:Sales Intern
+Key tab tap
+Type:Jun
+Key tab tap
+Type:1
+Key tab tap
+Type:2020
+Key tab tap
+Type:Jul
+Key tab tap
+Type:31
+Key tab tap
+Type:2020
+Key tab tap
+Type:800-233-6847
+Key tab tap
+Type:Scheduled return to Northwestern University to continue academic pursuits.
+Key tab tap
+Type:Ingersooll Rand, Trane
+Key tab tap
+Type:Systems Project 
+Type:Engineering Co-Op
+Key tab tap
+Type:Jan
+Key tab tap
+Type:10
+Key tab tap
+Type:2019
+Key tab tap
+Type:Aug
+Key tab tap
+Type:23
+Key tab tap
+Type:2019
+Key tab tap
+Type:704-655-4000
+Key tab tap
+Type:Scheduled return to Northwestern University to continue academic pursuits.
+Key tab tap
+Type:Illinois Tool Works, E.H.Wachs
+Key tab tap
+Type:Engineering Intern
+Key tab tap
+Type:Oct
+Key tab tap
+Type:8
+Key tab tap
+Type:2018
+Key tab tap
+Type:Dec
+Key tab tap
+Type:14
+Key tab tap
+Type:2018
+Key tab tap
+Type:847-537-8800
+Key tab tap
+Type:Scheduled return to Northwestern University to continue academic pursuits.
