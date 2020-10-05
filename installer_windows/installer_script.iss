@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Aldras"
-#define MyAppVersion "2020.2"
+#define MyAppVersion "2020.3"
 #define MyAppPublisher "Aldras"
 #define MyAppURL "https://aldras.com/"
 #define MyAppExeName "Aldras.exe"
@@ -20,18 +20,18 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\Noah Baculi\Documents\aldras\data\license.txt
+LicenseFile=C:\Users\Noah Baculi\Documents\aldras-app\data\license.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 ; PrivilegesRequiredOverridesAllowed=dialog ; Disabled to only allow installation for single user due to permission issues attempting to access globally installed resources
-SetupIconFile=C:\Users\Noah Baculi\Documents\aldras\data\aldras.ico
+SetupIconFile=C:\Users\Noah Baculi\Documents\aldras-app\data\aldras.ico
 WizardStyle=modern
 SolidCompression=yes
 Compression=lzma2/ultra64
 LZMAUseSeparateProcess=yes
 LZMADictionarySize=1048576
 LZMANumFastBytes=273    
-OutputBaseFilename=aldras-setup-2020-2
+OutputBaseFilename=aldras-setup-2020-3
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -40,9 +40,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\Aldras.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\*"; Excludes: "data\settings.json"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Noah Baculi\Documents\aldras\dist\Aldras\data\settings.json"; DestDir: "{app}\data"; Flags: ignoreversion onlyifdoesntexist
+Source: "C:\Users\Noah Baculi\Documents\aldras-app\dist\Aldras\Aldras.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Noah Baculi\Documents\aldras-app\dist\Aldras\*"; Excludes: "data\settings.json"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Noah Baculi\Documents\aldras-app\dist\Aldras\data\settings.json"; DestDir: "{app}\data"; Flags: ignoreversion onlyifdoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

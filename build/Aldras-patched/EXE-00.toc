@@ -1,4 +1,5 @@
-('C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\Aldras-patched\\Aldras.exe',
+('C:\\Users\\Noah '
+ 'Baculi\\Documents\\aldras-app\\build\\Aldras-patched\\Aldras.exe',
  False,
  False,
  True,
@@ -11,7 +12,7 @@
  'Aldras.pkg',
  [('PYZ-00.pyz',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\build\\Aldras-patched\\PYZ-00.pyz',
+   'Baculi\\Documents\\aldras-app\\build\\Aldras-patched\\PYZ-00.pyz',
    'PYZ'),
   ('struct',
    'c:\\users\\noah '
@@ -54,16 +55,16 @@
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_win32comgenpy.py',
    'PYSOURCE'),
   ('Aldras',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\Aldras.py',
+   'C:\\Users\\Noah Baculi\\Documents\\aldras-app\\dist\\obf\\Aldras.py',
    'PYSOURCE'),
   ('Aldras.exe.manifest',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\build\\Aldras-patched\\Aldras-patched.exe.manifest',
+   'Baculi\\Documents\\aldras-app\\build\\Aldras-patched\\Aldras-patched.exe.manifest',
    'BINARY')],
  [],
  False,
  False,
- 1601905629,
+ 1601938824,
  [('runw.exe',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',

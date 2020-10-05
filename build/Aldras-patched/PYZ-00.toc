@@ -1,4 +1,5 @@
-('C:\\Users\\Noah Baculi\\Documents\\aldras\\build\\Aldras-patched\\PYZ-00.pyz',
+('C:\\Users\\Noah '
+ 'Baculi\\Documents\\aldras-app\\build\\Aldras-patched\\PYZ-00.pyz',
  [('win32com',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\win32com\\__init__.py',
@@ -656,7 +657,7 @@
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\multiprocessing\\util.py',
    'PYMODULE'),
   ('test',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\test.py',
+   'C:\\Users\\Noah Baculi\\Documents\\aldras-app\\dist\\obf\\test.py',
    'PYMODULE'),
   ('multiprocessing.process',
    'c:\\users\\noah '
@@ -882,25 +883,17 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\__init__.py',
    'PYMODULE'),
-  ('packaging',
+  ('packaging.requirements',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\__init__.py',
-   'PYMODULE'),
-  ('packaging.version',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\version.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\requirements.py',
    'PYMODULE'),
   ('typing',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\typing.py',
    'PYMODULE'),
-  ('packaging.__about__',
+  ('six',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\__about__.py',
-   'PYMODULE'),
-  ('packaging.markers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\markers.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\six.py',
    'PYMODULE'),
   ('pyparsing',
    'c:\\users\\noah '
@@ -942,37 +935,81 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\_compat.py',
    'PYMODULE'),
-  ('packaging._structures',
+  ('packaging',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\_structures.py',
-   'PYMODULE'),
-  ('packaging.requirements',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\requirements.py',
-   'PYMODULE'),
-  ('six',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\six.py',
-   'PYMODULE'),
-  ('packaging.specifiers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\specifiers.py',
-   'PYMODULE'),
-  ('packaging.tags',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\tags.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\__init__.py',
    'PYMODULE'),
   ('packaging.utils',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\utils.py',
    'PYMODULE'),
+  ('packaging.markers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\markers.py',
+   'PYMODULE'),
+  ('packaging.specifiers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\specifiers.py',
+   'PYMODULE'),
+  ('packaging.__about__',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\__about__.py',
+   'PYMODULE'),
+  ('packaging._structures',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\_structures.py',
+   'PYMODULE'),
   ('packaging._typing',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\_typing.py',
    'PYMODULE'),
+  ('packaging.version',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\version.py',
+   'PYMODULE'),
+  ('packaging.tags',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\packaging\\tags.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\__init__.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.requirements',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\requirements.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.specifiers',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\specifiers.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.pyparsing',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\pyparsing.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.version',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\version.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__init__.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging._typing',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_typing.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging.tags',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\tags.py',
+   'PYMODULE'),
   ('pkg_resources._vendor.packaging.utils',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\utils.py',
+   'PYMODULE'),
+  ('pkg_resources._vendor.packaging._structures',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_structures.py',
    'PYMODULE'),
   ('pkg_resources._vendor.appdirs',
    'c:\\users\\noah '
@@ -986,53 +1023,17 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\win32comext\\shell\\__init__.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging._typing',
+  ('pkg_resources._vendor.packaging.markers',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_typing.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\__init__.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.version',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\version.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.tags',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\tags.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.specifiers',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\specifiers.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging._structures',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_structures.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.__about__',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__about__.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__init__.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.pyparsing',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\pyparsing.py',
-   'PYMODULE'),
-  ('pkg_resources._vendor.packaging.requirements',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\requirements.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\markers.py',
    'PYMODULE'),
   ('pkg_resources._vendor.packaging._compat',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\_compat.py',
    'PYMODULE'),
-  ('pkg_resources._vendor.packaging.markers',
+  ('pkg_resources._vendor.packaging.__about__',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\markers.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pkg_resources\\_vendor\\packaging\\__about__.py',
    'PYMODULE'),
   ('pkg_resources.extern',
    'c:\\users\\noah '
@@ -1043,11 +1044,8 @@
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\plistlib.py',
    'PYMODULE'),
   ('pytransform',
-   'C:\\Users\\Noah Baculi\\Documents\\aldras\\dist\\obf\\temp\\pytransform.py',
-   'PYMODULE'),
-  ('stringprep',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\stringprep.py',
+   'C:\\Users\\Noah '
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\temp\\pytransform.py',
    'PYMODULE'),
   ('tracemalloc',
    'c:\\users\\noah '
@@ -1056,6 +1054,10 @@
   ('_py_abc',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\_py_abc.py',
+   'PYMODULE'),
+  ('stringprep',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\stringprep.py',
    'PYMODULE'),
   ('cryptlex.lexactivator',
    'c:\\users\\noah '
@@ -1083,20 +1085,20 @@
    'PYMODULE'),
   ('modules.aldras_execute',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\dist\\obf\\modules\\aldras_execute.py',
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\modules\\aldras_execute.py',
    'PYMODULE'),
   ('modules', '-', 'PYMODULE'),
   ('modules.aldras_record',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\dist\\obf\\modules\\aldras_record.py',
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\modules\\aldras_record.py',
    'PYMODULE'),
   ('modules.aldras_threads',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\dist\\obf\\modules\\aldras_threads.py',
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\modules\\aldras_threads.py',
    'PYMODULE'),
   ('modules.aldras_settings',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\dist\\obf\\modules\\aldras_settings.py',
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\modules\\aldras_settings.py',
    'PYMODULE'),
   ('json',
    'c:\\users\\noah '
@@ -1116,7 +1118,7 @@
    'PYMODULE'),
   ('modules.aldras_core',
    'C:\\Users\\Noah '
-   'Baculi\\Documents\\aldras\\dist\\obf\\modules\\aldras_core.py',
+   'Baculi\\Documents\\aldras-app\\dist\\obf\\modules\\aldras_core.py',
    'PYMODULE'),
   ('screeninfo',
    'c:\\users\\noah '
@@ -2142,101 +2144,33 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\Image.py',
    'PYMODULE'),
-  ('PIL.DcxImagePlugin',
+  ('PIL.FpxImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\DcxImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FpxImagePlugin.py',
    'PYMODULE'),
-  ('PIL.ImtImagePlugin',
+  ('PIL.BufrStubImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\ImtImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
    'PYMODULE'),
-  ('PIL.GbrImagePlugin',
+  ('PIL.XbmImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\GbrImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XbmImagePlugin.py',
    'PYMODULE'),
-  ('PIL.IcoImagePlugin',
+  ('PIL.PixarImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IcoImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PixarImagePlugin.py',
    'PYMODULE'),
-  ('PIL.CurImagePlugin',
+  ('PIL.PsdImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\CurImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PsdImagePlugin.py',
    'PYMODULE'),
-  ('PIL.PalmImagePlugin',
+  ('PIL.ImImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PalmImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\ImImagePlugin.py',
    'PYMODULE'),
-  ('PIL.DdsImagePlugin',
+  ('PIL.Jpeg2KImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\DdsImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.IcnsImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IcnsImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.features',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\features.py',
-   'PYMODULE'),
-  ('PIL.FtexImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FtexImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.IptcImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IptcImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FitsStubImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FitsStubImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.MspImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MspImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.WebPImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\WebPImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.FliImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FliImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.EpsImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\EpsImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.WmfImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\WmfImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.SgiImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\SgiImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PcdImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PcdImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.PcxImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PcxImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.Hdf5StubImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.TgaImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\TgaImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.MpegImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MpegImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.XVThumbImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
    'PYMODULE'),
   ('PIL.PdfImagePlugin',
    'c:\\users\\noah '
@@ -2246,29 +2180,37 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PdfParser.py',
    'PYMODULE'),
-  ('PIL.ImImagePlugin',
+  ('PIL.EpsImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\ImImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\EpsImagePlugin.py',
    'PYMODULE'),
-  ('PIL.BlpImagePlugin',
+  ('PIL.MspImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\BlpImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MspImagePlugin.py',
    'PYMODULE'),
-  ('PIL.PixarImagePlugin',
+  ('PIL.WebPImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PixarImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\WebPImagePlugin.py',
    'PYMODULE'),
-  ('PIL.Jpeg2KImagePlugin',
+  ('PIL.PcdImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PcdImagePlugin.py',
    'PYMODULE'),
-  ('PIL.FpxImagePlugin',
+  ('PIL.IcoImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FpxImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IcoImagePlugin.py',
    'PYMODULE'),
-  ('PIL.SunImagePlugin',
+  ('PIL.TgaImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\SunImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\TgaImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FliImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FliImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.McIdasImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\McIdasImagePlugin.py',
    'PYMODULE'),
   ('PIL.SpiderImagePlugin',
    'c:\\users\\noah '
@@ -2278,37 +2220,97 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\ImageTk.py',
    'PYMODULE'),
-  ('PIL.XpmImagePlugin',
+  ('PIL.GbrImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XpmImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\GbrImagePlugin.py',
    'PYMODULE'),
-  ('PIL.PsdImagePlugin',
+  ('PIL.XVThumbImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PsdImagePlugin.py',
-   'PYMODULE'),
-  ('PIL.XbmImagePlugin',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XbmImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
    'PYMODULE'),
   ('PIL.MicImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MicImagePlugin.py',
    'PYMODULE'),
-  ('PIL.BufrStubImagePlugin',
+  ('PIL.Hdf5StubImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SunImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\SunImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FitsStubImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FitsStubImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.MpegImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MpegImagePlugin.py',
    'PYMODULE'),
   ('PIL.GribStubImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\GribStubImagePlugin.py',
    'PYMODULE'),
-  ('PIL.McIdasImagePlugin',
+  ('PIL.DcxImagePlugin',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\McIdasImagePlugin.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\DcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PcxImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PcxImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.PalmImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\PalmImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.DdsImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\DdsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.XpmImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\XpmImagePlugin.py',
    'PYMODULE'),
   ('PIL.MpoImagePlugin',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\MpoImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.FtexImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\FtexImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.WmfImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\WmfImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IptcImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IptcImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.SgiImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\SgiImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.CurImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\CurImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.ImtImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\ImtImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.IcnsImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\IcnsImagePlugin.py',
+   'PYMODULE'),
+  ('PIL.features',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\features.py',
+   'PYMODULE'),
+  ('PIL.BlpImagePlugin',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\PIL\\BlpImagePlugin.py',
    'PYMODULE'),
   ('PIL.TiffImagePlugin',
    'c:\\users\\noah '
@@ -2470,37 +2472,37 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\__init__.py',
    'PYMODULE'),
-  ('setuptools._vendor.packaging',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__init__.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging.__about__',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__about__.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging._typing',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_typing.py',
-   'PYMODULE'),
   ('setuptools._vendor.packaging.version',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\version.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging.tags',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\tags.py',
    'PYMODULE'),
   ('setuptools._vendor.pyparsing',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\pyparsing.py',
    'PYMODULE'),
-  ('setuptools._vendor',
+  ('setuptools._vendor.packaging',
    'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\__init__.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging.utils',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\utils.py',
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.markers',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\markers.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging._compat',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_compat.py',
+   'PYMODULE'),
+  ('setuptools._vendor',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\__init__.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging._typing',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_typing.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.specifiers',
    'c:\\users\\noah '
@@ -2510,6 +2512,14 @@
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\requirements.py',
    'PYMODULE'),
+  ('setuptools._vendor.packaging.__about__',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\__about__.py',
+   'PYMODULE'),
+  ('setuptools._vendor.packaging.utils',
+   'c:\\users\\noah '
+   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\utils.py',
+   'PYMODULE'),
   ('setuptools._vendor.packaging._structures',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_structures.py',
@@ -2517,14 +2527,6 @@
   ('setuptools._vendor.ordered_set',
    'c:\\users\\noah '
    'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\ordered_set.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging.tags',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\tags.py',
-   'PYMODULE'),
-  ('setuptools._vendor.packaging._compat',
-   'c:\\users\\noah '
-   'baculi\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\setuptools\\_vendor\\packaging\\_compat.py',
    'PYMODULE'),
   ('setuptools.msvc',
    'c:\\users\\noah '
