@@ -1,6 +1,6 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`Inpleo`'`AI and data solutions`'`Data Analyst] {
-Assign {{~date~}}=October 3rd, 2020
+Loop for each row in table [Company`'`Industry`'`Position`'''`Olsson`'`engineering and design services`'`Assistant Engineer`'''`EMLS`'`material support and logistics solutions`'`Production Engineer`'''`The American Fire Protection Group`'`fire protection services`'`Project Engineer`'''`Goodyear Belts`'`power transmission belt manufacturing`'`Associate`'''`Pond`'`engineering services`'`Aviation Design Engineer`'''`Columbus McKinnon`'`motion control solutions`'`Product Development Engineer`'''`Invictus`'`lighting`'`Product Engineer`'''`Symbrium`'`highly engineered services`'`Mechanical Engineer`'''`Rexnord - Zurn`'`engineered water solutions`'`Product Engineer I`'''`OSIsoft`'`operational intelligence`'`Pre-Sales Engineer`'''`OSIsoft`'`operational intelligence`'`Product Support Engineer] {
+Assign {{~date~}}=October 4th, 2020
 Left-mouse click at (1075, 29)
 Hotkey ctrl + r
 Left-mouse click at (350, 244)
