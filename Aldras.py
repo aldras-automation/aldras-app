@@ -1203,6 +1203,8 @@ class EditFrame(wx.Frame):
         if show_frame:
             self.Show()
 
+        self.lines_when_launched = self.lines.copy()
+
         # add command widgets
         self.edit.Freeze()
         self.render_lines()
@@ -1211,8 +1213,6 @@ class EditFrame(wx.Frame):
         # used for comparison when closing
         if previous_lines_when_launched:
             self.lines_when_launched = previous_lines_when_launched
-        else:
-            self.lines_when_launched = self.lines.copy()
 
         print(f'Time to open entire Edit frame ({len(self.lines)}): {time.time() - t0:.2f} s')
 

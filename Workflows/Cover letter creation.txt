@@ -1,6 +1,6 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`Olsson`'`engineering and design services`'`Assistant Engineer`'''`EMLS`'`material support and logistics solutions`'`Production Engineer`'''`The American Fire Protection Group`'`fire protection services`'`Project Engineer`'''`Goodyear Belts`'`power transmission belt manufacturing`'`Associate`'''`Pond`'`engineering services`'`Aviation Design Engineer`'''`Columbus McKinnon`'`motion control solutions`'`Product Development Engineer`'''`Invictus`'`lighting`'`Product Engineer`'''`Symbrium`'`highly engineered services`'`Mechanical Engineer`'''`Rexnord - Zurn`'`engineered water solutions`'`Product Engineer I`'''`OSIsoft`'`operational intelligence`'`Pre-Sales Engineer`'''`OSIsoft`'`operational intelligence`'`Product Support Engineer] {
-Assign {{~date~}}=October 4th, 2020
+Loop for each row in table [Company`'`Industry`'`Position`'''`RE/MAX`'`real estate technology solutions`'`Data Operations Developer`'''`Seagate`'`data storage solutions`'`Entry Level Software Engineer`'''`Facebook`'`social media and advertising`'`Thermal Engineering Intern`'''`CalTech`'`IT solutions`'`Desktop Support Technician`'''`Myers The Home Buyers`'`real estate technology`'`Software Engineer`'''`Equinix`'`data center and colocation solutions`'`Data Center Operations Engineer] {
+Assign {{~date~}}=October 11th, 2020
 Left-mouse click at (1075, 29)
 Hotkey ctrl + r
 Left-mouse click at (350, 244)
@@ -59,8 +59,8 @@ Key Enter Tap
 Wait 0.5
 Hotkey Alt + F4
 Wait 1.0
-Left-mouse press at (1039, 265)
-Left-mouse release at (925, 281)
+Left-mouse press at (1553, 263)
+Left-mouse release at (252, 285)
 Left-mouse press at (373, 267)
 Left-mouse release at (284, 225)
 }

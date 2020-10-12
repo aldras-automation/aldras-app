@@ -10,7 +10,7 @@ Type:102019
 Key tab tap
 Key Space Tap
 Key tab tap
-Type:- Directed development of easy to use desktop application to record and automate repetitive computer workflows.``nl``- Coded intuitive website with documentation and video tutorials as well as download and payment integration.``nl``- Managed early access beta testing program to assess demand and integrate feedback, improving the user experience.``nl``- Coordinated international freelance team to design marketing campaign research and graphical assets.
+Type:- Developed full stack user-centered desktop SaaS application to record and automate repetitive computer workflows.``nl``- Coded intuitive website with documentation and video tutorials as well as download and payment integration.``nl``- Managed early access beta testing program to assess demand and integrate feedback, improving the user experience.``nl``- Coordinated international freelance team to design graphical assets and conduct marketing campaign A/B testing.
 Key tab tap
 Key Tab Tap
 Key space tap
@@ -40,7 +40,7 @@ Key tab tap
 Key tab tap
 Type:082019
 Key tab tap
-Type:- Coordinated early launch containment testing and analyzed test data for 56 units of new Agility product line to identify performance issues, optimize financial market ratings, and improve machine learning models using Tableau and Alteryx.``nl``- Directed $43,600 instrumentation upgrade plan for 4 test loops, including ordering, calibration, and installation.``nl``- Conducted root cause analysis of sensor failures and implemented comprehensive solution, increasing efficiency.``nl``- Managed analysis of $93,300 obsoleted evaporator and condenser tubes to create 4 new units and utilize inventory.``nl``- Led team to correct $11,000 drive setting miscalculation of 60 units in production and field for optimal performance.``nl``- Supervised construction, deployment, and maintenance of Python program to analyze raw unstructured text data to identify connections between unit complications.
+Type:- Developed general-purpose automation programs to increase the efficiency of repetitive computer tasks by 48%.``nl``- Coordinated early launch containment testing and analyzed test data for 56 units of new Agility product line to identify performance issues, optimize financial market ratings, and improve machine learning models using Tableau and Alteryx.``nl``- Directed $43,600 instrumentation upgrade plan for 4 test loops, including ordering, calibration, and installation.``nl``- Led team to correct $11,000 drive setting miscalculation of 60 units in production and field for optimal performance.``nl``- Supervised construction, deployment, and maintenance of Python program to analyze raw unstructured text data to identify connections between unit complications.
 Key tab tap
 Key tab tap
 Key space tap
