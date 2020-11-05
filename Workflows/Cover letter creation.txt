@@ -1,6 +1,6 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`RE/MAX`'`real estate technology solutions`'`Data Operations Developer`'''`Seagate`'`data storage solutions`'`Entry Level Software Engineer`'''`Facebook`'`social media and advertising`'`Thermal Engineering Intern`'''`CalTech`'`IT solutions`'`Desktop Support Technician`'''`Myers The Home Buyers`'`real estate technology`'`Software Engineer`'''`Equinix`'`data center and colocation solutions`'`Data Center Operations Engineer] {
-Assign {{~date~}}=October 11th, 2020
+Loop for each row in table [Company`'`Industry`'`Position] {
+Assign {{~date~}}=November 2nd, 2020
 Left-mouse click at (1075, 29)
 Hotkey ctrl + r
 Left-mouse click at (350, 244)

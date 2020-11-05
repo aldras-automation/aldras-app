@@ -23,8 +23,10 @@ from cryptography.fernet import Fernet
 from pynput import keyboard, mouse
 
 from modules.aldras_core import get_system_parameters, float_in, variable_names_in, assignment_variable_value_in, \
-    conditional_operation_in, conditional_comparison_in, loop_table_data_from, PlaceholderTextCtrl, textctrl_tab_trigger_nav, coords_of, \
-    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, check_internet_connection
+    conditional_operation_in, conditional_comparison_in, loop_table_data_from, PlaceholderTextCtrl, \
+    textctrl_tab_trigger_nav, coords_of, \
+    eliminate_duplicates, block_end_index, exception_handler, show_notification, CharValidator, \
+    check_internet_connection
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
 
@@ -807,7 +809,8 @@ def launch_edit_guide(parent):
 
 
 class CustomGrid(wx.grid.Grid):
-    def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True, formatting_function=None):
+    def __init__(self, parent, table_size, style=wx.WANTS_CHARS, can_change_num_rows=True, can_change_num_cols=True,
+                 formatting_function=None):
         wx.grid.Grid.__init__(self, parent, style=style)
         self.parent = parent
         self.CreateGrid(*table_size)
@@ -1870,7 +1873,9 @@ class EditFrame(wx.Frame):
                                                                                        f'   Insert variable {variable_name_text}.')
             self.variables_menu_items[variable_name_text].Enable(
                 False)  # to be re-enabled when focus is bestowed upon appropriate window
-            self.Bind(wx.EVT_MENU, lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]), self.variables_menu_items[variable_name_text])
+            self.Bind(wx.EVT_MENU,
+                      lambda event: self.insert_variable(event, self.variables_menu_items[variable_name_text]),
+                      self.variables_menu_items[variable_name_text])
         else:
             self.duplicate_variables.append(variable_name_text)
 
@@ -2102,13 +2107,14 @@ class EditFrame(wx.Frame):
         loop_end_index = block_end_index(self.lines, loop_start_index)
 
         lines_before_loop = self.lines[:loop_start_index]
-        lines_after_loop = self.lines[loop_end_index+1:]
+        lines_after_loop = self.lines[loop_end_index + 1:]
 
         if lines_before_loop or lines_after_loop:
             loop_separation_spaces = loop_end_index - loop_start_index + 1
-            lines_not_in_loop = lines_before_loop + loop_separation_spaces*[''] + lines_after_loop
+            lines_not_in_loop = lines_before_loop + loop_separation_spaces * [''] + lines_after_loop
         else:
-            wx.MessageDialog(self, 'There are no commands outside the loop.', 'No commands outside loop', wx.OK | wx.ICON_INFORMATION).ShowModal()
+            wx.MessageDialog(self, 'There are no commands outside the loop.', 'No commands outside loop',
+                             wx.OK | wx.ICON_INFORMATION).ShowModal()
             return
 
         add_loop_commands_dlg = AddLoopCommandsDialog(self)
@@ -2116,7 +2122,7 @@ class EditFrame(wx.Frame):
 
         # center dialog
         add_loop_commands_dlg.Position = (int(self.Position[0] + ((self.Size[0] - add_loop_commands_dlg.Size[0]) / 2)),
-                                int(self.Position[1] + ((self.Size[1] - add_loop_commands_dlg.Size[1]) / 2)))
+                                          int(self.Position[1] + ((self.Size[1] - add_loop_commands_dlg.Size[1]) / 2)))
         add_loop_commands_dlg.SetBackgroundColour('white')
 
         if add_loop_commands_dlg.ShowModal() == wx.ID_OK:
@@ -2420,11 +2426,11 @@ class EditFrame(wx.Frame):
 
         loop_list_dlg = LoopListGrid(self, loop_list_values)
         loop_list_dlg.ShowModal()
-        
+
         # get loop_list values by iterating through rows
         loop_list_values = [loop_list_dlg.grid.GetCellValue(row_index, 0) for row_index in
                             range(loop_list_dlg.grid.GetNumberRows())]
-        
+
         loop_list_dlg.Destroy()
 
         # remove trailing empty list elements
@@ -2457,10 +2463,13 @@ class EditFrame(wx.Frame):
                 num_cols = np.shape(table_array)[1]
 
                 if num_rows > 41:
-                    num_rows_to_generate = (num_rows + 9) // 10 * 10 + 1  # round number of elements up to nearest 10 (+1 for header row)
-                    self.grid = CustomGrid(self, table_size=(num_rows_to_generate, num_cols), can_change_num_cols=True, formatting_function=self.format_grid)
+                    num_rows_to_generate = (
+                                                       num_rows + 9) // 10 * 10 + 1  # round number of elements up to nearest 10 (+1 for header row)
+                    self.grid = CustomGrid(self, table_size=(num_rows_to_generate, num_cols), can_change_num_cols=True,
+                                           formatting_function=self.format_grid)
                 else:
-                    self.grid = CustomGrid(self, table_size=(41, num_cols), can_change_num_cols=True, formatting_function=self.format_grid)
+                    self.grid = CustomGrid(self, table_size=(41, num_cols), can_change_num_cols=True,
+                                           formatting_function=self.format_grid)
 
                 self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
                 self.grid.SetColLabelSize(2)  # hide column labels
@@ -2537,7 +2546,7 @@ class EditFrame(wx.Frame):
 
             def import_sheet(self, _):
                 file_dlg = wx.FileDialog(self, 'Choose a file',
-                                    wildcard='Excel and CSV files (*.xlsx;*.xls;*.csv)|*.xlsx;*.xls;*.csv')
+                                         wildcard='Excel and CSV files (*.xlsx;*.xls;*.csv)|*.xlsx;*.xls;*.csv')
                 if file_dlg.ShowModal() == wx.ID_OK:
                     filename = file_dlg.GetFilename()
                     dirname = file_dlg.GetDirectory()
@@ -2564,7 +2573,8 @@ class EditFrame(wx.Frame):
 
                     for row_index, row in df.iterrows():
                         for col_index, element in row.iteritems():
-                            element = '' if pd.isnull(element) else str(element)  # set NaN or null elements equal to empty strings
+                            element = '' if pd.isnull(element) else str(
+                                element)  # set NaN or null elements equal to empty strings
                             self.grid.SetCellValue(row_index, col_index, element)
 
                     self.grid.resize_rows()
@@ -2658,9 +2668,14 @@ class EditFrame(wx.Frame):
         # add variables to menu
         for table_var in table_vars:
             if table_var not in self.variables_menu_items:  # only add unique variable names on ingest
-                self.variables_menu_items[table_var] = self.variables_menu.Append(wx.ID_ANY, table_var, '   Insert loop table variable created by the most recent loop table')
-                self.variables_menu_items[table_var].Enable(False)  # to be re-enabled when focus is bestowed upon appropriate window
-                self.Bind(wx.EVT_MENU, lambda event, var_trap=table_var: self.insert_variable(event, self.variables_menu_items[var_trap]), self.variables_menu_items[table_var])
+                self.variables_menu_items[table_var] = self.variables_menu.Append(wx.ID_ANY, table_var,
+                                                                                  '   Insert loop table variable created by the most recent loop table')
+                self.variables_menu_items[table_var].Enable(
+                    False)  # to be re-enabled when focus is bestowed upon appropriate window
+                self.Bind(wx.EVT_MENU, lambda event, var_trap=table_var: self.insert_variable(event,
+                                                                                              self.variables_menu_items[
+                                                                                                  var_trap]),
+                          self.variables_menu_items[table_var])
             else:
                 if new_loop:
                     self.duplicate_variables.append(table_var)
@@ -2917,7 +2932,8 @@ class EditFrame(wx.Frame):
         elif 'loop' in line_first_word and '{' in line:
             old_action = 'Loop'
 
-            old_loop_behavior = [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
+            old_loop_behavior = \
+            [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
 
             if old_loop_behavior == 'For each element in list':
                 self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
@@ -3357,7 +3373,7 @@ class EditFrame(wx.Frame):
                 self.vbox_outer.Add(self.vbox, 0, wx.WEST | wx.EAST, 50)
                 self.SetSizerAndFit(self.vbox_outer)
                 self.Position = (
-                int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)), self.parent.Position[1])
+                    int(self.parent.Position[0] + ((self.parent.Size[0] - self.Size[0]) / 2)), self.parent.Position[1])
                 self.finish_btn.SetFocus()
 
                 self.thread_event_id = wx.NewIdRef()
@@ -3492,7 +3508,8 @@ class EditFrame(wx.Frame):
 
                 self.vbox.AddSpacer(15)
 
-                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed', id=wx.ID_OK)  # --------------------------
+                self.execute_collpane = wx.CollapsiblePane(self, label=' Execution Speed',
+                                                           id=wx.ID_OK)  # --------------------------
                 self.execute_collpane.GetChildren()[0].SetBackgroundColour(wx.WHITE)  # set button and label background
                 execute_panel = self.execute_collpane.GetPane()
 
@@ -3688,11 +3705,16 @@ class EditFrame(wx.Frame):
                     pass
                 self.Destroy()
 
-        command_actions = [sizer.GetChildren()[0].GetSizer().GetChildren()[2].GetWindow().GetStringSelection() for sizer in self.edit_row_container_sizers if len(sizer.GetChildren()[0].GetSizer().GetChildren()) > 2]
+        command_actions = [sizer.GetChildren()[0].GetSizer().GetChildren()[2].GetWindow().GetStringSelection() for sizer
+                           in self.edit_row_container_sizers if
+                           len(sizer.GetChildren()[0].GetSizer().GetChildren()) > 2]
 
         # look for pro command actions to warn user
         if 'Pro Command' in command_actions:
-            pro_command_execution_warning_dlg = wx.MessageDialog(None, 'Execution may not proceed as expected.\n\nOne or more professional-level commands have been detected. Would you like to continue?', 'Workflow Professional Command Detected', wx.YES_NO | wx.ICON_WARNING)
+            pro_command_execution_warning_dlg = wx.MessageDialog(None,
+                                                                 'Execution may not proceed as expected.\n\nOne or more professional-level commands have been detected. Would you like to continue?',
+                                                                 'Workflow Professional Command Detected',
+                                                                 wx.YES_NO | wx.ICON_WARNING)
 
             if pro_command_execution_warning_dlg.ShowModal() == wx.ID_NO:
                 return
@@ -4235,9 +4257,11 @@ class LicenseDialog(wx.Dialog):
             if status == LexStatusCodes.LA_OK:
                 SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
             elif status == LexStatusCodes.LA_EXPIRED:
-                wx.MessageDialog(self, 'This license has expired.', 'Aldras: Expired License', wx.OK | wx.ICON_ERROR).ShowModal()
+                wx.MessageDialog(self, 'This license has expired.', 'Aldras: Expired License',
+                                 wx.OK | wx.ICON_ERROR).ShowModal()
             elif status == LexStatusCodes.LA_SUSPENDED:
-                wx.MessageDialog(self, 'This license is no longer valid.', 'Aldras: Invalid License', wx.OK | wx.ICON_ERROR).ShowModal()
+                wx.MessageDialog(self, 'This license is no longer valid.', 'Aldras: Invalid License',
+                                 wx.OK | wx.ICON_ERROR).ShowModal()
             else:
                 wx.MessageDialog(self, 'Your license could not be activated due to an error.',
                                  'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
@@ -4272,9 +4296,14 @@ def verify_license(first_call=True):
 
         elif license_status == LexStatusCodes.LA_GRACE_PERIOD_OVER:
             # license is genuinely activated but grace period is over and server cannot be contacted
-            wx.MessageDialog(None,
-                             'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
-                             'Aldras: Cannot Verify License', wx.OK | wx.ICON_ERROR).ShowModal()
+            error_grace_dlg = wx.MessageDialog(None,
+                                               'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
+                                               'Aldras: Cannot Verify License', wx.YES_NO | wx.ICON_ERROR)
+            error_grace_dlg.SetYesNoLabels('Try Again', 'Quit')
+            error_grace_dlg_response = error_grace_dlg.ShowModal()
+
+            if error_grace_dlg_response == wx.ID_YES:
+                os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
 
         else:
             # license is not activated
@@ -4296,13 +4325,18 @@ def verify_license(first_call=True):
 
     except LexActivatorException as exception:
         if first_call:
-            print('calling again jkl')
+            # attempt to verify again after a delay
             time.sleep(1)
             verify_license(first_call=False)
         else:
-            wx.MessageDialog(None,
-                             f'Our license servers could not be contacted.\n\nPlease double check your firewall or network settings.\n\n{exception.message}',
-                             'Aldras: License Server Error', wx.OK | wx.ICON_ERROR).ShowModal()
+            error_network_dlg = wx.MessageDialog(None,
+                                                 f'Our license servers could not be contacted.\n\nPlease double check your firewall or network settings.\n\n{exception.message}',
+                                                 'Aldras: License Server Error', wx.YES_NO | wx.ICON_ERROR)
+            error_network_dlg.SetYesNoLabels('Try Again', 'Quit')
+            error_network_dlg_response = error_network_dlg.ShowModal()
+
+            if error_network_dlg_response == wx.ID_YES:
+                os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
 
 
 if __name__ == '__main__':

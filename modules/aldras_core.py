@@ -183,13 +183,13 @@ def exception_handler(error_type, value, trace):
 
     error_dlg = wx.MessageDialog(None, exception, 'An Error Occurred', wx.YES_NO | wx.CANCEL | wx.ICON_ERROR)
     error_dlg.SetYesNoCancelLabels('Report', 'Quit', 'Return')
-    errror_dlg_response = error_dlg.ShowModal()
+    error_dlg_response = error_dlg.ShowModal()
 
-    if errror_dlg_response == wx.ID_YES:
+    if error_dlg_response == wx.ID_YES:
         # TODO add feedback submission link
         import webbrowser
         webbrowser.open('https://www.aldras.com/')
-    elif errror_dlg_response == wx.ID_NO:
+    elif error_dlg_response == wx.ID_NO:
         raise SystemExit()
 
 

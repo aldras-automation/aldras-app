@@ -1,5 +1,4 @@
 C:\Users\Noah Baculi\Documents\aldras-app\Workflows\Cover letter creation.txt
-C:\Users\Noah Baculi\Documents\aldras\Workflows\Testy.aldras
 C:\Users\Noah Baculi\Documents\aldras\Workflows\Customer registration.txt
 C:\Users\Noah Baculi\Documents\aldras\Workflows\Debug.txt
 C:\Users\Noah Baculi\Documents\aldras\Workflows\Loop.txt
