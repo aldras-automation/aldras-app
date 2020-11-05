@@ -1,0 +1,4 @@
+HardwareID: 17830
+Loop multiple times 11 {
+Left-mouse click at (742, 586)
+}
