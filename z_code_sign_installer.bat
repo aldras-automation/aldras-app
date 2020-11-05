@@ -1,6 +1,6 @@
 pause -------------------- Confirm that the physical EV code signing USB token from Sectigo is plugged in and the SafeNet Authentication client is active.
 
-set exe_file=aldras-setup-2020-3.exe
+set exe_file=aldras-setup-2020-4.exe
 
 pause -------------------- Confirm that you would like to attempt code siging of the file "%exe_file%".
 
