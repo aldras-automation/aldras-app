@@ -1,7 +1,10 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position] {
-Assign {{~date~}}=November 2nd, 2020
+Loop for each row in table [Company`'`Industry`'`Position`'''`Expedia`'`online travel platform`'`Software Development Engineer I] {
+Assign {{~date~}}=December 18th, 2020
 Left-mouse click at (1075, 29)
+Left-mouse press at (1417, 989)
+Left-mouse release at (820, 257)
+Key del tap
 Hotkey ctrl + r
 Left-mouse click at (350, 244)
 Hotkey ctrl + c

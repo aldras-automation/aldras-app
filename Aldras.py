@@ -4273,7 +4273,7 @@ class LicenseDialog(wx.Dialog):
                              'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
 
 
-def verify_license(first_call=True):
+def verify_license(attempt_number=1):
     try:
         LexActivator.SetProductData(
             "NEIzQkVCN0FEMkM0RDA1RTNGNTU3QjA2ODE2REQxMEI=.iZTNUzPGGQAXXbqnKy/Oahvijek6P3TQu+nIw7Cw4tqwVWKSnNEmmOyvck+ZNqTKoZXPA4roJaQnbm1Pf4Xl0ADwmA3AKbIw49DJVN4Y8jbPHD+NyVIf8Ehap6P72PjpwgTi68AxUlDutjaTkI1rGJvLawbpfvuezc1SgwB4V46jr+GzeHirvLcRY2CLrPUDPp+fs1Z5MIk+aLLdf4K4RibzERK3VhwKahhusxo7hwfJKXJhZkZjHGSkjcdvXRbb1Wtx5jXv/uxKgczEkU4RmtPnsYYuZ/GHEYTju0JfpUcKUlHH9tOgqZjvmVbwj5nv1K/+YxRlgZOf+JQe1R78C1K9UVixvezpgtUdN1R2BkD9sDfIlDl9VcPDf2spbjNfGczkriRzrWoUapTBzmzWwDzm8pZRdzxK95JBC+l3sbmDa+8DrAG7/0FCusTHmZITI0+OuOlom7FmoEQVvtfyE+XV3uXPRVltGM5D9DGWMHTsETV/4i4udnTZ0VipyElqapf5TgTDxtAGek/nYxXkQPLlgl0vr1Q3CdlBrm8Tr+o3SlO/pZZ7ubQ5kG+Edupg5tRDg0P33oCN8yPKMd3WAvRvDkcboDy7E7MpsVc0tQx63iKbgzeYITne/58aQKdZe+2dD/HhOBJFgRX3Mfkg7nCPUo38Stritrch1sZamej+gVdaViXfw2b0YCxNpZsfMRX0yTuduc8H11+vDK8feRrt+tfBkwFYK1lHLrZk7T4=")
@@ -4324,10 +4324,10 @@ def verify_license(first_call=True):
                 LicenseDialog(None, allow_trial=True)
 
     except LexActivatorException as exception:
-        if first_call:
-            # attempt to verify again after a delay
+        if attempt_number <= 3:
+            # attempt to verify three times after a delay
             time.sleep(1)
-            verify_license(first_call=False)
+            verify_license(attempt_number+1)
         else:
             error_network_dlg = wx.MessageDialog(None,
                                                  f'Our license servers could not be contacted.\n\nPlease double check your firewall or network settings.\n\n{exception.message}',

@@ -1,5 +1,5 @@
 HardwareID: 17830
-#This is for the workday applicaiton work experience section. Should be started from the first 'Job Title' field with no other work experiences.
+#This is for the standard Workday applicaiton work experience section. Should be started from the first 'Job Title' field with no other work experiences.
 Type:Founder and Program Manager
 Key tab tap
 Type:Aldras Automation
