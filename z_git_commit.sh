@@ -1,5 +1,10 @@
-pigar  # evaluate dependencies
 git status
+
+echo "Running test cases..."
+python test_all.py  # test cases
+read
+
+pigar  # evaluate dependencies
 
 read
 read -p "Git commit all? ([y]/n): " continue_input

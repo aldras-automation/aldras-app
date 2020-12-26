@@ -7,7 +7,6 @@ Pillow == 7.2.0
 # C:\Users\Noah Baculi\Documents\aldras-app\-- archive\automation_GUI_tkinter.py: 7
 # C:\Users\Noah Baculi\Documents\aldras-app\Aldras.py: 13
 # C:\Users\Noah Baculi\Documents\aldras-app\modules\aldras_threads.py: 7
-# C:\Users\Noah Baculi\Documents\aldras-app\test.py: 1
 PyAutoGUI == 0.9.50
 
 # C:\Users\Noah Baculi\Documents\aldras-app\Aldras.py: 21
