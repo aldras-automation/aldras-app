@@ -1,6 +1,7 @@
-C:\Users\Noah Baculi\Documents\aldras-app\Workflows\Cover letter creation.txt
+C:\Users\Noah Baculi\Documents\aldras-app\Workflows\Test.txt
+C:\Users\Noah Baculi\Documents\aldras-app\Workflows\Testz.txt
 Workflows/Testy.txt
-C:\Users\Noah Baculi\Documents\aldras\Workflows\Customer registration.txt
+C:\Users\Noah Baculi\Documents\aldras-app\Workflows\Cover letter creation.txt
 C:\Users\Noah Baculi\Documents\Personal Google Drive\Scratch\DownloadsWill this work.txt
 Workflows/Asdf.txt
 Workflows/Workflow.txt

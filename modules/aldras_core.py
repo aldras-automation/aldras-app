@@ -105,7 +105,7 @@ def conditional_operation_in(input_string, operations):
     matching_operations_in = [element for element in operations if element.lower() in operation_in]
     if len(matching_operations_in) == 0:
         return ''
-    return matching_operations_in[0]
+    return matching_operations_in[-1]
 
 
 def conditional_comparison_in(input_string):
