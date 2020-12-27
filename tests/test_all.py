@@ -1,22 +1,21 @@
 import unittest
 from modules.aldras_core import *
+from modules.aldras_settings import *
 
 
-class TestInstance(unittest.TestCase):
+class TestInstanceForCore(unittest.TestCase):
 
     # @classmethod
     # def setUpClass(cls):
     #     print('setupClass')
-
+    #
     # @classmethod
     # def tearDownClass(cls):
     #     print('teardownClass')
-
+    #
     # def setUp(self):
     #     print('setUp')
-    #     self.emp_1 = Employee('Corey', 'Schafer', 50000)
-    #     self.emp_2 = Employee('Sue', 'Smith', 60000)
-
+    #
     # def tearDown(self):
     #     print('tearDown\n')
 
@@ -93,6 +92,29 @@ class TestInstance(unittest.TestCase):
                                           "Loop for each row in table [Name`'`ID`'`Country`'''`John Smith`'`1111`'`UK`'''`Amy Baker`'`2222`'`US] {",
                                           'Left-mouse click at (10, 10)', 'Hotkey Ctrl + C', 'Type:',
                                           'Left-mouse click at (10, 10)', 'Left-mouse click at (10, 10)'], 1), -1)
+
+
+class TestInstanceForSettings(unittest.TestCase):
+
+    def test_validate_settings(self):
+        app = wx.App(False)
+        self.assertEqual(validate_settings({"Workflow folder": "C:"}), {'Execute mouse command duration': 0.5,
+                                                                        'Execute mouse command duration checked': True,
+                                                                        'Execute pause between commands': 1.0,
+                                                                        'Execute pause between commands checked': True,
+                                                                        'Freeze method': 'Ctrl',
+                                                                        'Interval between text character outputs': 0.02,
+                                                                        'Interval between text character outputs checked': True,
+                                                                        'Large lines number': 100,
+                                                                        'Notifications': 'Banners',
+                                                                        'Number of hotkeys': 3,
+                                                                        'Number of recent workflows displayed': 3,
+                                                                        'Record method': 'Append',
+                                                                        'Record pause': 'Pauses over',
+                                                                        'Record pause over duration': 5.0,
+                                                                        'Workflow folder': 'C:'})
+        app.MainLoop()
+        del app
 
 
 if __name__ == '__main__':

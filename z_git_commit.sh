@@ -1,12 +1,18 @@
+echo "Git status:"
 git status
+read -p "Press Enter to continue..."
 
-echo "Running test cases..."
-python test_all.py  # test cases
-read
 
+printf "\n\n\n\nRunning all test cases..."
+python -m unittest discover
+read -p "Press Enter to continue..."
+
+
+printf "\n\n\n\nEvaluating dependencies...\n"
 pigar  # evaluate dependencies
+read -p "Press Enter to continue..."
 
-read
+printf "\n\n\n\n"
 read -p "Git commit all? ([y]/n): " continue_input
 
 
