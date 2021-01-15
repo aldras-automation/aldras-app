@@ -323,7 +323,7 @@ def setup_frame(self, status_bar=False):
 
                 except LexActivatorException as exception:
                     wx.MessageDialog(None, f'Your license could not be unregistered\n\n{exception.message}',
-                                     'Aldras: Cannot Unregistered License', wx.OK | wx.ICON_ERROR).ShowModal()
+                                     'Aldras: Cannot Unregister License', wx.OK | wx.ICON_ERROR).ShowModal()
 
             def pause_subscription(self, _):
                 pass
@@ -4294,16 +4294,16 @@ def verify_license(attempt_number=1):
             wx.MessageDialog(None, 'Your license has been suspended. Thank you.', 'Aldras: Suspended License',
                              wx.OK | wx.ICON_INFORMATION).ShowModal()
 
-        elif license_status == LexStatusCodes.LA_GRACE_PERIOD_OVER:
-            # license is genuinely activated but grace period is over and server cannot be contacted
-            error_grace_dlg = wx.MessageDialog(None,
-                                               'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
-                                               'Aldras: Cannot Verify License', wx.YES_NO | wx.ICON_ERROR)
-            error_grace_dlg.SetYesNoLabels('Try Again', 'Quit')
-            error_grace_dlg_response = error_grace_dlg.ShowModal()
-
-            if error_grace_dlg_response == wx.ID_YES:
-                os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
+        # elif license_status == LexStatusCodes.LA_GRACE_PERIOD_OVER:
+        #     # license is genuinely activated but grace period is over and server cannot be contacted
+        #     error_grace_dlg = wx.MessageDialog(None,
+        #                                        'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
+        #                                        'Aldras: Cannot Verify License', wx.YES_NO | wx.ICON_ERROR)
+        #     error_grace_dlg.SetYesNoLabels('Try Again', 'Quit')
+        #     error_grace_dlg_response = error_grace_dlg.ShowModal()
+        #
+        #     if error_grace_dlg_response == wx.ID_YES:
+        #         os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
 
         else:
             # license is not activated

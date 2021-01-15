@@ -1,6 +1,6 @@
 HardwareID: 17830
-Loop for each row in table [Company`'`Industry`'`Position`'''`Astranis`'`geostationary communications satellite`'`Mechanical Engineer] {
-Assign {{~date~}}=December 24th, 2020
+Loop for each row in table [Company`'`Industry`'`Position`'''`Toyo Tanso`'`iso-molded graphite`'`Manufacturing Engineer] {
+Assign {{~date~}}=January 13th, 2021
 Left-mouse click at (1075, 29)
 Left-mouse press at (1417, 989)
 Left-mouse release at (820, 257)

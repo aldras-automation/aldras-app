@@ -1,2 +1,6 @@
 HardwareID: 17830
-Type:Northwestern’'s.
+Left-mouse click at (715, 24)
+Key f12 tap
+Key tab tap
+Type:p
+Key enter tap
