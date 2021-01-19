@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Aldras"
-#define MyAppVersion "2020.4"
+#define MyAppVersion "2021.1"
 #define MyAppPublisher "Aldras"
 #define MyAppURL "https://aldras.com/"
 #define MyAppExeName "Aldras.exe"
@@ -31,7 +31,7 @@ Compression=lzma2/ultra64
 LZMAUseSeparateProcess=yes
 LZMADictionarySize=1048576
 LZMANumFastBytes=273    
-OutputBaseFilename=aldras-setup-2020-4
+OutputBaseFilename=aldras-setup-2021-1
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
