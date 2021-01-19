@@ -211,7 +211,7 @@ def setup_frame(self, status_bar=False):
                 self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
                 # add program version text
-                self.program_version = wx.StaticText(self, label=f'Version 2020')
+                self.program_version = wx.StaticText(self, label=f'Version 2021')
                 change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
                 self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -3896,11 +3896,11 @@ class SelectionFrame(wx.Frame):
 
             def __init__(self, features_unlocked):
                 self.name = 'Aldras'
-                self.version = '2020.4'
+                self.version = '2021.1'
                 self.data_directory = 'data/'
                 self.icon = f'{self.data_directory}{self.name.lower()}.ico'  # should be data/aldras.ico
                 self.png = f'{self.data_directory}{self.name.lower()}.png'  # should be data/aldras.png
-                self.copyright = f'2019-2020 {self.name}'
+                self.copyright = f'2019-2021 {self.name}'
                 self.website = f'https://www.{self.name.lower()}.com/'
                 self.description = f'{self.name} is a simple and intuitive automation tool that can drastically\nimprove the efficiency of processes with repetitive computer tasks.'
                 self.start_stop_directions = ': Press the right control key 3 times'
@@ -4163,7 +4163,7 @@ class LicenseDialog(wx.Dialog):
         self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         # add program version text
-        self.program_version = wx.StaticText(self, label=f'Version 2020')
+        self.program_version = wx.StaticText(self, label=f'Version 2021')
         change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
         self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
 

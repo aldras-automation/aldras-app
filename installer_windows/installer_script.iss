@@ -3,9 +3,11 @@
 
 #define MyAppName "Aldras"
 #define MyAppVersion "2021.1"
+#define MyAppSetupName "aldras-setup-2021-1"
 #define MyAppPublisher "Aldras"
 #define MyAppURL "https://aldras.com/"
 #define MyAppExeName "Aldras.exe"
+
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -31,7 +33,7 @@ Compression=lzma2/ultra64
 LZMAUseSeparateProcess=yes
 LZMADictionarySize=1048576
 LZMANumFastBytes=273    
-OutputBaseFilename=aldras-setup-2021-1
+OutputBaseFilename={#MyAppSetupName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
