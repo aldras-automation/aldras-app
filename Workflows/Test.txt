@@ -1,6 +1,7 @@
-HardwareID: 17830
-Left-mouse click at (715, 24)
-Key f12 tap
-Key tab tap
-Type:p
-Key enter tap
+HardwareID: 17786
+Left-mouse click at (946, 66)
+Hotkey alt + shift + o
+Left-mouse click at (1183, 422)
+Left-mouse click at (1153, 472)
+Left-mouse click at (1110, 692)
+Hotkey win + up

@@ -4280,6 +4280,7 @@ def verify_license(attempt_number=1):
         LexActivator.SetProductId("c1f701ce-2ad7-4505-a186-cd9e3eb89416", PermissionFlags.LA_USER)
 
         license_status = LexActivator.IsLicenseGenuine()
+        print(license_status)
         if license_status == LexStatusCodes.LA_OK:
             # license is valid
             SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
