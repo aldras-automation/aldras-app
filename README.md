@@ -30,8 +30,8 @@
     <li>
       <a href="#about-the-project">About The Project</a>
       <ul>
-        <li><a href="#versions">Versions</a></li>
         <li><a href="#built-with">Built With</a></li>
+        <li><a href="#versions">Versions</a></li>
         <li><a href="#website">Website</a></li>
       </ul>
     </li>
