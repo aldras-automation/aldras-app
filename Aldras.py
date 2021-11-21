@@ -5,7 +5,6 @@ import sys
 import threading
 import time
 import webbrowser
-from datetime import datetime
 from platform import system as system_platform
 
 import numpy as np
@@ -30,19 +29,6 @@ from modules.aldras_core import get_system_parameters, float_in, variable_names_
 from modules.aldras_settings import import_settings, open_settings
 from modules.aldras_threads import ListenerThread, ExecutionThread
 
-
-# TODO comments
-# TODO implement fading shade color of recently modified command
-# TODO error codes with random generation for beta testing bug fixes
-# TODO investigate compartmentalization for better organization
-# TODO alternate row shading (edit frame)
-# TODO control key validation
-# TODO re-runs
-# TODO investigate compilation speed increases (numba, cpython, pypy)
-# TODO investigate speed optimization by converting lists to sets used for 'in' comparisons
-# TODO investigate speed optimization with multiprocessing
-# TODO premium feature separation (any workflow destination)
-# TODO add Mac specific instructions (control --> command key) possibly ESC key?
 
 def matching_widget_in_edit_row(sizer, name):
     matching_widgets = [child.GetWindow() for child in sizer.GetChildren() if

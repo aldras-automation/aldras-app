@@ -1,10 +1,10 @@
 pause -------------------- Confirm that the physical EV code signing USB token from Sectigo is plugged in and the SafeNet Authentication client is active.
 
-set exe_file=aldras-setup-2021-1.exe
+set exe_file=aldras-setup-2021-4.exe
 
 pause -------------------- Confirm that you would like to attempt code siging of the file "%exe_file%".
 
-signtool sign /a /t http://timestamp.digicert.com /v "C:/Users/Noah Baculi/Documents/aldras-app/installer_windows/Output/%exe_file%"
+signtool sign /debug /a /t http://timestamp.digicert.com /v "C:/Users/Noah/Documents/aldras-app/installer_windows/Output/%exe_file%"
 
 :: If 'signtool' command is not recognized, ensure that signtool is installed and the folder is added to the PATH.
 
