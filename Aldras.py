@@ -220,74 +220,10 @@ def setup_frame(self, status_bar=False):
 
                 self.vbox.AddSpacer(20)
 
-                # TODO account for trial activations
-
-                # get license info
-                license_type = ''
-                if LexActivator.IsTrialGenuine() == LexStatusCodes.LA_OK:
-                    license_type = 'Free Trial'
-                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetTrialExpiryDate()).strftime('%Y-%m-%d')
-                    expiration = f'Ends on {expiration_date}'
-                elif LexActivator.IsLicenseGenuine() == LexStatusCodes.LA_OK:
-                    license_type = LexActivator.GetLicenseMetadata('Type').title()
-
-                    expiration_date = datetime.utcfromtimestamp(LexActivator.GetLicenseExpiryDate()).strftime(
-                        '%Y-%m-%d')
-
-                    # find whether subscription will renew or expire from license metadata
-                    end_of_cycle_action = 'Renews'
-                    try:
-                        if LexActivator.GetLicenseMetadata('Expires') == 'True':
-                            end_of_cycle_action = 'Expires'
-                    except LexActivatorException:
-                        pass
-
-                    expiration = f'{end_of_cycle_action} on {expiration_date}'
-                else:
-                    expiration = ''
-
-                # add license type text
-                license_plan_st = wx.StaticText(panel, label=license_type)
-                change_font(license_plan_st, size=14, color=3 * (50,))
-                self.vbox.Add(license_plan_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 5)
-
-                # add expiration date text
-                expiration_date_st = wx.StaticText(panel, label=expiration)
-                change_font(expiration_date_st, size=9, color=3 * (50,))
-                self.vbox.Add(expiration_date_st, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
-
-                # add license key text
-                if LexActivator.IsTrialGenuine() == LexStatusCodes.LA_OK:
-                    self.vbox.AddSpacer(20)
-                else:
-                    license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value=LexActivator.GetLicenseKey(),
-                                                    size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
-                    self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL)  # | wx.EAST | wx.WEST, 30)
-
-                    self.vbox.AddSpacer(40)
-
-                # add buttons
-                button_array = wx.StdDialogButtonSizer()
-
-                # if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                unregister_btn = wx.Button(panel, label='Unregister')
-                unregister_btn.Bind(wx.EVT_BUTTON, self.unregister_license)
-                button_array.Add(unregister_btn)
-
-                button_array.AddStretchSpacer()
-
-                # if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                #     pause_btn = wx.Button(panel, label='Pause')
-                #     pause_btn.Bind(wx.EVT_BUTTON, self.pause_subscription)
-                #     button_array.Add(pause_btn, 0, wx.EAST | wx.WEST, 5)
-
-                if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                    change_btn = wx.Button(panel, label='Manage Subscription')
-                    change_btn.Bind(wx.EVT_BUTTON,
-                                    lambda event: webbrowser.open_new_tab('https://aldras.com/manage-subscriptions'))
-                    button_array.Add(change_btn)
-
-                self.vbox.Add(button_array, 0, wx.EXPAND | wx.SOUTH, 10)
+                license_key_input = wx.TextCtrl(panel, wx.ID_ANY, value='Open-Source Version',
+                                                size=(280, -1), style=wx.TE_READONLY | wx.TE_CENTRE)
+                self.vbox.Add(license_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL)  # | wx.EAST | wx.WEST, 30)
+                self.vbox.AddSpacer(40)
 
                 self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
                 self.vbox_outer.AddSpacer(self.margin_y)  # north margin
@@ -299,31 +235,6 @@ def setup_frame(self, status_bar=False):
                 # license_key_input.SetFocus()
                 self.Center()
                 self.Show()
-
-            def unregister_license(self, _):
-                try:
-                    if LexActivator.IsTrialGenuine() != LexStatusCodes.LA_OK:
-                        confirm_unregister_dlg = wx.MessageDialog(None,
-                                                                  'Please confirm that you would like to unregister this license from this device. Please ensure that you have copied the license key prior to continuing.',
-                                                                  'Aldras: Confirm License Unregister',
-                                                                  wx.YES_NO | wx.ICON_WARNING | wx.CENTRE)
-                        if confirm_unregister_dlg.ShowModal() == wx.ID_NO:
-                            return
-
-                    if self.parent.Name == 'edit_frame':
-                        if self.parent.save_workflow() == 'cancel':
-                            return
-
-                    LexActivator.DeactivateLicense()
-                    LexActivator.Reset()
-
-                    self.Destroy()
-                    self.parent.Destroy()
-                    os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
-
-                except LexActivatorException as exception:
-                    wx.MessageDialog(None, f'Your license could not be unregistered\n\n{exception.message}',
-                                     'Aldras: Cannot Unregister License', wx.OK | wx.ICON_ERROR).ShowModal()
 
             def pause_subscription(self, _):
                 pass
@@ -2464,7 +2375,7 @@ class EditFrame(wx.Frame):
 
                 if num_rows > 41:
                     num_rows_to_generate = (
-                                                       num_rows + 9) // 10 * 10 + 1  # round number of elements up to nearest 10 (+1 for header row)
+                                                   num_rows + 9) // 10 * 10 + 1  # round number of elements up to nearest 10 (+1 for header row)
                     self.grid = CustomGrid(self, table_size=(num_rows_to_generate, num_cols), can_change_num_cols=True,
                                            formatting_function=self.format_grid)
                 else:
@@ -2933,7 +2844,7 @@ class EditFrame(wx.Frame):
             old_action = 'Loop'
 
             old_loop_behavior = \
-            [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
+                [element for element in self.loop_behaviors if element.lower() in self.lines[index].lower()][0]
 
             if old_loop_behavior == 'For each element in list':
                 self.remove_variable_menu_item('{{{{~loop.list.var~}}}}')
@@ -4135,223 +4046,10 @@ class SelectionFrame(wx.Frame):
         self.Close(True)
 
 
-class LicenseDialog(wx.Dialog):
-    """Dialog to verify license."""
-
-    def __init__(self, parent, allow_trial=False, additional_msg=''):
-        wx.Dialog.__init__(self, parent, title=f'Aldras: Activate', name='activation_dialog')
-        self.SetIcon(wx.Icon('data/aldras.ico', wx.BITMAP_TYPE_ICO))
-        self.SetBackgroundColour('white')
-        self.license_panel = wx.Panel(self)
-
-        self.margin_y = 10
-        self.margin_x = 15
-
-        self.vbox = wx.BoxSizer(wx.VERTICAL)  # ------------------------------------------------------------------------
-
-        self.hbox_logo_name_version = wx.BoxSizer(wx.HORIZONTAL)
-
-        # add rescaled logo image
-        png = wx.Image('data/aldras.png', wx.BITMAP_TYPE_PNG).Scale(60, 60, quality=wx.IMAGE_QUALITY_HIGH)
-        self.logo_img = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(png))
-        self.hbox_logo_name_version.Add(self.logo_img, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 10)
-        self.vbox_name_version = wx.BoxSizer(wx.VERTICAL)
-
-        # add program name text
-        self.program_name = wx.StaticText(self, label=f'Aldras Automation')
-        change_font(self.program_name, size=16, color=3 * (20,))
-        self.vbox_name_version.Add(self.program_name, 0, wx.ALIGN_CENTER_HORIZONTAL)
-
-        # add program version text
-        self.program_version = wx.StaticText(self, label=f'Version 2021')
-        change_font(self.program_version, size=10, style=wx.ITALIC, color=3 * (80,))
-        self.vbox_name_version.Add(self.program_version, 0, wx.ALIGN_CENTER_HORIZONTAL)
-
-        self.hbox_logo_name_version.Add(self.vbox_name_version, 0, wx.ALIGN_CENTER_VERTICAL)
-        self.vbox.Add(self.hbox_logo_name_version, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 10)
-
-        # add program name text
-        instruction_text = additional_msg + ' Please enter a license key to activate.'
-        if allow_trial:
-            instruction_text = additional_msg + ' Please enter a license key to activate or start your free trial.'
-
-        self.license_description = wx.StaticText(self.license_panel, label=instruction_text)
-        # change_font(self.license_description, size=12)#, color=3 * (60,))
-        self.vbox.Add(self.license_description, 0, wx.SOUTH, 25)
-
-        # # add text directing users to licenses
-        # self.hbox_more_licenses = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.hbox_more_licenses.Add(
-        #     wx.StaticText(self.license_panel, label='If you do not have a license or trial key, '))
-        # self.hbox_more_licenses.Add(
-        #     wx.adv.HyperlinkCtrl(self.license_panel, wx.ID_ANY, label='start your trial', url='www.aldras.com'))
-        # self.hbox_more_licenses.Add(wx.StaticText(self.license_panel, label=' or '))
-        # self.hbox_more_licenses.Add(
-        #     wx.adv.HyperlinkCtrl(self.license_panel, wx.ID_ANY, label='contact us', url='www.aldras.com'))
-        # self.hbox_more_licenses.Add(wx.StaticText(self.license_panel, label='.'))
-        #
-        # self.vbox.Add(self.hbox_more_licenses, 0, wx.SOUTH, 25)
-
-        # add input field for the license key
-        self.hbox_key_input = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.hbox_key_input.Add(wx.StaticText(self.license_panel, label='License key:'), 0,
-                                wx.ALIGN_CENTER_VERTICAL | wx.WEST, 20)
-
-        self.hbox_key_input.AddSpacer(10)
-
-        self.license_key_input = PlaceholderTextCtrl(self.license_panel, wx.ID_ANY, placeholder='Key', size=(280, -1),
-                                                     style=wx.TE_PROCESS_ENTER | wx.TE_CENTRE)
-        self.Bind(wx.EVT_TEXT_ENTER, self.activate, self.license_key_input)
-        self.hbox_key_input.Add(self.license_key_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.EAST, 20)
-        self.vbox.Add(self.hbox_key_input, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.SOUTH, 25)
-
-        # add buttons
-        self.button_array = wx.StdDialogButtonSizer()
-
-        if allow_trial:
-            self.trial_btn = wx.Button(self.license_panel, label='Start Trial')
-            self.trial_btn.Bind(wx.EVT_BUTTON, self.start_trial)
-            self.button_array.Add(self.trial_btn)
-
-        self.button_array.AddStretchSpacer()
-        self.activate_btn = wx.Button(self.license_panel, label='Activate')
-        self.activate_btn.Bind(wx.EVT_BUTTON, self.activate)
-        self.button_array.Add(self.activate_btn)
-        self.button_array.AddSpacer(5)
-        self.close_btn = wx.Button(self.license_panel, label='Close')
-        self.close_btn.Bind(wx.EVT_BUTTON, lambda event: self.Destroy())
-        self.button_array.Add(self.close_btn)
-
-        self.vbox.Add(self.button_array, 0, wx.EXPAND | wx.SOUTH, 10)
-
-        self.vbox_outer = wx.BoxSizer(wx.VERTICAL)
-        self.vbox_outer.AddSpacer(self.margin_y)  # north margin
-        self.vbox_outer.Add(self.vbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EAST | wx.WEST, self.margin_x)
-
-        # display frame
-        self.license_panel.SetSizerAndFit(self.vbox_outer)
-        self.vbox_outer.SetSizeHints(self)
-        self.activate_btn.SetFocus()
-        self.Center()
-        self.Show()
-
-    def start_trial(self, _):
-        try:
-            LexActivator.ActivateTrial()
-            trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
-            show_notification(None, 'Trial Started', f'{trial_days_remaining} days remaining')
-            SelectionFrame(None, 'trial')
-            self.Destroy()
-
-        except LexActivatorException as exception:
-            wx.MessageDialog(None,
-                             f'Your trial could not be started\n\n{exception.message}',
-                             'Aldras: Cannot Start Trial', wx.OK | wx.ICON_ERROR).ShowModal()
-
-    def activate(self, _):
-        try:
-            LexActivator.SetLicenseKey(self.license_key_input.GetValue())
-            status = LexActivator.ActivateLicense()
-            if status == LexStatusCodes.LA_OK:
-                SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
-            elif status == LexStatusCodes.LA_EXPIRED:
-                wx.MessageDialog(self, 'This license has expired.', 'Aldras: Expired License',
-                                 wx.OK | wx.ICON_ERROR).ShowModal()
-            elif status == LexStatusCodes.LA_SUSPENDED:
-                wx.MessageDialog(self, 'This license is no longer valid.', 'Aldras: Invalid License',
-                                 wx.OK | wx.ICON_ERROR).ShowModal()
-            else:
-                wx.MessageDialog(self, 'Your license could not be activated due to an error.',
-                                 'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
-
-            self.Destroy()
-        except LexActivatorException as exception:
-            wx.MessageDialog(self,
-                             f'Your license could not be activated\n\n{exception.message}',
-                             'Aldras: Cannot Activate License', wx.OK | wx.ICON_ERROR).ShowModal()
-
-
-def verify_license(attempt_number=1):
-    try:
-        LexActivator.SetProductData(
-            "NEIzQkVCN0FEMkM0RDA1RTNGNTU3QjA2ODE2REQxMEI=.iZTNUzPGGQAXXbqnKy/Oahvijek6P3TQu+nIw7Cw4tqwVWKSnNEmmOyvck+ZNqTKoZXPA4roJaQnbm1Pf4Xl0ADwmA3AKbIw49DJVN4Y8jbPHD+NyVIf8Ehap6P72PjpwgTi68AxUlDutjaTkI1rGJvLawbpfvuezc1SgwB4V46jr+GzeHirvLcRY2CLrPUDPp+fs1Z5MIk+aLLdf4K4RibzERK3VhwKahhusxo7hwfJKXJhZkZjHGSkjcdvXRbb1Wtx5jXv/uxKgczEkU4RmtPnsYYuZ/GHEYTju0JfpUcKUlHH9tOgqZjvmVbwj5nv1K/+YxRlgZOf+JQe1R78C1K9UVixvezpgtUdN1R2BkD9sDfIlDl9VcPDf2spbjNfGczkriRzrWoUapTBzmzWwDzm8pZRdzxK95JBC+l3sbmDa+8DrAG7/0FCusTHmZITI0+OuOlom7FmoEQVvtfyE+XV3uXPRVltGM5D9DGWMHTsETV/4i4udnTZ0VipyElqapf5TgTDxtAGek/nYxXkQPLlgl0vr1Q3CdlBrm8Tr+o3SlO/pZZ7ubQ5kG+Edupg5tRDg0P33oCN8yPKMd3WAvRvDkcboDy7E7MpsVc0tQx63iKbgzeYITne/58aQKdZe+2dD/HhOBJFgRX3Mfkg7nCPUo38Stritrch1sZamej+gVdaViXfw2b0YCxNpZsfMRX0yTuduc8H11+vDK8feRrt+tfBkwFYK1lHLrZk7T4=")
-        LexActivator.SetProductId("c1f701ce-2ad7-4505-a186-cd9e3eb89416", PermissionFlags.LA_USER)
-
-        license_status = LexActivator.IsLicenseGenuine()
-        print(license_status)
-        if license_status == LexStatusCodes.LA_OK:
-            # license is valid
-            SelectionFrame(None, LexActivator.GetLicenseMetadata('Type'))
-
-        elif license_status == LexStatusCodes.LA_EXPIRED:
-            # license is genuinely activated but has expired
-            show_notification(None, 'Expired License', 'Your license has expired')
-            LicenseDialog(None, additional_msg='Your license has expired.')
-
-        elif license_status == LexStatusCodes.LA_SUSPENDED:
-            # license is genuinely activated but has been suspended
-            wx.MessageDialog(None, 'Your license has been suspended. Thank you.', 'Aldras: Suspended License',
-                             wx.OK | wx.ICON_INFORMATION).ShowModal()
-
-        # elif license_status == LexStatusCodes.LA_GRACE_PERIOD_OVER:
-        #     # license is genuinely activated but grace period is over and server cannot be contacted
-        #     error_grace_dlg = wx.MessageDialog(None,
-        #                                        'The license server cannot be contacted. Ensure you are connected to the internet. Please contact us if you believe you are receiving this message in error.',
-        #                                        'Aldras: Cannot Verify License', wx.YES_NO | wx.ICON_ERROR)
-        #     error_grace_dlg.SetYesNoLabels('Try Again', 'Quit')
-        #     error_grace_dlg_response = error_grace_dlg.ShowModal()
-        #
-        #     if error_grace_dlg_response == wx.ID_YES:
-        #         os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
-
-        else:
-            # license is not activated
-            trial_status = LexActivator.IsTrialGenuine()
-            if trial_status == LexStatusCodes.LA_OK:
-                # trial is valid
-                trial_days_remaining = round((LexActivator.GetTrialExpiryDate() - time.time()) / 86400)
-                show_notification(None, 'Trial Update', f'{trial_days_remaining} days of trial remaining')
-                SelectionFrame(None, 'trial')
-                print(f'Valid trial with {(LexActivator.GetTrialExpiryDate() - time.time()) / 86400} days left')
-
-            elif trial_status == LexStatusCodes.LA_TRIAL_EXPIRED:
-                # trial has expired
-                LicenseDialog(None, additional_msg='Your trial has expired.')
-
-            else:
-                # no trial has been started yet
-                LicenseDialog(None, allow_trial=True)
-
-    except LexActivatorException as exception:
-        if attempt_number <= 3:
-            # attempt to verify three times after a delay
-            time.sleep(1)
-            verify_license(attempt_number+1)
-        else:
-            error_network_dlg = wx.MessageDialog(None,
-                                                 f'Our license servers could not be contacted.\n\nPlease double check your firewall or network settings.\n\n{exception.message}',
-                                                 'Aldras: License Server Error', wx.YES_NO | wx.ICON_ERROR)
-            error_network_dlg.SetYesNoLabels('Try Again', 'Quit')
-            error_network_dlg_response = error_network_dlg.ShowModal()
-
-            if error_network_dlg_response == wx.ID_YES:
-                os.execl(sys.executable, sys.executable, *sys.argv)  # restart program, does not work in IDE
-
-
 if __name__ == '__main__':
     mouse_monitor_frame = None
     adv_edit_guide = None
     sys.excepthook = exception_handler
-
-    try:
-        from cryptlex.lexactivator import *
-
-        print('Cryptlex successfully imported')
-    except Exception as e:
-        print('Cryptlex unsuccessfully imported', e)
-        input('Press enter to continue: ')
 
     fernet = Fernet(b'hIYvMZaPz2ISuLmLXspJDwQNJVB_0D-d-Ftjm0eGSFo=')
     advanced_feature_license_types = ['professional', 'trial']  # these license types get access to unlockable features
@@ -4359,7 +4057,8 @@ if __name__ == '__main__':
     app = wx.App(False)
 
     if system_platform() == 'Windows':
-        verify_license()
+        SelectionFrame(None, 'professional')
+
     else:
         wx.MessageDialog(None,
                          'Unfortunately at this time, Aldras has only\nbeen tested and released for use on Windows.',
