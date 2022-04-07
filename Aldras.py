@@ -111,7 +111,7 @@ def setup_frame(self, status_bar=False):
                 # add privacy statement button
                 self.privacy_btn = wx.Button(self, label='Privacy')
                 self.privacy_btn.Bind(wx.EVT_BUTTON,
-                                      lambda event: webbrowser.open_new_tab('https://aldras.com/privacy'))
+                                      lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/privacy'))
                 self.hbox_btns.Add(self.privacy_btn)
 
                 self.vbox.AddMany([(self.vbox_top, 0, wx.EXPAND | wx.NORTH | wx.EAST | wx.WEST, 40),
@@ -136,7 +136,7 @@ def setup_frame(self, status_bar=False):
                             with open('data/license.txt', 'r') as license_file:
                                 license_text = ''.join(license_file.readlines())
                         except FileNotFoundError:  # create file if not found
-                            license_text = 'License file could be found...\n\nPlease contact us at aldras.com/contact for EULA information.'
+                            license_text = 'License file could be found...\n\nPlease contact us at aldras.netlify.com/contact for EULA information.'
 
                         vbox_container = wx.BoxSizer(wx.VERTICAL)
                         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -550,25 +550,25 @@ def setup_frame(self, status_bar=False):
 
     menu_getting_started = help_menu.Append(wx.ID_ANY, 'Getting Started',
                                             f'   {self.software_info.name} getting started guide')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#quickstart'),
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/docs#quickstart'),
               menu_getting_started)
 
     menu_command_ref = help_menu.Append(wx.ID_ANY, 'Command Reference',
                                         f'   {self.software_info.name} command reference')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#commands'), menu_command_ref)
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/docs#commands'), menu_command_ref)
     # self.Bind(wx.EVT_MENU, lambda event: launch_edit_guide(self), menu_command_ref)
 
     menu_recording_tips = help_menu.Append(wx.ID_ANY, 'Recording', f'   {self.software_info.name} recording tips')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#recording'),
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/docs#recording'),
               menu_recording_tips)
 
     menu_execution_tips = help_menu.Append(wx.ID_ANY, 'Execution', f'   {self.software_info.name} execution tips')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/docs#execution'),
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/docs#execution'),
               menu_execution_tips)
 
     menu_feedback = help_menu.Append(wx.ID_ANY, 'Submit Feedback',
                                      f'   Submit feedback to {self.software_info.name}')
-    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.com/contact'), menu_feedback)
+    self.Bind(wx.EVT_MENU, lambda event: webbrowser.open_new_tab('https://aldras.netlify.com/contact'), menu_feedback)
 
     menu_bar.Append(help_menu, 'Help')  # add the insert menu to the menu bar
 
@@ -3950,7 +3950,7 @@ class SelectionFrame(wx.Frame):
     def check_for_updates(self):
         if check_internet_connection():
             try:
-                html_page = requests.get('https://aldras.com/assets/html/download_section').text
+                html_page = requests.get('https://aldras.netlify.com/assets/html/download_section').text
                 soup = BeautifulSoup(html_page, features='html.parser')
 
                 for link in soup.findAll('a'):  # loop through all links
@@ -3972,8 +3972,8 @@ class SelectionFrame(wx.Frame):
                                                                 'Later')  # rename 'Yes' and 'No' labels to 'Download' and 'Later'
 
                             if update_available_dlg.ShowModal() == wx.ID_YES:
-                                # download_link = 'https://aldras.com/downloads/aldras-setup-' + version_and_extension
-                                download_link = 'https://aldras.com/download'
+                                # download_link = 'https://aldras.netlify.com/downloads/aldras-setup-' + version_and_extension
+                                download_link = 'https://aldras.netlify.com/download'
                                 webbrowser.open_new_tab(download_link)
             except Exception:
                 pass

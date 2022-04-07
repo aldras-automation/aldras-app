@@ -3,7 +3,7 @@
 
 <br>
 <div align="center">
-  <a href="https://www.aldras.com/">
+  <a href="https://www.aldras.netlify.com/">
     <img src="data/aldras.ico" alt="Logo" width="80" height="80">
   </a>
 
@@ -12,7 +12,7 @@
   <p align="center">
     User-friendly desktop automation application to record and automate repetitive computer workflows.
     <br>
-    <a href="https://www.aldras.com/"><strong>Explore »</strong></a>
+    <a href="https://www.aldras.netlify.com/"><strong>Explore »</strong></a>
     <br>
     <br>
     <a href="https://github.com/aldras-automation/aldras-app/issues">Report Bug</a>
@@ -62,7 +62,7 @@
 ## About The Project
 <br>
 <p align="center" style="padding: 0 10%;">
-  <a href="https://www.aldras.com/">
+  <a href="https://www.aldras.netlify.com/">
     <img src="data/readme/aldras_mockup_2.png" />
   </a>
 </p>
@@ -151,12 +151,12 @@ See the visual guides for how this tech stack was implemented in the <a href="#c
 ## Getting Started
 
 To download the open-source version of the application for Windows, navigate to
-[`aldras.com/download`](https://www.aldras.com/download) or download the `.exe`
+[`aldras.netlify.com/download`](https://www.aldras.netlify.com/download) or download the `.exe`
 installer from the repository.
 
 For additional guidance getting started, feel free to review some of the [video
-guides](https://aldras.com/video) or [written
-documentation](https://aldras.com/docs).
+guides](https://aldras.netlify.com/video) or [written
+documentation](https://aldras.netlify.com/docs).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

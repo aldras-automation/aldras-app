@@ -5,7 +5,7 @@
 #define MyAppVersion "2021.4"
 #define MyAppSetupName "aldras-setup-2021-4"
 #define MyAppPublisher "Aldras"
-#define MyAppURL "https://aldras.com/"
+#define MyAppURL "https://aldras.netlify.com/"
 #define MyAppExeName "Aldras.exe"
 
 

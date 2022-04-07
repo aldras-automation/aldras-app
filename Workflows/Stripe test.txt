@@ -1,5 +1,5 @@
 HardwareID: 17830
-Type:test@aldras.com
+Type:test@aldras.netlify.com
 Key tab tap
 Type:4242424242424242
 Key tab tap
