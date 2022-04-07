@@ -188,7 +188,7 @@ def exception_handler(error_type, value, trace):
     if error_dlg_response == wx.ID_YES:
         # TODO add feedback submission link
         import webbrowser
-        webbrowser.open('https://www.aldras.netlify.com/')
+        webbrowser.open('https://aldras.netlify.com/')
     elif error_dlg_response == wx.ID_NO:
         raise SystemExit()
 
