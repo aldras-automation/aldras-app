@@ -203,7 +203,7 @@ Distributed under the GNU GPLv3 License. See `LICENSE.txt` for more information.
 
 ## Commercial Version Reference
 
-These notes document the tech stack used in the the commercial version of the
+These notes document the tech stack used in the commercial version of the
 Aldras app before the open-source version.
 
 
